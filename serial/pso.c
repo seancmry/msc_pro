@@ -2,11 +2,11 @@
 #include <stdlib.h>
 #include <math.h>
 #include <time.h>
+#include <float.h>
+#include <string.h>
 #include "defs.h"
 
-int main(int argc, char *argv[]) {
-
-	parse_args(argc, argv);
+#include "pso.h"
 
 // generate a random number between (0, 1)
 #define RNG_UNIFORM() (rand()/(double)RAND_MAX)

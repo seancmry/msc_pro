@@ -4,7 +4,7 @@
 
 
 // CONSTANTS
-#define PSO_MAX_SIZE 100 // max swarm size
+#define PSO_MAX_SIZE 10000 // max swarm size
 #define PSO_INERTIA 0.7298 // default value of w (see clerc02)
 
 

@@ -61,17 +61,17 @@ int main(int argc, char **argv) {
     if (argc == 2) {
         if (strcmp(argv[1], "rosenbrock") == 0) {
             obj_fun = pso_rosenbrock;
-            settings = pso_settings_new(30, -2.048, 2.048);
+            settings = pso_settings_new(1000, -2.048, 2.048);
             printf("Optimizing function: rosenbrock (dim=%d, swarm size=%d)\n",
                    settings->dim, settings->size);
         } else if (strcmp(argv[1], "griewank") == 0) {
             obj_fun = pso_griewank;
-            settings = pso_settings_new(30, -600, 600);
+            settings = pso_settings_new(1000, -600, 600);
             printf("Optimizing function: griewank (dim=%d, swarm size=%d)\n",
                    settings->dim, settings->size);
         } else if (strcmp(argv[1], "sphere") == 0) {
             obj_fun = pso_sphere;
-            settings = pso_settings_new(30, -100, 100);
+            settings = pso_settings_new(1000, -100, 100);
             printf("Optimizing function: sphere (dim=%d, swarm size=%d)\n",
                    settings->dim, settings->size);
         } else {
@@ -86,16 +86,16 @@ int main(int argc, char **argv) {
     // handle the default case (no argument given)
     if (obj_fun == NULL || settings == NULL) {
         obj_fun = pso_sphere;
-        settings = pso_settings_new(30, -100, 100);
+        settings = pso_settings_new(1000, -100, 100);
         printf("Optimizing function: sphere (dim=%d, swarm size=%d)\n",
                    settings->dim, settings->size);
     }
 
     // set some general PSO settings
-    settings->goal = 1e-5;
+    settings->goal = 1e-7;
     settings->size = 30;
     settings->nhood_strategy = PSO_NHOOD_RING;
-    settings->nhood_size = 10;
+    settings->nhood_size = 100;
     settings->w_strategy = PSO_W_LIN_DEC;
 
     // initialize GBEST solution

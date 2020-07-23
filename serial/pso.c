@@ -4,7 +4,7 @@
 #include <time.h>
 #include <float.h>
 #include <string.h>
-#include "defs.h"
+#include "utils.h"
 
 #include "pso.h"
 
@@ -209,7 +209,7 @@ pso_settings_t *pso_settings_new(int dim, double range_lo, double range_hi) {
 
     settings->size = pso_calc_swarm_size(settings->dim);
     settings->print_every = 1000;
-    settings->steps = 100000;
+    settings->steps = 10000;
     settings->c1 = 1.496;
     settings->c2 = 1.496;
     settings->w_max = PSO_INERTIA;

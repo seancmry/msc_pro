@@ -6,7 +6,7 @@
 #include <getopt.h>
 #include <sys/time.h>
 #include "pso.h"
-
+#include "mpi.h"
 
 //==============================================================
 //                  BENCHMARK FUNCTIONS

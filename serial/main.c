@@ -11,7 +11,12 @@
 //==============================================================
 //                  BENCHMARK FUNCTIONS
 //==============================================================
-
+//Will be revised and new ones implemented. This will form part of
+//a discussion section. Check sources, with similar studies, and 
+//what functions they have used. Some of these may include Ackley,
+//Griewank, Rastrigin, Rosenbrock, Schaffer, Schwefel, etc. The ones
+//detailed here are pretty standard for the evaluation of PSO in the 
+//context of path planning.
 double pso_sphere(double *vec, int dim, void *params) {
 
     double sum = 0;
@@ -54,10 +59,10 @@ double pso_griewank(double *vec, int dim, void *params) {
 
 
 int main(int argc, char **argv) {
-
+//Initialise the settings variable to null.
 	pso_settings_t *settings = NULL;
         pso_obj_fun_t obj_fun = NULL;
-
+//Options. Will be rehashed.
         while((c = getopt(argc,argv,"n:m:t"))!=-1){
 		switch(c){
 			case 'n': N = atoi(optarg);
@@ -109,16 +114,16 @@ int main(int argc, char **argv) {
                    settings->dim, settings->size);
     }
 
-    // set some general PSO settings
+    // set up some general PSO settings
     settings->goal = 1e-7;
     settings->size = 30;
     settings->nhood_strategy = PSO_NHOOD_RING;
     settings->nhood_size = 100;
     settings->w_strategy = PSO_W_LIN_DEC;
 
-    // initialize GBEST solution
+    // initialize GBEST solution - global best
     pso_result_t solution;
-    // allocate memory for the best position buffer
+    // allocate memory for the best position buffer - this is key in the parallel version.
     solution.gbest = (double *)malloc(settings->dim * sizeof(double));
 
     // run optimization algorithm

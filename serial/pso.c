@@ -98,7 +98,7 @@ void inform(int *comm, double **pos_nb, double **pos_b, double *fit_b,
 // =============
 // ring topology
 // =============
-
+//Try some different topologies
 // topology initialization :: this is a static (i.e. fixed) topology
 void init_comm_ring(int *comm, pso_settings_t * settings) {
     int i;

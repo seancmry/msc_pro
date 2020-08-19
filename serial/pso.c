@@ -5,6 +5,7 @@
 #include <float.h>
 #include <string.h>
 #include "utils.h"
+#include "omp.h"
 
 #include "pso.h"
 

@@ -15,7 +15,7 @@ typedef struct {
     double distToTarget;
     double stepSize;
     double velocity;
-} robot_t;
+} uav_t; //Since it's a UAV, will have to update coords to 3d
 
 typedef struct {
     double *waypoints;
@@ -41,7 +41,22 @@ typedef struct {
     env_t * env;
 } pso_params_t;
 
-int ** readMap (char * fhandle, int height, int width) {
+/////////////////////////NEW FUNCS ADDED AT THE TOP///////////////////////
+
+//Will then also have to calculate the shortest distance from the obstacle
+float distance_from_obstacle(/*coord inputs, */ float centre_x, float centre_y, float rad) {
+
+	float slope = (input1.y - input0.y) / (input1.x - input0.x);
+	float num = fabs((slope * centre_x) - centre_y + input0.y - (slope * input0.x));
+	float den = sqrt(1 + pow(slope, 2.0));
+	float obstacle_distance = ((num/den) - rad);
+	return obstacle_distance;
+
+}
+
+
+////////////////////////OTHER FUNCS//////////////////////////////////////
+int ** readMap (char * fhandle, int height, int width, int length) {
 
     FILE *file;
     file = fopen(fhandle, "r");

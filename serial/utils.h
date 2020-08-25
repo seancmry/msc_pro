@@ -1,6 +1,9 @@
 #ifndef _UTILS_H_
 #define _UTILS_H_
 
+int NUM_OBSTRUCT = 10;
+
+
 //Function defs
 int parse_args(int argc, char **argv) {
 	

@@ -20,6 +20,44 @@
 // **see http://clerc.maurice.free.fr/pso/random_topology.pdf**
 #define PSO_NHOOD_RANDOM 2
 
+//NOTE: the general random function below should serve a number of functions - see C++ 
+//example - such as generating random obstacles, namely circles in varying 
+//locations on the map grid.
+float *generate_random(int swarm_size, float lower, float upper) {
+
+	/*Fix this bit*/
+	int i;
+	srand(time(NULL));
+	//Default C++ random engine
+	std::mt19937 re;
+
+	//initialise the random generator with a time-dependent seed
+	
+	//generate random number
+	float *random_array = malloc(sizeof(float));
+	swarm_size = random_array;
+
+	const int nSimulations = swarm_size;
+	for(j=0;j<nSimulations;j++) {
+		float random_float = unif(re);
+		random_array[j] = random_float;
+	}
+	return random_array;
+}
+
+
+//Circular obstacle
+bool circle(float x, float y, float centre_x, float centre_y) {
+	
+	float r = 0;
+	float rad = sqrt(pow(x - centre_x, 2.0) + pow(y - centre_y, 2.0));
+      	if (radius <= 1.2 * r) {
+		return true;
+	} else {
+		return false;
+	}
+
+}
 
 
 // === INERTIA WEIGHT UPDATE FUNCTIONS ===

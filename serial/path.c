@@ -92,6 +92,7 @@ double euclideanDistance(double xi, double yi, double xj, double yj) {
     return pow( pow(xi - xj, 2) + pow(yi - yj, 2), 0.5);
 }
 
+//Not sure if this is actually used for anything
 double ChessboardDistance(double xi, double yi, double xj, double yj) {
     double xDiff = abs(xi - xj);
     double yDiff = abs(yi - yj);

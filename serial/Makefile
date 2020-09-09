@@ -1,11 +1,11 @@
 
-CC=g++
-CFLAGS=-Wall -g
-DEPS=pso.h
+CC = gcc
+CFLAGS = -Wall -g
+DEPS = pso.h
 
-SOURCE_FILES=$(shell find . -name '*.c')
-OBJ_FILES=$(SOURCE_FILES:.c=.o) 
-LIB=-lm 
+SOURCE_FILES = $(shell find . -name '*.c')
+OBJ_FILES = $(SOURCE_FILES:.c=.o) 
+LIB = -lm 
 
 %.o: %.c $(DEPS)
 	$(CC) -c -o $@ $< $(CFLAGS)

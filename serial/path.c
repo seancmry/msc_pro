@@ -76,6 +76,44 @@ int ** readMap (char * fhandle, int height, int width, int length) {
     fclose(file);
     return map;
 }
+//Map rules - based on a similar programme created to run a conway's game of life.
+int* rules(int x, int y, char* prevIter)
+{
+	char* iters = malloc(x*y * sizeof(int));
+	if (prevIter == NULL) return NULL;
+
+	for (int j = 1; j < x - 1; j++)
+	{
+		for (int i = 1; i < y - 1; i++)
+		{
+			/*
+			int live = Cells(rows, columns, i, j, prevGame);
+			char cell = *(prevGame + y * columns + x);
+			if (cell == '#') live--;
+			*(steppedGame + y * columns + x) = cell;
+
+			if (live < 2)
+			{
+				*(steppedGame + y * columns + x) = '.';
+			}
+			else if ((live == 2 || live == 3) && cell == '#')
+			{
+				*(steppedGame + y * columns + x) = '#';
+			}
+			else if (live > 3 && cell == '#')
+			{
+				*(steppedGame + y * columns + x) = '.';
+			}
+			else if (live == 3 && cell == '.')
+			{
+				*(steppedGame + y * columns + x) = '#';
+			}
+		}
+	}
+	return steppedGame;
+	free(steppedGame);
+}
+*/
 
 void printMap (int **map, int height, int width){
     int i = 0, j = 0;

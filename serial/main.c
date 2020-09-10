@@ -62,7 +62,9 @@ int main(int argc, char **argv) {
 //Initialise the settings variable to null.
 	pso_settings_t *settings = NULL;
         pso_obj_fun_t obj_fun = NULL;
-//Options. Will be rehashed.
+
+	/*
+	//Options. Will be rehashed.
         while((c = getopt(argc,argv,"n:m:t"))!=-1){
 		switch(c){
 			case 'n': N = atoi(optarg);
@@ -80,7 +82,7 @@ int main(int argc, char **argv) {
 		printf("Too many options entered, exiting\n");
 		return 1;
 	}
-
+*/
     if (argc == 2) {
         if (strcmp(argv[1], "rosenbrock") == 0) {
             obj_fun = pso_rosenbrock;
@@ -139,7 +141,7 @@ int main(int argc, char **argv) {
 
 }
 
-
+/*
 void printUsage() {
 
 
@@ -148,4 +150,4 @@ void printUsage() {
 
 
 }
-
+*/

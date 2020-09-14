@@ -9,6 +9,7 @@
 
 #include "pso.h"
 
+/*
 float round_num(float d) {
 	float g = 0.0, e = 0.0, f = 0.0;
 	g = floor(d);
@@ -31,8 +32,9 @@ float round_num(float d) {
 	}
 	return f;
 }
+*/
 
-/*
+
 // generate a random number between (0, 1)
 #define RNG_UNIFORM() (rand()/(double)RAND_MAX)
 
@@ -47,7 +49,6 @@ typedef void (*inform_fun_t)(int *comm, double **pos_nb,
 
 // function type for the different inertia calculation functions
 typedef double (*inertia_fun_t)(int step, pso_settings_t *settings);
-*/
 
 //==============================================================
 // calulate swarm size based on dimensionality
@@ -210,8 +211,8 @@ void inform_random(int *comm, double *pos_nb,
 }
 
 //set x value limits (hi and lo) using two constants
-double ** pso_autofill_limits(double x_lo, double x_hi, int dim) {
-	double ** limits = (double **) malloc (sizeof(double*)*2);
+double **pso_autofill_limits(double x_lo, double x_hi, int dim) {
+	double **limits = (double **) malloc (sizeof(double*)*2);
 	//limits[0]: lower bound
 	limits[0] = (double*)malloc(sizeof(double) * dim);
 	//limits[1]: higher bound
@@ -281,7 +282,7 @@ void pso_set_default_settings(pso_settings_t *settings) {
 
    	//return settings;
 }
-/*
+
 // destroy PSO settings
 void pso_settings_free(pso_settings_t *settings) {
     free(settings->range_lo);
@@ -305,7 +306,6 @@ void pso_matrix_free(double **m, int size) {
     }
     free(m);
 }
-*/
 
 //==============================================================
 //                     PSO ALGORITHM

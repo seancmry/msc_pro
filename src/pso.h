@@ -20,20 +20,6 @@
 // **see http://clerc.maurice.free.fr/pso/random_topology.pdf**
 #define PSO_NHOOD_RANDOM 2
 
-//Circular obstacle
-bool circle(float x, float y, float centre_x, float centre_y) {
-	
-	float r = 0;
-	float rad = sqrt(pow(x - centre_x, 2.0) + pow(y - centre_y, 2.0));
-      	if (radius <= 1.2 * r) {
-		return true;
-	} else {
-		return false;
-	}
-
-}
-
-
 // === INERTIA WEIGHT UPDATE FUNCTIONS ===
 #define PSO_W_CONST 0
 #define PSO_W_LIN_DEC 1

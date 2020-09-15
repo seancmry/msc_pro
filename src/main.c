@@ -6,7 +6,7 @@
 #include <getopt.h>
 #include <sys/time.h>
 #include "pso.h"
-
+#include "utils.h"
 
 //==============================================================
 //                  BENCHMARK FUNCTIONS
@@ -55,33 +55,33 @@ double pso_griewank(double *vec, int dim, void *params) {
 int main (int argc, char **argv){
 
     	/* Start nasty hard coded segment */
-    	int inRoboID = 0;
-    	double inStartX = 70.0;
-    	double inStartY = 70.0;
-    	double inEndX = 136.0;
-    	double inEndY = 127.0;
-    	double inStepSize = 1;
-    	double inVelocity = 2;
-    	double inOriginX = 0;
-    	double inOriginY = 0;
-    	double inHorizonX = 200;
-    	double inHorizonY = 200;  // 70
+	//int inRoboID = 0;
+    	//double inStartX = 70.0;
+    	//double inStartY = 70.0;
+    	//double inEndX = 136.0;
+    	//double inEndY = 127.0;
+    	//double inStepSize = 1;
+    	//double inVelocity = 2;
+    	//double inOriginX = 0;
+    	//double inOriginY = 0;
+    	//double inHorizonX = 200;
+    	//double inHorizonY = 200;  // 70
     	//char inFileHandle[20] = "maps/sampleMap4.dat\0";
-    	char inFileHandle[] = "OccupancyMap.txt";
+    	char inFileHandle[] = "Berlin52.txt";
     	int waypoints = 5;
     	/* End nasty hard coded segment */
 
     	/* PSO parameters */
-    	double pso_c1 = -1.0;
-    	double pso_c2 = -1.0;
-    	double pso_w_max = -1.0;
-    	double pso_w_min = -1.0;
-    	int pso_w_strategy_select = -1;
-    	int pso_nhood_size = -1;
-    	int pso_nhood_topology_select = -1;
+    	//double pso_c1 = -1.0;
+    	//double pso_c2 = -1.0;
+    	//double pso_w_max = -1.0;
+    	//double pso_w_min = -1.0;
+    	//int pso_w_strategy_select = -1;
+    	//int pso_nhood_size = -1;
+    	//int pso_nhood_topology_select = -1;
 
-    	int pso_w_strategy = -1;
-    	int pso_nhood_topology = -1;
+    	//int pso_w_strategy = -1;
+    	//int pso_nhood_topology = -1;
 
     	/* Option parsing */
     	int verbose = 0;
@@ -174,7 +174,12 @@ int main (int argc, char **argv){
     	printf ("obstacles: %d\n", obstacles);
 
 	
-	//DEMO
+	/* 
+	 *
+	 * DEMO 
+	 *
+	 *
+	 *
     	if (argc == 2) {
         	if (strcmp(argv[1], "rosenbrock") == 0) {
             		obj_fun = pso_rosenbrock;
@@ -208,7 +213,8 @@ int main (int argc, char **argv){
                    	settings->dim, settings->size);
     	}
 
-  
+  	*/
+
     	// initialize GBEST solution - global best
     	pso_result_t solution;
     	// allocate memory for the best position buffer - this is key in the parallel version.

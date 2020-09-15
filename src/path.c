@@ -129,6 +129,15 @@ double euclideanDistance(double xi, double yi, double xj, double yj) {
     	return pow( pow(xi - xj, 2) + pow(yi - yj, 2), 0.5);
 }
 
+//Circular obstacle
+bool circle(float x, float y, float centre_x, float centre_y) {
+	
+	float rad, r = 0;
+      	if (rad <= 1.2 * r) 
+		return sqrt(pow(x - centre_x, 2.0) + pow(y - centre_y, 2.0));
+}
+
+
 //Specify the uav features and allocate space for it
 uav_t * init_uav(int ID, double xInit, double yInit, double xTarget, double yTarget, double stepSize, double velocity) {
     	uav_t *uav = (uav_t *) malloc (sizeof (uav_t) * 1);

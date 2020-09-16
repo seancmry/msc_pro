@@ -1,3 +1,12 @@
+#include <math.h>
+#include <string.h>
+#include <gsl/gsl_rng.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
+#include <stdbool.h>
+#include <ctype.h>
+
 #include "path.h"
 #include "pso.h"
 

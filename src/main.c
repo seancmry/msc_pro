@@ -8,6 +8,7 @@
 
 #include "pso.h"
 #include "path.h"
+#include "utils.h"
 
 //==============================================================
 //                  BENCHMARK FUNCTIONS
@@ -68,8 +69,8 @@ int main (int argc, char **argv){
     	//double inHorizonX = 200;
     	//double inHorizonY = 200;  // 70
     	//char inFileHandle[20] = "maps/sampleMap4.dat\0";
-    	char inFileHandle[] = "Berlin52.txt";
-    	int waypoints = 5;
+    	//char inFileHandle[] = "Berlin52.txt";
+    	//int waypoints = 5;
     	/* End nasty hard coded segment */
 
     	/* PSO parameters */
@@ -85,8 +86,8 @@ int main (int argc, char **argv){
     	//int pso_nhood_topology = -1;
 
     	/* Option parsing */
-    	int verbose = 0;
-    	char *inFileHandlePtr = NULL;
+    	//int verbose = 0;
+    	//char *inFileHandlePtr = NULL;
 	parse_args(argc, argv);
 
     	// PSO options from user selection
@@ -135,7 +136,7 @@ int main (int argc, char **argv){
     
     	/* PSO settings */
     	//int maxIterations = 500;
-    	int pop_size = 100;
+    	//int pop_size = 100;
 
     	/* Use pso library */
     	

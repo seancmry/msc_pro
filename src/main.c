@@ -5,6 +5,7 @@
 #include <stdio.h> // for printf
 #include <getopt.h>
 #include <sys/time.h>
+
 #include "pso.h"
 #include "path.h"
 
@@ -221,10 +222,10 @@ int main (int argc, char **argv){
     	solution.gbest = (double *)malloc(settings->dim * sizeof(double));
 
     	// run optimization algorithm
-    	pso_solve(obj_fun, NULL, &solution, settings);	
+    	pso_solve(obj_fun, NULL, &solution, &settings);	
 
     	// free the settings
-    	pso_settings_free(settings);
+    	pso_settings_free(&settings);
 
     	// Free global best buffer
     	free(solution.gbest);

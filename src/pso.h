@@ -83,8 +83,11 @@ int pso_calc_swarm_size(int dim);
 
 // minimize the provided obj_fun using PSO with the specified settings
 // and store the result in *solution
-void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params,
-	       pso_result_t *solution, pso_settings_t *settings);
+void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *solution, pso_settings_t *settings);
+
+//Finally, free the settings
+void pso_settings_free(pso_settings_t *settings);
+
 
 #endif // PSO_H_
 

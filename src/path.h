@@ -50,7 +50,7 @@ int line2 (int x0, int y0, int x1, int y1, int ** map, int xLimit, int yLimit);
 int pso_path_countObstructions(double *vec, int dim, void *params);
 double pso_path_penalty(double *vec, int dim, void *params);
 double pso_path(double *vec, int dim, void *params); 
-void pso_set_path_settings(pso_settings_t *settings, pso_params_t *params, env_t *env, robot_t *robot, int waypoints);
+void pso_set_path_settings(pso_settings_t *settings, pso_params_t *params, env_t *env, uav_t *uav, int waypoints);
 
 
 int getPSOParam_w_stategy(int code);

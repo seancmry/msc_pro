@@ -43,6 +43,8 @@ int **read_map (char *fhandle, int height, int width, int length) {
     	return map;
 }
 
+
+/*
 //Map rules - based on a similar programme created to run a conway's game of life.
 int *rules(int x, int y, char* prevIter)
 {
@@ -53,7 +55,7 @@ int *rules(int x, int y, char* prevIter)
 	{
 		for (int i = 1; i < y - 1; i++)
 		{
-			/*
+			
 			int live = Cells(rows, columns, i, j, prevGame);
 			char cell = *(prevGame + y * columns + x);
 			if (cell == '#') live--;
@@ -243,7 +245,7 @@ double pso_path(double *vec, int dim, void *params) {
 }
 
 void pso_set_path_settings(pso_settings_t *settings, 
-        pso_params_t *params, env_t *env, robot_t *robot, int waypoints) {
+        pso_params_t *params, env_t *env, uav_t *uav, int waypoints) {
     	/* WARNING */
     	// Only valid if a square environment with same start and stop 
     	// EX: (0, 0) to (100, 100) because the pso lib

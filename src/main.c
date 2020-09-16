@@ -6,7 +6,7 @@
 #include <getopt.h>
 #include <sys/time.h>
 #include "pso.h"
-#include "utils.h"
+#include "path.h"
 
 //==============================================================
 //                  BENCHMARK FUNCTIONS
@@ -113,7 +113,7 @@ int main (int argc, char **argv){
     	/* Init pso objecttive function params */
     	pso_params_t * pso_params;
     	pso_params = malloc (sizeof (pso_params_t) * 1);
-    	pso_params->env = initEnv(inOriginX, inOriginY, inHorizonX, inHorizonY, map);
+    	pso_params->env = init_env(inOriginX, inOriginY, inHorizonX, inHorizonY, map);
     	pso_params->start[0] = uav->position_coords[0];
     	pso_params->start[1] = uav->position_coords[1];
     	pso_params->stop[0] = uav->target_coords[0];
@@ -125,7 +125,7 @@ int main (int argc, char **argv){
     	pso_params->w_max = pso_w_max;
     	pso_params->nhood_topology = pso_nhood_topology;
     	pso_params->nhood_size = pso_nhood_size;
-    	printEnv(pso_params->env);
+    	print_env(pso_params->env);
 
     	/* Init pso settings */
     	pso_settings_t settings;
@@ -134,7 +134,7 @@ int main (int argc, char **argv){
     
     	/* PSO settings */
     	//int maxIterations = 500;
-    	int popSize = 100;
+    	int pop_size = 100;
 
     	/* Use pso library */
     	

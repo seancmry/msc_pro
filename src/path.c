@@ -1,47 +1,5 @@
-#include <math.h>
-#include <string.h>
-#include <gsl/gsl_rng.h>
+#include "path.h"
 #include "pso.h"
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <unistd.h>
-#include <stdbool.h>
-#include <ctype.h>
-
-typedef struct {
-    	int ID; 
-    	double position_coords[2];
-    	double target_coords[2];
-    	double distToTarget;
-    	double stepSize;
-    	double velocity;
-} uav_t; 
-
-typedef struct {
-    	double *waypoints;
-    	int numWaypoints;
-} path_t;
-
-typedef struct {
-    	double mins[2];
-    	double maxs[2];
-    	int ** map;
-} env_t;
-
-typedef struct {
-    	double start[2];
-    	double stop[2];
-    	double c1;
-    	double c2;
-    	int w_strategy;
-    	double w_min;
-    	double w_max;
-    	int nhood_topology;
-    	double nhood_size;
-    	env_t * env;
-} pso_params_t;
-
-/////////////////////////NEW FUNCS ADDED AT THE TOP///////////////////////
 
 //Will then also have to calculate the shortest distance from the obstacle
 float distance_from_obstacle(/*coord inputs, */ float centre_x, float centre_y, float rad) {
@@ -54,8 +12,8 @@ float distance_from_obstacle(/*coord inputs, */ float centre_x, float centre_y, 
 }
 
 
-////////////////////////OTHER FUNCS//////////////////////////////////////
-int **read_map (char * fhandle, int height, int width, int length) {
+//Read in map if option is chosen
+int **read_map (char *fhandle, int height, int width, int length) {
 
     	FILE *file;
     	file = fopen(fhandle, "r");

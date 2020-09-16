@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <math.h>
-#include <time.h>
+#include <time.h> //Used for random seed; update for timing
 #include <float.h>
 #include <string.h> //for mem
 #include <gsl/gsl_rng.h> 
@@ -8,10 +8,11 @@
 #include "omp.h"
 
 #include "pso.h"
+#include "path.h"
 
-/*
-float round_num(float d) {
-	float g = 0.0, e = 0.0, f = 0.0;
+
+double round_num(double d) {
+	double g = 0.0, e = 0.0, f = 0.0;
 	g = floor(d);
 	e = d - g;
 	if (d > 0) {
@@ -32,7 +33,7 @@ float round_num(float d) {
 	}
 	return f;
 }
-*/
+
 
 
 // generate a random number between (0, 1)
@@ -87,7 +88,7 @@ void inform_global(int *comm, double *pos_nb,
     // all particles have the same attractor (gbest)
     // copy the contents of gbest to pos_nb
     for (i=0; i<settings->size; i++)
-        memmove((void *)pos_nb[i*settings->dim], (void *)gbest,
+        memmove((void *)&pos_nb[i*settings->dim], (void *)gbest,
                 sizeof(double) * settings->dim);
 
 }
@@ -113,8 +114,8 @@ void inform(int *comm, double *pos_nb, double *pos_b, double *fit_b,
                 // found a better informer for j^th particle
                 b_n = i;
         // copy pos_b of b_n^th particle to pos_nb[j]
-        memmove((void *)pos_nb[j*settings->dim],
-                (void *)pos_b[b_n*settings->dim],
+        memmove((void *)&pos_nb[j*settings->dim],
+                (void *)&pos_b[b_n*settings->dim],
                 sizeof(double) * settings->dim);
     }
 }
@@ -174,7 +175,7 @@ void inform_ring(int *comm, double *pos_nb,
 // ============================
 // random neighborhood topology
 // ============================
-void init_comm_random(int *comm, pso_settings_t * settings) {
+void init_comm_random(int *comm, pso_settings_t *settings) {
 
     int i, j, k;
     // reset array
@@ -187,7 +188,7 @@ void init_comm_random(int *comm, pso_settings_t * settings) {
         // choose kappa (on average) informers for each particle
         for (k=0; k<settings->nhood_size; k++) {
             // generate a random index
-            j = gsl_rng_uniform(settings->rng, settings->size);
+            j = gsl_rng_uniform_int(settings->rng, settings->size);
             // particle i informs particle j
             comm[i*settings->size + j] = 1;
         }
@@ -228,7 +229,7 @@ double **pso_autofill_limits(double x_lo, double x_hi, int dim) {
 void pso_print_limits(double **limits, int dim) {
 	int i = 0;
 	for (i=0;i<dim;i++) {
-		printf("x%d: lower = %f, higher = %f\n", limits[0][i], limits[1][i]);
+		printf("x%d: lower = %f, higher = %f\n", i+1, limits[0][i], limits[1][i]);
 	}
 }
 
@@ -264,7 +265,7 @@ void pso_set_default_settings(pso_settings_t *settings) {
     	}
 	*/
 
-	setting->numset = DECIMAL;
+	settings->numset = DECIMAL;
     	settings->size = pso_calc_swarm_size(settings->dim);
     	settings->print_every = 10;
     	settings->steps = 100000;
@@ -285,8 +286,6 @@ void pso_set_default_settings(pso_settings_t *settings) {
 
 // destroy PSO settings
 void pso_settings_free(pso_settings_t *settings) {
-    free(settings->range_lo);
-    free(settings->range_hi);
     free(settings);
 }
 
@@ -334,7 +333,7 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params,
     	double rho1, rho2; // random numbers (coefficients)
     	// initialize omega using standard value
     	double w; //omega
-    	void (*inform_fun_t)();  // neighborhood update function
+    	void (*inform_fun)();  // neighborhood update function
     	double (*calc_inertia_fun)(); // inertia weight update function
 	
 	//CHECK RNG
@@ -393,12 +392,12 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params,
         gsl_rng_uniform(settings->rng);
      b = settings->x_lo + (settings->x_hi - settings->x_lo) *	\
         gsl_rng_uniform(settings->rng);
-*/
+
      	//a = settings->limits[0][i] + (settings->limits[1][i] - settings->limits[0][i]) * \
         	gsl_rng_uniform(settings->rng);
       	//b = settings->limits[0][i] + (settings->limits[1][i] - settings->limits[0][i]) *	\
         	gsl_rng_uniform(settings->rng);
-
+*/
      	 a = gsl_rng_uniform_int (settings->rng, settings->limits[1][i]);
      	 b = gsl_rng_uniform_int (settings->rng, settings->limits[1][i]);
 
@@ -471,7 +470,7 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params,
         		pos[i][d] += vel[i][d];
 
         		if (settings->numset == INTEGER){
-            			pos[i][d] = roundNum (pos[i][d]);
+            			pos[i][d] = round_num(pos[i][d]);
         		}
 
         		// clamp position within bounds?
@@ -527,5 +526,7 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params,
   	// free RNG??
   	if (free_rng)
     		gsl_rng_free(settings->rng);
-}
+
+
+};
 

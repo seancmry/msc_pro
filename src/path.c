@@ -10,8 +10,9 @@
 #include "path.h"
 #include "pso.h"
 
+/*
 //Will then also have to calculate the shortest distance from the obstacle
-float distance_from_obstacle(/*coord inputs, */ float centre_x, float centre_y, float rad) {
+float distance_from_obstacle(//coord inputs, float centre_x, float centre_y, float rad) {
 
 	float slope = (input1.y - input0.y) / (input1.x - input0.x);
 	float num = fabs((slope * centre_x) - centre_y + input0.y - (slope * input0.x));
@@ -19,10 +20,10 @@ float distance_from_obstacle(/*coord inputs, */ float centre_x, float centre_y, 
 	float obstacle_distance = ((num/den) - rad);
 	return obstacle_distance;
 }
-
+*/
 
 //Read in map if option is chosen
-int **read_map (char *fhandle, int height, int width, int length) {
+int **read_map (char *fhandle, int height, int width) {
 
     	FILE *file;
     	file = fopen(fhandle, "r");
@@ -98,6 +99,7 @@ double euclideanDistance(double xi, double yi, double xj, double yj) {
     	return pow( pow(xi - xj, 2) + pow(yi - yj, 2), 0.5);
 }
 
+/*
 //Circular obstacle
 bool circle(float x, float y, float centre_x, float centre_y) {
 	
@@ -105,7 +107,7 @@ bool circle(float x, float y, float centre_x, float centre_y) {
       	if (rad <= 1.2 * r) 
 		return sqrt(pow(x - centre_x, 2.0) + pow(y - centre_y, 2.0));
 }
-
+*/
 
 //Specify the uav features and allocate space for it
 uav_t * init_uav(int ID, double xInit, double yInit, double xTarget, double yTarget, double stepSize, double velocity) {

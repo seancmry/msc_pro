@@ -57,7 +57,7 @@ double pso_griewank(double *vec, int dim, void *params) {
 int main (int argc, char **argv){
 
     	/* Start nasty hard coded segment */
-	//int inRoboID = 0;
+	int inUavID = 0;
     	//double inStartX = 70.0;
     	//double inStartY = 70.0;
     	//double inEndX = 136.0;
@@ -87,7 +87,7 @@ int main (int argc, char **argv){
 
     	/* Option parsing */
     	//int verbose = 0;
-    	//char *inFileHandlePtr = NULL;
+    	char *inFileHandlePtr = NULL;
 	parse_args(argc, argv);
 
     	// PSO options from user selection
@@ -109,7 +109,7 @@ int main (int argc, char **argv){
     	int **map = read_map (inFileHandlePtr, inHorizonY, inHorizonX);
 
     	/* Initialize robot */
-    	uav_t *uav = init_uav(inRoboID, inStartX, inStartY, inEndX, inEndY, inStepSize, inVelocity);
+    	uav_t *uav = init_uav(inUavID, inStartX, inStartY, inEndX, inEndY, inStepSize, inVelocity);
     	print_uav(uav);
 
     	/* Init pso objecttive function params */
@@ -136,7 +136,7 @@ int main (int argc, char **argv){
     
     	/* PSO settings */
     	//int maxIterations = 500;
-    	//int pop_size = 100;
+    	int pop_size = 100;
 
     	/* Use pso library */
     	
@@ -145,7 +145,7 @@ int main (int argc, char **argv){
     	
 	// Set the problem specific settings
     	pso_set_path_settings(&settings, pso_params, pso_params->env, uav, waypoints);
-	//settings.size = popSize;
+	settings.size = pop_size;
 	//settings.nhood_strategy = PSO_NHOOD_RING;
     	settings.dim = waypoints * 2;
 	//settings.nhood_size = 10;
@@ -175,7 +175,9 @@ int main (int argc, char **argv){
     	int obstacles = pso_path_countObstructions(solution.gbest, settings.dim, pso_params);
     	printf ("obstacles: %d\n", obstacles);
 
-	
+	//Free global best buffer
+	free(solution.gbest);
+
 	/* 
 	 *
 	 * DEMO 
@@ -215,8 +217,6 @@ int main (int argc, char **argv){
                    	settings->dim, settings->size);
     	}
 
-  	*/
-
     	// initialize GBEST solution - global best
     	pso_result_t solution;
     	// allocate memory for the best position buffer - this is key in the parallel version.
@@ -230,6 +230,9 @@ int main (int argc, char **argv){
 
     	// Free global best buffer
     	free(solution.gbest);
+*/
+
+
 
     	return 0;
 }

@@ -1,17 +1,18 @@
 
 CC = gcc
 CFLAGS = -Wall -g
-DEPS = pso.h
+DEPS = pso.h path.h utils.h
 
 SOURCE_FILES = $(shell find . -name '*.c')
 OBJ_FILES = $(SOURCE_FILES:.c=.o) 
-LIB = -lm 
+LDFLAGS = -L/usr/local/lib -lgsl -lgslcblas -lm 
+INCDIRS = -I/usr/local/include
 
 %.o: %.c $(DEPS)
-	$(CC) -c -o $@ $< $(CFLAGS)
+	$(CC) $(CFLAGS) $(INCDIRS) -o $@ $^ $(LDFLAGS)
 	
 demopso: $(OBJ_FILES)
-	$(CC) $^ -o $@ $(LIB)
+	$(CC) $^ -o $@ $(LDFLAGS)
 
 
 .PHONY: clean

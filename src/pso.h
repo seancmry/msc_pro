@@ -2,6 +2,7 @@
 #ifndef PSO_H_
 #define PSO_H_
 
+double round_num(double d);
 
 // CONSTANTS
 #define PSO_MAX_SIZE 100 // max swarm size

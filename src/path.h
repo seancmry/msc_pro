@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include "pso.h"
 
 typedef struct {
     	int ID; 
@@ -34,12 +35,12 @@ typedef struct {
 } pso_params_t;
 
 
-float distance_from_obstacle(/*coord inputs, */ float centre_x, float centre_y, float);
-int **read_map(char *fhandle, int height, int width, int length);
+//float distance_from_obstacle(//coord inputs, float centre_x, float centre_y, float);
+int **read_map(char *fhandle, int height, int width);
 int *rules(int x, int y, char* prevIter);
 void print_map (int **map, int height, int width);
 double euclideanDistance(double xi, double yi, double xj, double yj);
-bool circle(float x, float y, float centre_x, float centre_y);
+//bool circle(float x, float y, float centre_x, float centre_y);
 
 uav_t * init_uav(int ID, double xInit, double yInit, double xTarget, double yTarget, double stepSize, double velocity);
 env_t *init_env(double xMin, double yMin, double xMax, double yMax, int **map);

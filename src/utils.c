@@ -1,5 +1,8 @@
+#include <stdio.h>
+#include <getopt.h>
+
 //utils funcs here
-//
+
 
 int verbose = 0;
 double inHorizonX = 200, inHorizonY = 200;
@@ -12,7 +15,7 @@ double inOriginX = 0;
 double inOriginY = 0;
 char inFileHandle[20] = "berlin52.txt\0";
 int waypoints = 5;
-
+char *inFileHandlePtr = NULL;
 /* PSO parameters */
 double pso_c1 = -1.0;
 double pso_c2 = -1.0;
@@ -24,14 +27,12 @@ int pso_nhood_topology_select = -1;
 int pso_w_strategy = -1;
 int pso_nhood_topology = -1;
 
-int verbose = 0;
+//int verbose = 0;
 
 //Function defs
 int parse_args(int argc, char **argv) {
 
     	int c;
-    	opterr = 0;
-
     	while ((c = getopt (argc, argv, "a:b:c:d:e:f:n:m:p:q:r:s:t:w:x:v")) != -1)
         	switch (c) {
             	case 'v':
@@ -84,7 +85,7 @@ int parse_args(int argc, char **argv) {
 			break;
 	    	default:
 			fprintf(stderr,"Invalid option given\n");
-			print_usage();
+			//print_usage();
 			return -1;
 	}
 	return 0;

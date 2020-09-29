@@ -56,7 +56,7 @@ double pso_griewank(double *vec, int dim, void *params) {
 
 int main (int argc, char **argv){
 
-    	/* Start nasty hard coded segment */
+  
 	int inUavID = 0;
     	//double inStartX = 70.0;
     	//double inStartY = 70.0;

@@ -10,17 +10,6 @@
 #include "path.h"
 #include "pso.h"
 
-/*
-//Will then also have to calculate the shortest distance from the obstacle
-float distance_from_obstacle(//coord inputs, float centre_x, float centre_y, float rad) {
-
-	float slope = (input1.y - input0.y) / (input1.x - input0.x);
-	float num = fabs((slope * centre_x) - centre_y + input0.y - (slope * input0.x));
-	float den = sqrt(1 + pow(slope, 2.0));
-	float obstacle_distance = ((num/den) - rad);
-	return obstacle_distance;
-}
-*/
 
 //Read in map if option is chosen
 int **read_map (char *fhandle, int height, int width) {

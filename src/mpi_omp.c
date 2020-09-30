@@ -1,13 +1,14 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
+#include <getopt.h>
 #include <gsl/gsl_rng.h>
 #include <gsl/gsl_math.h>
 #include <string.h>
-#include <time.h>
+#include <sys/time.h>
 #include <mpi.h>
 #include <omp.h>
-#include <sys/time.h>
 
 #define PI 3.14159265358979323846
 
@@ -18,8 +19,8 @@ struct timezone TimeZone_Final;
 long time_start, time_end;
 double time_overhead;
 double nDimensions, mVelocity, nIterations, seed;
-double x_min = -32.768;
-double x_max = 32.768;
+double x_lo = -32.768;
+double x_hi = 32.768;
 
 double ackley(double x[], double nDimensions) {
 	double c = 2*M_PI;

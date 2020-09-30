@@ -1,10 +1,14 @@
 
 #include <math.h>
-#include <string.h>
 #include <stdlib.h>
 #include <stdio.h> // for printf
 #include <getopt.h>
+#include <gsl/gsl_rng.h>
+#include <gsl/gsl_math.h>
+#include <string.h>
 #include <sys/time.h>
+//#include <mpi.h>
+//#include <omp.h>
 
 #include "pso.h"
 #include "path.h"
@@ -19,6 +23,24 @@
 //Griewank, Rastrigin, Rosenbrock, Schaffer, Schwefel, etc. The ones
 //detailed here are pretty standard for the evaluation of PSO in the 
 //context of path planning.
+
+double ackley(double x[], double nDimensions) {
+	double c = 2*M_PI;
+	double b = 0.2;
+	double a = 20;
+	double sum1 = 0;
+	double sum2 = 0;
+	int i;
+	for (i=0; i<nDimensions; i++) {
+		sum1 = sum1 + gsl_pow_2(x[i]);
+		sum2 = sum2 + cos(c*x[i]);
+	}
+	double term1 = -a * exp(-b*sqrt(sum1/nDimensions));
+	double term2 = -exp(sum2/nDimensions);
+	return term1 + term2 + a + M_E;
+}
+
+
 double pso_sphere(double *vec, int dim, void *params) {
 
     	double sum = 0;
@@ -185,7 +207,12 @@ int main (int argc, char **argv){
 	 *
 	 *
     	if (argc == 2) {
-        	if (strcmp(argv[1], "rosenbrock") == 0) {
+		if (strcmp(argv[1], "ackley") == 0) {
+			obj_fun = pso_ackley;
+			settings = pso_settings_new(1000, x_lo, x_hi);
+			printf("Optimizing function: ackley (dim=%d, swarm size = %d)\n",
+				settings->dim, settings->size);
+		} else if (strcmp(argv[1], "rosenbrock") == 0) {
             		obj_fun = pso_rosenbrock;
             		settings = pso_settings_new(1000, -2.048, 2.048);
             		printf("Optimizing function: rosenbrock (dim=%d, swarm size=%d)\n",

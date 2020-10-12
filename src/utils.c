@@ -97,13 +97,6 @@ int parse_args(int argc, char **argv) {
 
 /*
 //print usages
-void print_usage() {
-
-
-
-
-}
-*/
 
 
 

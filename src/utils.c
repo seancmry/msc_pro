@@ -33,7 +33,8 @@ int pso_nhood_topology = -1;
 int parse_args(int argc, char **argv) {
 
     	int c;
-    	while ((c = getopt (argc, argv, "a:b:c:d:e:f:n:m:p:q:r:s:t:w:x:v")) != -1)
+	#pragma omp parallel shared() //share some variables
+	while ((c = getopt (argc, argv, "a:b:c:d:e:f:n:m:p:q:r:s:t:w:x:v")) != -1)
         	switch (c) {
             	case 'v':
                 	verbose = 1;

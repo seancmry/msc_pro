@@ -7,12 +7,16 @@
 #include <gsl/gsl_math.h>
 #include <string.h>
 #include <sys/time.h>
-//#include <mpi.h>
-//#include <omp.h>
+#include <mpi.h>
+#include <omp.h>
 
 #include "pso.h"
 #include "path.h"
 #include "utils.h"
+
+struct timeval start, finish;
+long _start, _end;
+double overhead;
 
 //==============================================================
 //                  BENCHMARK FUNCTIONS
@@ -78,6 +82,12 @@ double pso_griewank(double *vec, int dim, void *params) {
 
 int main (int argc, char **argv){
 
+	gettimeofday(&start, &finish);
+	
+	/*RNG setup*/
+	gsl_rng_env_setup();
+	gsl_rng * r = gsl_rng_alloc(gsl_rng_default);
+	gsl_rng_set(r, time(0));
   
 	int inUavID = 0;
     	//double inStartX = 70.0;
@@ -93,7 +103,6 @@ int main (int argc, char **argv){
     	//char inFileHandle[20] = "maps/sampleMap4.dat\0";
     	//char inFileHandle[] = "Berlin52.txt";
     	//int waypoints = 5;
-    	/* End nasty hard coded segment */
 
     	/* PSO parameters */
     	//double pso_c1 = -1.0;
@@ -111,6 +120,19 @@ int main (int argc, char **argv){
     	//int verbose = 0;
     	char *inFileHandlePtr = NULL;
 	parse_args(argc, argv);
+
+	/*Setting up MPI environment */
+	int size, myrank;
+	int particles;
+	MPI_Init(&argc, &argv);
+	MPI_Comm_size(MPI_COMM_WORLD, &size);
+	MPI_Comm_rank(MPI_COMM_WORLD, &myrank);
+	double result[particles];
+	
+	/*Positions for MPI implementation can be vectorised*/
+	double A = (double)malloc(sizeof(double)*N+1);
+	double B = (double)malloc(sizeof(double)*N+1);
+
 
     	// PSO options from user selection
     	pso_w_strategy = getPSOParam_w_stategy(pso_w_strategy_select);
@@ -157,7 +179,7 @@ int main (int argc, char **argv){
    	pso_set_default_settings(&settings);
     
     	/* PSO settings */
-    	//int maxIterations = 500;
+    	int maxIter = 500;
     	int pop_size = 100;
 
     	/* Use pso library */
@@ -260,6 +282,143 @@ int main (int argc, char **argv){
 */
 
 
+/*
+ *
+ * MPI VERSION
+ *
+ *
+ */
+
+	if(myrank == 0) {
+		particles = pso_nhood_size/size;
+		printf("%d particles were distributed\n", particles);
+	}
+	MPI_Bcast(particles,1,MPI_INT,0,MPI_COMM_WORLD);
+	if(myrank == 0) {
+		particles += pso_nhood_size%size;
+		printf("%d particles were distributed \n", particles);
+	}
+
+	/*Initialise particles */
+
+	#pragma omp parallel for private(A,B) reduction(min:gbestfitness)
+	for (i=0; i<particles; i++) {
+		// #pragma omp parallel for private (A,B);
+		for (j=0; j<ndims; j++) {
+			A = x_lo + (x_hi - x_lo) * gsl_rng_uniform(r);
+	                B = x_lo + (x_hi - x_lo) * gsl_rng_uniform(r);
+				positions[i][j] = a;
+				pbestpositions[i][j] = a;
+				velocities[i][j] = (a-b)/2;
+		}
+		pbestfitness[i] = ackley(positions[i], ndims);
+
+	if (pBestFitness[i] < gBestFitness) {
+            	memmove((void *)gBestPosition, (void *)&positions[i], sizeof(double) * nDimensions);
+            	gBestFitness = pBestFitness[i];
+        	} 
+    	}
+
+//FIXME
+    	//actual calculation
+    	for (step=0; step<nIterations; step++) {
+        	#pragma omp parallel num_threads(4) shared(min)
+        	{
+
+            	#pragma omp for private(a,b) 
+            	for (i=0; i<distributed_particles; i++) {
+                 
+                    	for (j=0; j<nDimensions; j++) {
+                        	// calculate stochastic coefficients
+                        	rho1 = c1 * gsl_rng_uniform(r);
+                        	rho2 = c2 * gsl_rng_uniform(r);
+                        	// update velocity
+                        	velocities[i][j] = w * velocities[i][j] + \
+                        	rho1 * (pBestPositions[i][j] - positions[i][j]) +  \
+                        	rho2 * (gBestPosition[j] - positions[i][j]);
+                        	// update position
+                        	positions[i][j] += velocities[i][j];
+
+                        	if (positions[i][j] < x_min) {
+                            		positions[i][j] = x_min;
+                            		velocities[i][j] = 0;
+                        	} else if (positions[i][j] > x_max) {
+                           		positions[i][j] = x_max;
+                            		velocities[i][j] = 0;
+                        	}
+
+                    	}
+
+                	// update particle fitness
+                	fit = ackley(positions[i], nDimensions);
+                	// update personal best position?
+                	if (fit < pBestFitness[i]) {
+                    		pBestFitness[i] = fit;
+                    	// copy contents of positions[i] to pos_b[i]
+                    	memmove((void *)&pBestPositions[i], (void *)&positions[i],
+                        	sizeof(double) * nDimensions);
+                    	}   
+                	// update gbest??
+               
+                	}
+
+                	#pragma omp for reduction(min:gBestFitness)
+                	for(i=0;i<(int)distributed_particles;i++)	
+	        	if (pBestFitness[i] < gBestFitness) {
+                            	// update best fitness
+                            	gBestFitness = pBestFitness[i];
+                            	// copy particle pos to gbest vector
+                            	}
+                
+                	#pragma omp  for  
+                 	for(i=0;i<(int)distributed_particles;i++) {
+				if (gBestFitness==pBestFitness[i])
+                    			min=i;  
+                   	}
+            
+		}   
+            	memmove((void *)gBestPosition, (void *)&pBestPositions[min],sizeof(double) * nDimensions);
+            	for(int k=0;k<(int)nDimensions;k++)
+                	sendingdata[k]=gBestPosition[k]; 
+            		//#pragma omp single
+                	sendingdata[(int)nDimensions]=gBestFitness;
+                
+			MPI_Gather(&sendingdata,nDimensions+1, MPI_INT,&recievingdata,nDimensions+1, MPI_INT, 0, MPI_COMM_WORLD);
+                	if(myrank == 0) {
+                    		int min=gBestFitness;
+                    		int pos=-1;
+                    		for(int k=0;k<size;k++)	{ 
+					//printf("%d\n",recievingdata[k*((int)nDimensions+1)+((int)nDimensions)] );
+                        		if(min>=recievingdata[k*((int)nDimensions+1)+((int)nDimensions)])
+                            	{
+                                	min=recievingdata[k*((int)nDimensions+1)+((int)nDimensions)];
+                                	pos=k*((int)nDimensions+1);
+                            	}   
+                    	}
+                    	gBestFitness=min;
+                    	int k=0;
+                    
+                    	for(k=pos;k<(int)nDimensions+pos;k++)
+                        	gBestPosition[k-pos]=recievingdata[k];                  
+                	}
+                	MPI_Bcast(&gBestPosition,nDimensions,MPI_INT,0,MPI_COMM_WORLD);
+                
+        
+    	}
+
+    	if(myrank == 0) {
+
+        	printf("Result: %f\n", gBestFitness);
+        	gettimeofday(&TimeValue_Final, &TimeZone_Final);
+        	time_start = TimeValue_Start.tv_sec * 1000000 + TimeValue_Start.tv_usec;
+        	time_end = TimeValue_Final.tv_sec * 1000000 + TimeValue_Final.tv_usec;
+        	time_overhead = (time_end - time_start)/1000000.0;
+       		printf("\n Time in Seconds (T) : %lf\n",time_overhead);
+	}   
+    	gsl_rng_free(r);
+    	MPI_Finalize();
+
+//mpicc -fopenmp mpi_omp.c -lm -lgsl -lgslcblas -o mpi_omp
 
     	return 0;
 }

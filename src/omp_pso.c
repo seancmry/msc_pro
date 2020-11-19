@@ -1,1 +1,0 @@
-//OpenMP only version

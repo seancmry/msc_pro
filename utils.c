@@ -2,14 +2,12 @@
 #include "utils.h"
 
 /*Initial PSO settings */
-int popSize = 100;
-int maxIterations = 500; 
+int popSize = 100, maxIterations = 500; 
 
 /* Serial and parallel option */
-int serial = 0;
-int parallel = 0;
+bool serial = 0, parallel = 0, demo = 0; //for benchmark functions
 
-/* Start nasty hard coded segment */
+/* Path options */
 int inRoboID = 0;
 double inStartX = 70.0;
 double inStartY = 70.0;
@@ -24,7 +22,6 @@ double inHorizonY = 200;  // 70
 //char inFileHandle[20] = "maps/sampleMap4.dat\0";
 char inFileHandle[] = "sample_map_OpenRooms.txt";
 int waypoints = 5;
-/* End nasty hard coded segment */
 
 /* PSO parameters */
 double pso_c1 = -1.0;
@@ -174,7 +171,7 @@ void pso_set_path_settings(pso_settings_t *settings, pso_params_t *params, env_t
 
 
 void print_usage() {
-
+return;
 
 }
 

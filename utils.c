@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <getopt.h>
 #include "utils.h"
 
 /*Initial PSO settings */
@@ -45,8 +46,7 @@ int verbose = 0;
 
 int parse_arguments(int argc, char **argv) {
     int c;
-    opterr = 0;
-
+    
     while ((c = getopt (argc, argv, "d:v:z")) != -1)
         switch (c) {
             case 'v':
@@ -108,7 +108,10 @@ int parse_arguments(int argc, char **argv) {
 		popSize = 100;
 		break;
 	    default:
-		abort();
+		printf ("Invalid argumentation, fail\n");
+		return -1;
+	}
+	return 0;
 }
 
 /*
@@ -181,8 +184,5 @@ void print_usage() {
 return;
 
 }
-*
-*
-*
-* /
+*/
 

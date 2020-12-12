@@ -1,5 +1,6 @@
 
-#include "utils.h"
+#include <stdio.h>
+#include <math.h>
 
 #ifndef PSO_H_
 #define PSO_H_
@@ -28,10 +29,6 @@
 #define PSO_W_CONST 0
 #define PSO_W_LIN_DEC 1
 
-// === DISCRETIZATION FLAGS ===
-#define INTEGER 0
-#define DECIMAL 1
-
 // PSO SOLUTION -- Initialized by the user
 typedef struct{
 
@@ -40,19 +37,49 @@ typedef struct{
 
 }pso_result_t;
 
-
-// OBJECTIVE FUNCTION TYPE
+//OBJECTIVE FUNCTION TYPE
 typedef double (*pso_obj_fun_t)(double *, int, void *);
 
-/*
- * pso_settings_t *pso_settings_new(int dim, double range_lo, double range_hi);
- * void pso_settings_free(pso_settings_t *settings);
- */
+
+// PSO SETTINGS
+typedef struct{
+
+	int dim; // problem dimensionality
+	double *x_lo; // lower range limit
+	double *x_hi; // higher range limit
+	double goal; // optimization goal (error threshold)
+
+	//double **limits; // lower and higher ranges for each X value.
+
+	int size; // swarm size (number of particles)
+	int print_every; // ... N steps (set to 0 for no output)
+	int steps; // maximum number of iterations
+	int step; // current PSO step
+	double c1; // cognitive coefficient
+	double c2; // social coefficient
+	double w_max; // max inertia weight value
+	double w_min; // min inertia weight value
+
+	int clamp_pos; // whether to keep particle position within defined bounds (TRUE)
+	// or apply periodic boundary conditions (FALSE)
+	int nhood_strategy; // neighborhood strategy (see PSO_NHOOD_*)
+	int nhood_size; // neighborhood size
+	int w_strategy; // inertia weight strategy (see PSO_W_*)
+
+	void *rng; // pointer to random number generator (use NULL to create a new RNG)
+	long seed; // seed for the generator
+
+}pso_settings_t;
+
+
+pso_settings_t *pso_settings_new(int dim, double x_lo, double x_hi);
+
+void pso_settings_free(pso_settings_t *settings);
 
 // set x value limits using two constants
-double **pso_autofill_limits (double x_lo, double x_hi, int dim);
+//double **pso_autofill_limits (double x_lo, double x_hi, int dim);
 // print those limits
-void pso_print_limits (double ** limits, int dim);
+//void pso_print_limits (double ** limits, int dim);
 
 // return the swarm size based on dimensionality
 int pso_calc_swarm_size(int dim);

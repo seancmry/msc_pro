@@ -1,10 +1,10 @@
-CC = mpicc
+CC = gcc
 
-CFLAGS = -W -Wall -g
+CFLAGS = -Wall -g -std=c99
 
 LDFLAGS = -lm -lgsl -lgslcblas
 
-OBJECTS: main.o path.o pso.o utils.o
+OBJECTS: main.o pso.o utils.o
 
 SOURCES: main.c 
 

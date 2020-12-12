@@ -3,15 +3,17 @@
 #include <math.h>
 #include <string.h>
 #include <gsl/gsl_rng.h>
+#include <gsl/gsl_math.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <sys/time.h>
-#include <unistd.h>
-#include <stdbool.h>
-#include <ctype.h>
-#include "mpi.h"
+#include <time.h>
+#include <stdbool.h> //for booleans
+//#include <sys/time.h>
+//#include <unistd.h>
+//#include <ctype.h>
+//#include "mpi.h"
 
-#include "path.h"
+//#include "path.h"
 #include "pso.h"
 #include "utils.h"
 
@@ -21,7 +23,7 @@
 //==============================================================
 
 
-double pso_ackley(double *vec, int dim, void params) {
+double pso_ackley(double *vec, int dim, void *params) {
 	double c = 2*M_PI;
 	double b = 0.2;
 	double a = 20;
@@ -29,7 +31,7 @@ double pso_ackley(double *vec, int dim, void params) {
 	double sum2 = 0;
 	int i;
 	for (i=0; i<dim; i++) {
-		sum1 = sum1 + gsl_pow_2(x[i]);
+		sum1 = sum1 + gsl_pow_2(vec[i]);
 		sum2 = sum2 + cos(c*vec[i]);
 	}
 	double term1 = -a * exp(-b*sqrt(sum1/dim));
@@ -84,52 +86,56 @@ double pso_griewank(double *vec, int dim, void *params) {
 
 int main(int argc, char **argv) {
 
-
+/*
 	MPI_Init(&argc, &argv);
 	MPI_Comm_rank(MPI_COMM_WORLD, &myid);
 	MPI_Comm_size(MPI_COMM_WORLD, &nprocs);
-
+*/
     	//Parse arguments and print options
-    	parse_arguments(argc,argv);
-    	options();
+	parse_arguments(argc,argv);
+    	//options();
+
+	bool demo = true;
+	int popSize = 0;
 
     	//Get weighting and topology	
-    	pso_w_strategy = getPSOParam_w_stategy(pso_w_strategy_select);
-    	pso_nhood_topology = getPSOParam_nhood_topology(pso_nhood_topology_select);
+    	//pso_w_strategy = getPSOParam_w_stategy(pso_w_strategy_select);
+    	//pso_nhood_topology = getPSOParam_nhood_topology(pso_nhood_topology_select);
 
     	/* Read occupancy map */
-    	int **map = readMap (inFileHandlePtr, inHorizonY, inHorizonX);
+    	//int **map = readMap (inFileHandlePtr, inHorizonY, inHorizonX);
 
     	/* Initialize robot */
-    	robot_t * robot = initRobot(inRoboID, inStartX, inStartY, inEndX, inEndY, inStepSize, inVelocity);
-    	printRobot(robot);
+    	//robot_t * robot = initRobot(inRoboID, inStartX, inStartY, inEndX, inEndY, inStepSize, inVelocity);
+    	//printRobot(robot);
 
     	/* Init pso objecttive function params */
-    	pso_params_t *pso_params;
-    	pso_params = malloc (sizeof (pso_params_t) * 1);
-    	pso_params->env = initEnv(inOriginX, inOriginY, inHorizonX, inHorizonY, map);
-    	pso_params->start[0] = robot->position_coords[0];
-    	pso_params->start[1] = robot->position_coords[1];
-    	pso_params->stop[0] = robot->target_coords[0];
-    	pso_params->stop[1] = robot->target_coords[1];
-    	pso_params->c1 = pso_c1;
-    	pso_params->c2 = pso_c2;
-    	pso_params->w_strategy = pso_w_strategy;
-    	pso_params->w_min = pso_w_min;
-    	pso_params->w_max = pso_w_max;
-    	pso_params->nhood_topology = pso_nhood_topology;
-    	pso_params->nhood_size = pso_nhood_size;
-    	printEnv(pso_params->env);
+    	//pso_params_t *pso_params;
+    	//pso_params = malloc (sizeof (pso_params_t) * 1);
+    	//pso_params->env = initEnv(inOriginX, inOriginY, inHorizonX, inHorizonY, map);
+    	//pso_params->start[0] = robot->position_coords[0];
+    	//pso_params->start[1] = robot->position_coords[1];
+    	//pso_params->stop[0] = robot->target_coords[0];
+    	//pso_params->stop[1] = robot->target_coords[1];
+    	//pso_params->c1 = pso_c1;
+    	//pso_params->c2 = pso_c2;
+    	//pso_params->w_strategy = pso_w_strategy;
+    	//pso_params->w_min = pso_w_min;
+    	//pso_params->w_max = pso_w_max;
+    	//pso_params->nhood_topology = pso_nhood_topology;
+    	//pso_params->nhood_size = pso_nhood_size;
+    	//printEnv(pso_params->env);
 
-    	/* Init pso settings */
-    	pso_settings_t settings;
+
+	/*Init PSO settings */
+    	pso_settings_t *settings = NULL;
+
     	// Set the default settings
-    	pso_set_default_settings(&settings);
+    	pso_set_default_settings(settings);
 
 	if(demo) {
 
-    		pso_settings_t *settings = NULL;
-    		pso_obj_fun_t obj_fun = NULL;
+		pso_obj_fun_t obj_fun = NULL;
 
     		// parse command line argument (function name)
     		if (argc == 2) {
@@ -137,22 +143,22 @@ int main(int argc, char **argv) {
 				obj_fun = pso_ackley;
 				settings = pso_settings_new(30, -600, 600);
 				printf("Optimising function: ackley (dim=%d, swarm size=%d)\n",
-					settings.dim, settings.size);
+					settings->dim, settings->size);
 			} else if (strcmp(argv[1], "rosenbrock") == 0) {
             			obj_fun = pso_rosenbrock;
             			settings = pso_settings_new(30, -2.048, 2.048);
             			printf("Optimizing function: rosenbrock (dim=%d, swarm size=%d)\n",
-                   			settings.dim, settings.size);
+                   			settings->dim, settings->size);
         		} else if (strcmp(argv[1], "griewank") == 0) {
             			obj_fun = pso_griewank;
             			settings = pso_settings_new(30, -600, 600);
             			printf("Optimizing function: griewank (dim=%d, swarm size=%d)\n",
-                   			settings.dim, settings.size);
+                   			settings->dim, settings->size);
         		} else if (strcmp(argv[1], "sphere") == 0) {
             			obj_fun = pso_sphere;
             			settings = pso_settings_new(30, -100, 100);
             			printf("Optimizing function: sphere (dim=%d, swarm size=%d)\n",
-                   			settings.dim, settings.size);
+                   			settings->dim, settings->size);
         		} else {
             			printf("Unsupported objective function: %s", argv[1]);
             			return 1;
@@ -167,33 +173,34 @@ int main(int argc, char **argv) {
         		obj_fun = pso_sphere;
         		settings = pso_settings_new(30, -100, 100);
         		printf("Optimizing function: sphere (dim=%d, swarm size=%d)\n",
-                   		settings.dim, settings.size);
+                   		settings->dim, settings->size);
     		}
 
     		// set some general PSO settings
-    		settings.goal = 1e-5;
-    		settings.size = popSize;
-    		settings.nhood_strategy = PSO_NHOOD_RING;
-    		settings.nhood_size = 10;
-    		settings.w_strategy = PSO_W_LIN_DEC;
+    		settings->goal = 1e-5;
+    		settings->size = popSize;
+    		settings->nhood_strategy = PSO_NHOOD_RING;
+    		settings->nhood_size = 10;
+    		settings->w_strategy = PSO_W_LIN_DEC;
 
     		// initialize GBEST solution
     		pso_result_t solution;
     
 		// allocate memory for the best position buffer
-    		solution.gbest = malloc(settings.dim * sizeof(double));
+    		solution.gbest = malloc(settings->dim * sizeof(double));
 
     		// run optimization algorithm
-    		pso_solve(obj_fun, pso_params, &solution, &settings);
+    		pso_solve(obj_fun, NULL, &solution, &settings);
 
     		// free the gbest buffer
     		free(solution.gbest);
 	}
-
+/*
 	if(serial) {
 
-    		/* Use pso library */
-    		// Define objective function
+    		//Use pso library
+    		
+		// Define objective function
     		pso_obj_fun_t obj_fun = pso_path;
     
 		// Set the problem specific settings    
@@ -219,7 +226,7 @@ int main(int argc, char **argv) {
     		free(solution.gbest);
 	}
 	
-/*
+
 	if(parallel) {
 
 
@@ -228,7 +235,7 @@ int main(int argc, char **argv) {
 
 
 	}
-*/	
+	
   
 	// Display best result - WILL BE GROUPED IN PRINT FUNCITON
     	int i, count = 0;
@@ -243,10 +250,12 @@ int main(int argc, char **argv) {
     	int obstacles = pso_path_countObstructions(solution.gbest, settings.dim, pso_params);
     	printf ("obstacles: %d\n", obstacles);
 
+*/
     	return 0;
+	
 }
 
-
+/*
 int empty_file(FILE* file) {
 	size_t size;
 
@@ -275,4 +284,4 @@ void timing_to_file(char *fname) {
 	fclose(fptr);
 }
 
-
+*/

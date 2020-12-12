@@ -2,104 +2,108 @@
 #include "utils.h"
 
 /*Initial PSO settings */
-int popSize = 100, maxIterations = 500; 
+int popSize = 100;
+//int maxIterations = 500; 
 
 /* Serial and parallel option */
-bool serial = 0, parallel = 0, demo = 0; //for benchmark functions
+//bool serial = 0;
+//bool parallel = 0;
+int demo = 0; //for benchmark functions
 
 /* Path options */
-int inRoboID = 0;
-double inStartX = 70.0;
-double inStartY = 70.0;
-double inEndX = 136.0;
-double inEndY = 127.0;
-double inStepSize = 1;
-double inVelocity = 2;
-double inOriginX = 0;
-double inOriginY = 0;
-double inHorizonX = 200;
-double inHorizonY = 200;  // 70
+//int inRoboID = 0;
+//double inStartX = 70.0;
+//double inStartY = 70.0;
+//double inEndX = 136.0;
+//double inEndY = 127.0;
+//double inStepSize = 1;
+//double inVelocity = 2;
+//double inOriginX = 0;
+//double inOriginY = 0;
+//double inHorizonX = 200;
+//double inHorizonY = 200;  // 70
 //char inFileHandle[20] = "maps/sampleMap4.dat\0";
-char inFileHandle[] = "sample_map_OpenRooms.txt";
-int waypoints = 5;
+//char inFileHandle[] = "sample_map_OpenRooms.txt";
+//int waypoints = 5;
 
 /* PSO parameters */
-double pso_c1 = -1.0;
-double pso_c2 = -1.0;
-double pso_w_max = -1.0;
-double pso_w_min = -1.0;
-int pso_w_strategy_select = -1;
-int pso_nhood_size = -1;
-int pso_nhood_topology_select = -1;
+//double pso_c1 = -1.0;
+//double pso_c2 = -1.0;
+//double pso_w_max = -1.0;
+//double pso_w_min = -1.0;
+//int pso_w_strategy_select = -1;
+//int pso_nhood_size = -1;
+//int pso_nhood_topology_select = -1;
 
-int pso_w_strategy = -1;
-int pso_nhood_topology = -1;
+//int pso_w_strategy = -1;
+//int pso_nhood_topology = -1;
 
 /* Option parsing */
 int verbose = 0;
-char *inFileHandlePtr = NULL;
+//char *inFileHandlePtr = NULL;
 
 
 int parse_arguments(int argc, char **argv) {
     int c;
     opterr = 0;
 
-    while ((c = getopt (argc, argv, "a:b:c:d:e:f:g:n:m:p:q:r:s:t:w:x:v:z")) != -1)
+    while ((c = getopt (argc, argv, "d:v:z")) != -1)
         switch (c) {
             case 'v':
                 verbose = 1;
                 break;
-            case 'z':
-		serial = 1;
-		break;
-	    case 'g':
-		parallel = 1;
-		break;
-            case 'a':
-                sscanf(optarg, "%lf", &inHorizonX);
-                break;
-            case 'b':
-                sscanf(optarg, "%lf", &inHorizonY);
-                break;
-            case 'c':
-                sscanf(optarg, "%lf", &inStartX);
-                break;
+            //case 'z':
+		//serial = 1;
+		//break;
+	    //case 'g':
+		//parallel = 1;
+		//break;
+            //case 'a':
+                //sscanf(optarg, "%lf", &inHorizonX);
+                //break;
+            //case 'b':
+                //sscanf(optarg, "%lf", &inHorizonY);
+                //break;
+            //case 'c':
+                //sscanf(optarg, "%lf", &inStartX);
+                //break;
             case 'd':
-                sscanf(optarg, "%lf", &inStartY);
+                demo = 1;
+		//sscanf(optarg, "%lf", &inStartY);
                 break;
-            case 'e': 
-                sscanf(optarg, "%lf", &inEndX);
-                break;
-            case 'f':
-                sscanf(optarg, "%lf", &inEndY);
-                break;
-            case 'n':
-                sscanf(optarg, "%d", &waypoints);
-                break;
-            case 'm':
-                inFileHandlePtr = optarg;
-                break;
-            case 'p': /* PSO c1 */
-                sscanf(optarg, "%lf", &pso_c1);
-                break;
-            case 'q': /* PSO c2 */
-                sscanf(optarg, "%lf", &pso_c2);
-                break;
-            case 'r': /* PSO w_max */
-                sscanf(optarg, "%lf", &pso_w_max);
-                break;
-            case 's': /* PSO w_min */
-                sscanf(optarg, "%lf", &pso_w_min);
-                break;
-            case 't': /* PSO w_strategy */
-                sscanf(optarg, "%d", &pso_w_strategy_select);
-                break;
-            case 'w': /* PSO nhood_strategy */
-                sscanf(optarg, "%d", &pso_nhood_topology_select);
-                break;
-	    case 'x': /*PSO nhood_size */
-		sscanf(optarg, "%d", &pso_nhood_size);
-		break;
+            //case 'e': 
+                //sscanf(optarg, "%lf", &inEndX);
+                //break;
+            //case 'f':
+                //sscanf(optarg, "%lf", &inEndY);
+                //break;
+            //case 'n':
+                //sscanf(optarg, "%d", &waypoints);
+                //break;
+            //case 'm':
+                //inFileHandlePtr = optarg;
+                //break;
+            //case 'p': /* PSO c1 */
+                //sscanf(optarg, "%lf", &pso_c1);
+                //break;
+            //case 'q': /* PSO c2 */
+                //sscanf(optarg, "%lf", &pso_c2);
+                //break;
+            //case 'r': /* PSO w_max */
+                //sscanf(optarg, "%lf", &pso_w_max);
+                //break;
+            //case 's': /* PSO w_min */
+                //sscanf(optarg, "%lf", &pso_w_min);
+                //break;
+            //case 't': /* PSO w_strategy */
+                //sscanf(optarg, "%d", &pso_w_strategy_select);
+                //break;
+            //case 'w': /* PSO nhood_strategy */
+                //sscanf(optarg, "%d", &pso_nhood_topology_select);
+                //break;
+	    //case 'x': /*PSO nhood_size */
+		//sscanf(optarg, "%d", &pso_nhood_size);
+		//break;
 	    case 'z': //PopSize
 		popSize = 100;
 		break;
@@ -107,7 +111,7 @@ int parse_arguments(int argc, char **argv) {
 		abort();
 }
 
-
+/*
 void options() {
     printf ("Dimension = (%f,%f), Start = (%f,%f), Target = (%f,%f)\n", 
             inHorizonX, inHorizonY, inStartX, inStartY, inEndX, inEndY);
@@ -119,11 +123,12 @@ void options() {
     if (pso_nhood_topology_select == PSO_NHOOD_RANDOM)
         printf("\tneighborhood size = %d\n", pso_nhood_size);
 }
+*/
 
 
-
+/*
 void pso_set_path_settings(pso_settings_t *settings, pso_params_t *params, env_t *env, robot_t *robot, int waypoints) {
-    /* WARNING */
+    // WARNING 
     // Only valid if a square environment with same start and stop 
     // EX: (0, 0) to (100, 100) because the pso lib
     // only considers each as an 'x-value', not knowing that
@@ -168,10 +173,16 @@ void pso_set_path_settings(pso_settings_t *settings, pso_params_t *params, env_t
     settings->goal = 1e-5;
     settings->numset = INTEGER;
 }
+*/
 
 
+/*
 void print_usage() {
 return;
 
 }
+*
+*
+*
+* /
 

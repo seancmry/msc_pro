@@ -9,7 +9,7 @@ extern int popSize;
 /* Serial and parallel option */
 extern int demo; //for benchmark functions
 //extern bool serial, parallel;
-
+extern int timing;
 /* Path options */
 //extern int inRoboID;
 //extern double inStartX, inStartY, inEndX, inEndY;
@@ -28,15 +28,22 @@ extern int demo; //for benchmark functions
 extern int verbose;
 extern char *inFileHandlePtr;
 
-/*
+
 //TIMER
-typedef struct{
-	float time_pso; //Timing for serial
-	float time_omp; // Timing for OpenMP optimized version
-	float time_mpipso; //Timing for MPI-only version
-	float time_mpiomp; //Timing for MPI-OpenMP optimized version
-}pso_timer;
-*/
+struct Timer{
+	clock_t start;
+	clock_t finish;
+	float duration_ms;
+};
+
+struct timing_report{
+	struct Timer demo_time;
+};
+
+void print_elapsed_time(char* fn_name, clock_t start, clock_t finish);
+double elapsed_time(clock_t start, clock_t finish);
+void start_timer(struct Timer* timing);
+void end_timer(struct Timer* timing);
 
 int parse_arguments(int argc, char **argv);
 //void options();

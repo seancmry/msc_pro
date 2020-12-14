@@ -8,7 +8,6 @@
 #include <sys/stat.h>
 #include <time.h>
 #include <stdbool.h> //for booleans
-//#include <sys/time.h>
 //#include <unistd.h>
 //#include <ctype.h>
 //#include "mpi.h"
@@ -132,7 +131,11 @@ int main(int argc, char **argv) {
 
 	/* DEMO */
 	if(demo) {
-
+		
+		struct timing_report *stats; 
+		
+		//Begin timer
+		start_timer(&(stats->demo_time));
 		pso_obj_fun_t obj_fun = NULL;
 
     		// parse command line argument (function name)
@@ -192,6 +195,12 @@ int main(int argc, char **argv) {
 
     		// free the gbest buffer
     		free(solution.gbest);
+
+		//Stop timer
+		end_timer(&(stats->demo_time));
+
+		//Print timing
+		print_elapsed_time((char*) "DEMO ", stats->demo_time.start, stats->demo_time.finish);
 	}
 /*
 	if(serial) {

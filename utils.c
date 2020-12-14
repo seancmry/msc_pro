@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <getopt.h>
+#include <time.h>
 #include "utils.h"
 
 /*Initial PSO settings */
@@ -10,6 +11,7 @@ int popSize = 100;
 //bool serial = 0;
 //bool parallel = 0;
 int demo = 0; //for benchmark functions
+int timing = 0;
 
 /* Path options */
 //int inRoboID = 0;
@@ -95,9 +97,10 @@ int parse_arguments(int argc, char **argv) {
             //case 's': /* PSO w_min */
                 //sscanf(optarg, "%lf", &pso_w_min);
                 //break;
-            //case 't': /* PSO w_strategy */
+            case 't': //timing  /* PSO w_strategy */
                 //sscanf(optarg, "%d", &pso_w_strategy_select);
-                //break;
+                timing = 1;
+		break;
             //case 'w': /* PSO nhood_strategy */
                 //sscanf(optarg, "%d", &pso_nhood_topology_select);
                 //break;
@@ -113,6 +116,26 @@ int parse_arguments(int argc, char **argv) {
 	}
 	return 0;
 }
+
+
+void print_elapsed_time(char* fn_name, clock_t start, clock_t finish) {
+	printf("%s: %fms \n", fn_name, elapsed_time(start,finish));
+}
+
+double elapsed_time(clock_t start, clock_t finish) {
+	double time_in_ms = (double)(finish - start) / (CLOCKS_PER_SEC/1000);
+	return time_in_ms;
+}
+
+
+void start_timer(struct Timer* timing) {
+	timing->start = clock();
+}
+
+void end_timer(struct Timer* timing) {
+	timing->finish = clock();
+}
+
 
 /*
 void options() {

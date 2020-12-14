@@ -4,21 +4,19 @@ CFLAGS = -Wall -g -std=c99
 
 LDFLAGS = -lm -lgsl -lgslcblas
 
-OBJECTS: main.o pso.o utils.o
-
-SOURCES: main.c 
+OBJECTS = main.o pso.o utils.o
 
 TARGET = prog
 
 all: $(OBJECTS)
 	#mkdir -p results timings
-	$(CC) $(SOURCES) $(CFLAGS) -o $(TARGET) $(LDFLAGS)
+	$(CC) $(CFLAGS) -o $(TARGET) $^ $(LDFLAGS)
 
 test: all
 	./test.sh
 
-.PHONY: clean
+.PHONY: test clean
 
 clean: 
-	$(RM) $(OBJECTS) $(TARGET) *.csv a.out
+	$(RM) $(OBJECTS) $(TARGET) 
 

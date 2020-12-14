@@ -130,9 +130,7 @@ int main(int argc, char **argv) {
 	/*Init PSO settings */
     	pso_settings_t *settings = NULL;
 
-    	// Set the default settings
-    	pso_set_default_settings(settings);
-
+	/* DEMO */
 	if(demo) {
 
 		pso_obj_fun_t obj_fun = NULL;
@@ -190,7 +188,7 @@ int main(int argc, char **argv) {
     		solution.gbest = malloc(settings->dim * sizeof(double));
 
     		// run optimization algorithm
-    		pso_solve(obj_fun, NULL, &solution, &settings);
+    		pso_solve(obj_fun, NULL, &solution, settings);
 
     		// free the gbest buffer
     		free(solution.gbest);

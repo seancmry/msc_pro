@@ -385,15 +385,15 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
     		for (d=0; d<settings->dim; d++) {
 		// generate two numbers within the specified range
 
-       		/*
-		a = settings->x_lo + (settings->x_hi - settings->x_lo) * \
+       		
+		a = settings->x_lo[d] + (settings->x_hi[d] - settings->x_lo[d]) *  \
 		gsl_rng_uniform(settings->rng);
-       		b = settings->x_lo + (settings->x_hi - settings->x_lo) *   \
+       		b = settings->x_lo[d] + (settings->x_hi[d] - settings->x_lo[d]) *     \
 		gsl_rng_uniform(settings->rng);
-       		*/
+       		
 
-		a = gsl_rng_uniform_int(settings->rng, settings->x_lo + (settings->x_hi - settings->x_lo));
-       		b = gsl_rng_uniform_int(settings->rng, settings->x_lo + (settings->x_hi - settings->x_lo));
+		//a = gsl_rng_uniform_int(settings->rng, settings->x_lo + (settings->x_hi - settings->x_lo));
+       		//b = gsl_rng_uniform_int(settings->rng, settings->x_lo + (settings->x_hi - settings->x_lo));
      		
 		//a = settings->limits[0][i] + (settings->limits[1][i] - settings->limits[0][i]) 
        		// gsl_rng_uniform(settings->rng);

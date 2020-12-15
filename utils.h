@@ -3,7 +3,7 @@
 #define _UTILS_H
 
 /*Initial PSO settings */
-extern int popSize; 
+//extern int popSize; 
 //extern int maxIterations = 500; 
 
 /* Serial and parallel option */

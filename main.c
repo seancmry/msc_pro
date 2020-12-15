@@ -94,7 +94,7 @@ int main(int argc, char **argv) {
 	parse_arguments(argc,argv);
     	//options();
 
-	bool demo = true;
+	//int demo = 0;
 	//int popSize = 0;
 
     	//Get weighting and topology	
@@ -127,7 +127,7 @@ int main(int argc, char **argv) {
 
 	
 	/* DEMO */
-	if(demo) {
+	//if(demo) {
 		
 		/* Initialise PSO settings */
 		pso_settings_t *settings = NULL; 
@@ -150,7 +150,7 @@ int main(int argc, char **argv) {
 		//Free timer
 		free(stats);
 		
-	}
+	//}
 
 	return 0;
 }
@@ -211,13 +211,14 @@ void pso_demo(pso_settings_t *settings, int argc, char **argv) {
     		pso_result_t solution;
     
 		// allocate memory for the best position buffer
-    		solution.gbest = malloc(settings->dim * sizeof(double));
+    		solution.gbest = (double *)malloc(settings->dim * sizeof(double));
 
     		// run optimization algorithm
     		pso_solve(obj_fun, NULL, &solution, settings);
 
     		// free the gbest buffer
     		free(solution.gbest);
+
 }
 
 /*

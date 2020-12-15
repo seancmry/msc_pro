@@ -307,7 +307,6 @@ void pso_matrix_free(double **m, int size) {
 
 void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *solution, pso_settings_t *settings)
 {
-
 	int demo = 0;
   	// Particles
   	double **pos = pso_matrix_new(settings->size, settings->dim); // position matrix
@@ -382,23 +381,16 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
   	for (i=0; i<settings->size; i++) {
     		// for each dimension
     		for (d=0; d<settings->dim; d++) {
-		// generate two numbers within the specified range
-
-       		
+			// generate two numbers within the specified range
 			a = settings->x_lo[d] + (settings->x_hi[d] - settings->x_lo[d]) *  \
 			gsl_rng_uniform(settings->rng);
        			b = settings->x_lo[d] + (settings->x_hi[d] - settings->x_lo[d]) *     \
 			gsl_rng_uniform(settings->rng);
-       		
-
-		//a = gsl_rng_uniform_int(settings->rng, settings->x_lo + (settings->x_hi - settings->x_lo));
-       		//b = gsl_rng_uniform_int(settings->rng, settings->x_lo + (settings->x_hi - settings->x_lo));
-     		
-		//a = settings->limits[0][i] + (settings->limits[1][i] - settings->limits[0][i]) 
-       		// gsl_rng_uniform(settings->rng);
-      		//b = settings->limits[0][i] + (settings->limits[1][i] - settings->limits[0][i])
-       		// gsl_rng_uniform(settings->rng);
-       
+       			
+			//a = settings->limits[0][i] + (settings->limits[1][i] - settings->limits[0][i]) 
+       			// gsl_rng_uniform(settings->rng);
+      			//b = settings->limits[0][i] + (settings->limits[1][i] - settings->limits[0][i])
+       			// gsl_rng_uniform(settings->rng);
 
       			// initialize position
       			pos[i][d] = a;
@@ -423,7 +415,7 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
     	}
 	
 	// initialize omega using standard value
-	//w = PSO_INERTIA;
+	w = PSO_INERTIA;
 	
 	// RUN ALGORITHM
   	for (step=0; step<settings->steps; step++) {
@@ -437,8 +429,9 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
     		// check optimization goal
     		if (solution->error <= settings->goal) {
      	 		// SOLVED!!
-      			if (settings->print_every)
+      			if (settings->print_every){
         			printf("Goal achieved @ step %d (error=%.3e) :-)\n", step, solution->error);
+			}
      			break;
     		}	
 
@@ -461,8 +454,8 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
           				rho2 * (pos_nb[i][d] - pos[i][d]);
         		// update position
         			pos[i][d] += vel[i][d];
-
-				if (demo) {
+				
+				if(demo){
         				// clamp position within bounds?
         				if (settings->clamp_pos) {
           					if (pos[i][d] < settings->x_lo[d]) {
@@ -484,36 +477,8 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
             						vel[i][d] = 0;
           					}
         				}
-				}
-
-/*	if (parallel) {
-        // clamp position within bounds?
-        if (settings->clamp_pos) {
-          if (pos[i][d] < settings->limits[0][i]) {
-            pos[i][d] = settings->limits[0][i];
-            vel[i][d] = 0;
-          } else if (pos[i][d] > settings->limits[1][i]) {
-            pos[i][d] = settings->limits[1][i];
-            vel[i][d] = 0;
-          }
-        } else {
-          // enforce periodic boundary conditions
-          if (pos[i][d] < settings->limits[0][i]) {
-
-            pos[i][d] = settings->limits[1][i] - fmod(settings->limits[0][i] - pos[i][d],
-                                              settings->limits[1][i] - settings->limits[0][i]);
-            vel[i][d] = 0;
-
-          } else if (pos[i][d] > settings->limits[1][i]) {
-
-            pos[i][d] = settings->limits[0][i] + fmod(pos[i][d] - settings->limits[1][i],
-                                              settings->limits[1][i] - settings->limits[0][i]);
-            vel[i][d] = 0;
-          }
-        }
-*/
-			} 
-
+				} 
+			}
                 	// update particle fitness
                 	fit[i] = obj_fun(pos[i], settings->dim, obj_fun_params);
                 	// update personal best position?
@@ -534,8 +499,9 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
       			}
     	
 		}
-    		if (settings->print_every && (step % settings->print_every == 0))
+    		if (settings->print_every && (step % settings->print_every == 0)) 
       			printf("Step %d (w=%.2f) :: min err=%.5e\n", step, w, solution->error);
+		
 	}
-	
-};
+	pso_settings_free(settings);
+}

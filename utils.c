@@ -8,7 +8,7 @@
 //int maxIterations = 500; 
 
 /* Serial and parallel option */
-//bool serial = 0;
+int serial = 0;
 //bool parallel = 0;
 int demo = 0; //for benchmark functions
 int timing = 0;
@@ -94,9 +94,10 @@ int parse_arguments(int argc, char **argv) {
             //case 'r': /* PSO w_max */
                 //sscanf(optarg, "%lf", &pso_w_max);
                 //break;
-            //case 's': /* PSO w_min */
-                //sscanf(optarg, "%lf", &pso_w_min);
-                //break;
+            case 's': /* PSO w_min */
+                serial = 1;
+		//sscanf(optarg, "%lf", &pso_w_min);
+                break;
             case 't': //timing  /* PSO w_strategy */
                 //sscanf(optarg, "%d", &pso_w_strategy_select);
                 timing = 1;
@@ -144,7 +145,7 @@ void options() {
             inHorizonX, inHorizonY, inStartX, inStartY, inEndX, inEndY);
     printf ("Map File = %s\n", inFileHandlePtr);
     printf ("PSO: c1 = %f, c2 = %f, weight strategy = %d, neighborhood topology = %d\n", 
-            pso_c1, pso_c2, pso_w_strategy, pso_nhood_topology);
+           pso_c1, pso_c2, pso_w_strategy, pso_nhood_topology);
     if (pso_w_strategy == PSO_W_LIN_DEC)
         printf ("\tweight min = %f, weight max = %f\n", pso_w_min, pso_w_max);
     if (pso_nhood_topology_select == PSO_NHOOD_RANDOM)

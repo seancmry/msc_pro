@@ -2,6 +2,7 @@
 #include <math.h>
 #include <string.h>
 #include <gsl/gsl_rng.h>
+#include "pso.h"
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
@@ -10,7 +11,6 @@
 
 #include "utils.h"
 #include "path.h"
-#include "pso.h"
 
 int **readMap(char * fhandle, int height, int width) {
 
@@ -48,31 +48,18 @@ double euclideanDistance(double xi, double yi, double xj, double yj) {
     return pow( pow(xi - xj, 2) + pow(yi - yj, 2), 0.5);
 }
 
-double ChessboardDistance(double xi, double yi, double xj, double yj) {
-    double xDiff = abs(xi - xj);
-    double yDiff = abs(yi - yj);
-    double max = 0.0;
-    if (xDiff > yDiff){
-        max = xDiff;
-    }
-    else {
-        max = yDiff;
-    }
-    return max;
-}
-
-robot_t * initRobot(int ID, double xInit, double yInit, double xTarget, double yTarget, double stepSize, double velocity) {
-    robot_t *robot = (robot_t *) malloc (sizeof (robot_t) * 1);
-    robot->ID = ID;
-    robot->position_coords[0] = xInit;
-    robot->position_coords[1] = yInit;
-    robot->target_coords[0] = xTarget;
-    robot->target_coords[1] = yTarget;
-    robot->distToTarget = euclideanDistance(xInit, yInit, xTarget, yTarget);
-    robot->stepSize = stepSize;
-    // This is the velocity of the robot
-    robot->velocity = velocity;
-    return robot;
+uav_t * initUav(int ID, double xInit, double yInit, double xTarget, double yTarget, double stepSize, double velocity) {
+    uav_t *uav = (uav_t *) malloc (sizeof (uav_t) * 1);
+    uav->ID = ID;
+    uav->position_coords[0] = xInit;
+    uav->position_coords[1] = yInit;
+    uav->target_coords[0] = xTarget;
+    uav->target_coords[1] = yTarget;
+    uav->distToTarget = euclideanDistance(xInit, yInit, xTarget, yTarget);
+    uav->stepSize = stepSize;
+    // This is the velocity of the uav
+    uav->velocity = velocity;
+    return uav;
 }
 
 env_t * initEnv(double xMin, double yMin, double xMax, double yMax, int ** map) {
@@ -85,11 +72,11 @@ env_t * initEnv(double xMin, double yMin, double xMax, double yMax, int ** map) 
     return env;
 }
 
-void printRobot(robot_t *robot) {
-    printf ("Robot %d is at (%f, %f).\n", robot->ID, robot->position_coords[0], robot->position_coords[1]);
-    printf ("The goal is at (%f, %f).\n", robot->target_coords[0], robot->target_coords[1]);
-    printf ("It moves with velocity %f and with step size %f.\n", robot->velocity, robot->stepSize);
-    printf ("It is currently at distance %f from the target.\n", robot->distToTarget);
+void printUav(uav_t *uav) {
+    printf ("UAV %d is at (%f, %f).\n", uav->ID, uav->position_coords[0], uav->position_coords[1]);
+    printf ("The goal is at (%f, %f).\n", uav->target_coords[0], uav->target_coords[1]);
+    printf ("It moves with velocity %f and with step size %f.\n", uav->velocity, uav->stepSize);
+    printf ("It is currently at distance %f from the target.\n", uav->distToTarget);
 }
 
 void printEnv(env_t *env) {
@@ -198,7 +185,7 @@ double pso_path(double *vec, int dim, void *params) {
     return distance;
 }
 
-void pso_set_path_settings(pso_settings_t *settings, pso_params_t *params, env_t *env, robot_t *robot, int waypoints) {
+void pso_set_path_settings(pso_settings_t *settings, pso_params_t *params, env_t *env, uav_t *uav, int waypoints) {
     /* WARNING */
     // Only valid if a square environment with same start and stop 
     // EX: (0, 0) to (100, 100) because the pso lib

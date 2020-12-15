@@ -151,7 +151,31 @@ int main(int argc, char **argv) {
 		free(stats);
 		
 	//}
+/*	
+	if(serial) {
+	
+		//Initialise PSO settings 
+		pso_settings_t *settings = NULL; 
+	
+		//Initialise timer
+		struct timing_report* stats = malloc(sizeof(double));
+			
+		//Begin timer
+		start_timer(&(stats->serial_time));
+		
+		//Execute
+		pso_serial(settings);
 
+		//Stop timer
+		end_timer(&(stats->serial_time));
+
+		//Print timing
+		print_elapsed_time((char*) "DEMO ", stats->serial_time.start, stats->serial_time.finish);
+
+		//Free timer
+		free(stats);	
+	}
+*/	
 	return 0;
 }
 
@@ -222,15 +246,13 @@ void pso_demo(pso_settings_t *settings, int argc, char **argv) {
 }
 
 /*
-	if(serial) {
-
-    		//Use pso library
+void pso_serial(pso_settings_t *settings) {
     		
 		// Define objective function
     		pso_obj_fun_t obj_fun = pso_path;
     
 		// Set the problem specific settings    
-    		pso_set_path_settings(&settings, pso_params, pso_params->env, robot, waypoints);
+    		pso_set_path_settings(&settings, pso_params, pso_params->env, uav, waypoints);
 		//settings.size = popSize;
 		//settings.nhood_strategy = PSO_NHOOD_RING;
     		settings.dim = waypoints * 2;
@@ -248,24 +270,9 @@ void pso_demo(pso_settings_t *settings, int argc, char **argv) {
     		// Run pso algorithm
     		pso_solve(obj_fun, pso_params, &solution, &settings);
     	
- 		// Free global best buffer
-    		free(solution.gbest);
-	}
-	
-
-	if(parallel) {
-
-
-
-
-
-
-	}
-	
-  
-	// Display best result - WILL BE GROUPED IN PRINT FUNCITON
-    	int i, count = 0;
-    	printf ("Solution waypoints:\n");
+		// Display best result - WILL BE GROUPED IN PRINT FUNCITON
+    		int i, count = 0;
+    		printf ("Solution waypoints:\n");
     		for(i=0;i<settings.dim/2;i++){
         		printf ("(%f, %f)\n", solution.gbest[count], solution.gbest[count + 1]);
         		count = count + 2;
@@ -276,6 +283,10 @@ void pso_demo(pso_settings_t *settings, int argc, char **argv) {
     	int obstacles = pso_path_countObstructions(solution.gbest, settings.dim, pso_params);
     	printf ("obstacles: %d\n", obstacles);
 
+		// Free global best buffer
+    		free(solution.gbest);
+  
+}
 */
 
 

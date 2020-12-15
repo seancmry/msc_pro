@@ -2,6 +2,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#ifndef PATH_H_
+#define PATH_H_
+
 typedef struct {
     int ID; 
     double position_coords[2];
@@ -9,7 +12,7 @@ typedef struct {
     double distToTarget;
     double stepSize;
     double velocity;
-} robot_t;
+} uav_t;
 
 typedef struct {
     double *waypoints;
@@ -40,20 +43,21 @@ int ** readMap (char * fhandle, int height, int width);
 void printMap (int **map, int height, int width);
 
 double euclideanDistance(double xi, double yi, double xj, double yj);
-double ChessboardDistance(double xi, double yi, double xj, double yj);
  
-robot_t * initRobot(int ID, double xInit, double yInit, double xTarget, double yTarget, double stepSize, double velocity);
+uav_t * initUav(int ID, double xInit, double yInit, double xTarget, double yTarget, double stepSize, double velocity);
 env_t * initEnv(double xMin, double yMin, double xMax, double yMax, int ** map); 
 
-void printRobot(robot_t *robot);
+void printUav(uav_t *uav);
 void printEnv(env_t *env);
 
 int line2 (int x0, int y0, int x1, int y1, int ** map, int xLimit, int yLimit);
 int pso_path_countObstructions(double *vec, int dim, void *params);
 double pso_path_penalty(double *vec, int dim, void *params);
 double pso_path(double *vec, int dim, void *params);
+void pso_set_path_settings(pso_settings_t *settings, pso_params_t *params, env_t *env, uav_t *uav, int waypoints);
 int getPSOParam_w_stategy(int code);
 int getPSOParam_nhood_topology(int code);
 
+#endif
 
 

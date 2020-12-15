@@ -7,8 +7,8 @@
 //extern int maxIterations = 500; 
 
 /* Serial and parallel option */
-extern int demo; //for benchmark functions
-//extern bool serial, parallel;
+//extern int demo; //for benchmark functions
+extern int serial; //for serial path example
 extern int timing;
 /* Path options */
 //extern int inRoboID;
@@ -38,6 +38,7 @@ struct Timer{
 
 struct timing_report{
 	struct Timer demo_time;
+	struct Timer serial_time;
 };
 
 void start_timer(struct Timer* timing);
@@ -46,7 +47,6 @@ double elapsed_time(clock_t start, clock_t finish);
 void print_elapsed_time(char* fn_name, clock_t start, clock_t finish);
 
 //void options();
-//void pso_set_path_settings(pso_settings_t *settings, pso_params_t *params, env_t *env, robot_t *robot, int waypoints);
 //void print_usage();
 
 #endif

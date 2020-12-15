@@ -27,7 +27,7 @@ extern int timing;
 /* Option parsing */
 extern int verbose;
 extern char *inFileHandlePtr;
-
+int parse_arguments(int argc, char **argv);
 
 //TIMER
 struct Timer{
@@ -40,12 +40,11 @@ struct timing_report{
 	struct Timer demo_time;
 };
 
-void print_elapsed_time(char* fn_name, clock_t start, clock_t finish);
-double elapsed_time(clock_t start, clock_t finish);
 void start_timer(struct Timer* timing);
 void end_timer(struct Timer* timing);
+double elapsed_time(clock_t start, clock_t finish);
+void print_elapsed_time(char* fn_name, clock_t start, clock_t finish);
 
-int parse_arguments(int argc, char **argv);
 //void options();
 //void pso_set_path_settings(pso_settings_t *settings, pso_params_t *params, env_t *env, robot_t *robot, int waypoints);
 //void print_usage();

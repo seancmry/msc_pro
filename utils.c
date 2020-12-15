@@ -4,7 +4,7 @@
 #include "utils.h"
 
 /*Initial PSO settings */
-int popSize = 100;
+//int popSize = 100;
 //int maxIterations = 500; 
 
 /* Serial and parallel option */
@@ -107,24 +107,14 @@ int parse_arguments(int argc, char **argv) {
 	    //case 'x': /*PSO nhood_size */
 		//sscanf(optarg, "%d", &pso_nhood_size);
 		//break;
-	    case 'z': //PopSize
-		popSize = 100;
-		break;
+	    //case 'z': //PopSize
+		//popSize = 100;
+		//break;
 	    default:
 		printf ("Invalid argumentation, fail\n");
 		return -1;
 	}
 	return 0;
-}
-
-
-void print_elapsed_time(char* fn_name, clock_t start, clock_t finish) {
-	printf("%s: %fms \n", fn_name, elapsed_time(start,finish));
-}
-
-double elapsed_time(clock_t start, clock_t finish) {
-	double time_in_ms = (double)(finish - start) / (CLOCKS_PER_SEC/1000);
-	return time_in_ms;
 }
 
 
@@ -134,6 +124,17 @@ void start_timer(struct Timer* timing) {
 
 void end_timer(struct Timer* timing) {
 	timing->finish = clock();
+}
+
+
+double elapsed_time(clock_t start, clock_t finish) {
+	double time_in_ms = (double)(finish - start) / (CLOCKS_PER_SEC/1000);
+	return time_in_ms;
+}
+
+
+void print_elapsed_time(char* fn_name, clock_t start, clock_t finish) {
+	printf("%s: %fms \n", fn_name, elapsed_time(start,finish));
 }
 
 

@@ -257,7 +257,7 @@ pso_settings_t *pso_settings_new(int dim, double x_lo, double x_hi) {
 //settings->limits = pso_autofill_limits (settings->x_lo, settings->x_hi, settings->dim);
 
   settings->size = pso_calc_swarm_size(settings->dim);
-  settings->print_every = 100;
+  settings->print_every = 1000;
   settings->steps = 100000;
   settings->c1 = 1.496;
   settings->c2 = 1.496;
@@ -281,6 +281,7 @@ pso_settings_t *pso_settings_new(int dim, double x_lo, double x_hi) {
 void pso_settings_free(pso_settings_t *settings) {
 	free(settings->x_lo);
 	free(settings->x_hi);
+	gsl_rng_free(settings->rng);
 	free(settings);
 }
 
@@ -308,7 +309,6 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
 {
 
 	int demo = 0;
-  	int free_rng = 0; // whether to free settings->rng when finished
   	// Particles
   	double **pos = pso_matrix_new(settings->size, settings->dim); // position matrix
   	double **vel = pso_matrix_new(settings->size, settings->dim) ; // velocity matrix
@@ -332,15 +332,14 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
   	inertia_fun_t calc_inertia_fun = NULL; // inertia weight update function
 
   	// CHECK RANDOM NUMBER GENERATOR
-  	if (! settings->rng) {
+  	if (!settings->rng) {
     		// initialize random number generator
     		gsl_rng_env_setup();
     		// allocate the RNG
     		settings->rng = gsl_rng_alloc(gsl_rng_default);
     		// seed the generator
     		gsl_rng_set(settings->rng, settings->seed);
-    		// remember to free the RNG
-    		free_rng = 1;
+    		// remember to free the RNG - moved to free(settings)
   	}
 
   	// SELECT APPROPRIATE NHOOD UPDATE FUNCTION
@@ -386,10 +385,10 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
 		// generate two numbers within the specified range
 
        		
-		a = settings->x_lo[d] + (settings->x_hi[d] - settings->x_lo[d]) *  \
-		gsl_rng_uniform(settings->rng);
-       		b = settings->x_lo[d] + (settings->x_hi[d] - settings->x_lo[d]) *     \
-		gsl_rng_uniform(settings->rng);
+			a = settings->x_lo[d] + (settings->x_hi[d] - settings->x_lo[d]) *  \
+			gsl_rng_uniform(settings->rng);
+       			b = settings->x_lo[d] + (settings->x_hi[d] - settings->x_lo[d]) *     \
+			gsl_rng_uniform(settings->rng);
        		
 
 		//a = gsl_rng_uniform_int(settings->rng, settings->x_lo + (settings->x_hi - settings->x_lo));
@@ -401,27 +400,25 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
        		// gsl_rng_uniform(settings->rng);
        
 
-      		// initialize position
-      		pos[i][d] = a;
-      		// best position is the same
-      		pos_b[i][d] = a;
-      		// initialize velocity
-      		vel[i][d] = (a-b) / 2.;
+      			// initialize position
+      			pos[i][d] = a;
+      			// best position is the same
+      			pos_b[i][d] = a;
+      			// initialize velocity
+      			vel[i][d] = (a-b) / 2.;
     		}
-
     		// update particle fitness
     		fit[i] = obj_fun(pos[i], settings->dim, obj_fun_params);
    		fit_b[i] = fit[i]; // this is also the personal best
     
 		// update gbest??
     		if (fit[i] < solution->error) {
-      
-		// update best fitness
-     		solution->error = fit[i];
+			// update best fitness
+     			solution->error = fit[i];
       	
-		// copy particle pos to gbest vector
-  		memmove((void *)solution->gbest, (void *)pos[i],
-			sizeof(double) * settings->dim);
+			// copy particle pos to gbest vector
+  			memmove((void *)solution->gbest, (void *)pos[i],
+				sizeof(double) * settings->dim);
 		}
     	}
 	
@@ -439,10 +436,10 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
 		}
     		// check optimization goal
     		if (solution->error <= settings->goal) {
-     	 	// SOLVED!!
-      		if (settings->print_every)
-        		printf("Goal achieved @ step %d (error=%.3e) :-)\n", step, solution->error);
-     		break;
+     	 		// SOLVED!!
+      			if (settings->print_every)
+        			printf("Goal achieved @ step %d (error=%.3e) :-)\n", step, solution->error);
+     			break;
     		}	
 
     		// update pos_nb matrix (find best of neighborhood for all particles)
@@ -540,17 +537,5 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
     		if (settings->print_every && (step % settings->print_every == 0))
       			printf("Step %d (w=%.2f) :: min err=%.5e\n", step, w, solution->error);
 	}
-
-  	// free RNG??
-  	if (free_rng) 
-    		gsl_rng_free(settings->rng);
-  	
-  	//Free resources
-  	pso_matrix_free(pos, settings->size);
-  	pso_matrix_free(vel, settings->size);
-  	pso_matrix_free(pos_b, settings->size);
-  	pso_matrix_free(pos_nb, settings->size);
-  	free(comm);
- 	free(fit);
- 	free(fit_b);
-}
+	
+};

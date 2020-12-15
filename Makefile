@@ -9,7 +9,6 @@ OBJECTS = main.o pso.o utils.o
 TARGET = prog
 
 all: $(OBJECTS)
-	#mkdir -p results timings
 	$(CC) $(CFLAGS) -o $(TARGET) $^ $(LDFLAGS)
 
 test: all

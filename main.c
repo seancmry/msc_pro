@@ -15,7 +15,7 @@
 //#include "path.h"
 #include "pso.h"
 #include "utils.h"
-
+#include "defs.h"
 
 //==============================================================
 //                  BENCHMARK FUNCTIONS
@@ -95,7 +95,7 @@ int main(int argc, char **argv) {
     	//options();
 
 	bool demo = true;
-	int popSize = 0;
+	//int popSize = 0;
 
     	//Get weighting and topology	
     	//pso_w_strategy = getPSOParam_w_stategy(pso_w_strategy_select);
@@ -125,17 +125,40 @@ int main(int argc, char **argv) {
     	//pso_params->nhood_size = pso_nhood_size;
     	//printEnv(pso_params->env);
 
-
-	/*Init PSO settings */
-    	pso_settings_t *settings = NULL;
-
+	
 	/* DEMO */
 	if(demo) {
 		
-		struct timing_report *stats; 
-		
+		/* Initialise PSO settings */
+		pso_settings_t *settings = NULL; 
+	
+		/* Initialise timer */
+		struct timing_report* stats = malloc(sizeof(double));
+			
 		//Begin timer
 		start_timer(&(stats->demo_time));
+		
+		//Execute
+		pso_demo(settings,argc,argv);
+
+		//Stop timer
+		end_timer(&(stats->demo_time));
+
+		//Print timing
+		print_elapsed_time((char*) "DEMO ", stats->demo_time.start, stats->demo_time.finish);
+
+		//Free timer
+		free(stats);
+		
+	}
+
+	return 0;
+}
+
+
+void pso_demo(pso_settings_t *settings, int argc, char **argv) {
+	
+		/* Initialise function settings */
 		pso_obj_fun_t obj_fun = NULL;
 
     		// parse command line argument (function name)
@@ -162,11 +185,11 @@ int main(int argc, char **argv) {
                    			settings->dim, settings->size);
         		} else {
             			printf("Unsupported objective function: %s", argv[1]);
-            			return 1;
+            			return;
         		}
     		} else if (argc > 2) {
-        		printf("Usage: demo [PROBLEM], where problem is optional with values [sphere|rosenbrock|griewank]\n ");
-        		return 1;
+        		printf("Usage: demo [PROBLEM], where problem is optional with values [ackley|sphere|rosenbrock|griewank]\n ");
+        		return;
     		}
 
     		// handle the default case (no argument given)
@@ -179,7 +202,7 @@ int main(int argc, char **argv) {
 
     		// set some general PSO settings
     		settings->goal = 1e-5;
-    		settings->size = popSize;
+    		settings->size = 30;
     		settings->nhood_strategy = PSO_NHOOD_RING;
     		settings->nhood_size = 10;
     		settings->w_strategy = PSO_W_LIN_DEC;
@@ -195,13 +218,8 @@ int main(int argc, char **argv) {
 
     		// free the gbest buffer
     		free(solution.gbest);
+}
 
-		//Stop timer
-		end_timer(&(stats->demo_time));
-
-		//Print timing
-		print_elapsed_time((char*) "DEMO ", stats->demo_time.start, stats->demo_time.finish);
-	}
 /*
 	if(serial) {
 
@@ -258,9 +276,7 @@ int main(int argc, char **argv) {
     	printf ("obstacles: %d\n", obstacles);
 
 */
-    	return 0;
-	
-}
+
 
 /*
 int empty_file(FILE* file) {

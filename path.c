@@ -12,42 +12,6 @@
 #include "utils.h"
 #include "path.h"
 
-int **readMap(char * fhandle, int height, int width) {
-
-    FILE *file;
-    file = fopen(fhandle, "r");
-    size_t count; 
-    char *line = (char *) malloc (sizeof (char) * width + 1);
-    
-    int i = 0, j = 0, ylim = 0;
-    int ** map = (int **) malloc (sizeof (int *) * height);
-    while (getline (&line, &count, file) != -1 && ylim < height){
-        map[i] = (int *) malloc (sizeof (int) * width);
-        for (j = 0; j < width; j++) {
-            map[i][j] = line[j] - '0';
-        }
-        i++;
-        ylim++;
-    }
-    fclose(file);
-    return map;
-}
-
-void printMap (int **map, int height, int width){
-    int i = 0, j = 0;
-    for (i = 0; i < height; i++){
-        for (j = 0; j < width; j++){
-            printf ("%d", map[i][j]);
-        }
-        printf ("\n");
-    }
-
-}
-
-double euclideanDistance(double xi, double yi, double xj, double yj) {
-    return pow( pow(xi - xj, 2) + pow(yi - yj, 2), 0.5);
-}
-
 uav_t * initUav(int ID, double xInit, double yInit, double xTarget, double yTarget, double stepSize, double velocity) {
     uav_t *uav = (uav_t *) malloc (sizeof (uav_t) * 1);
     uav->ID = ID;
@@ -83,24 +47,6 @@ void printEnv(env_t *env) {
     printf ("The world is of size %f x %f.\n", (env->maxs[0] - env->mins[0]), (env->maxs[1] - env->mins[1]));
     printf ("The bottom-left point is (%f, %f).\n", env->mins[0], env->mins[1]);
     printf ("The top-right point is (%f, %f).\n", env->maxs[0], env->maxs[1]);
-}
-
-int line2 (int x0, int y0, int x1, int y1, int ** map, int xLimit, int yLimit) { 
-// Source: https://github.com/ssloy/tinyrenderer/wiki/Lesson-1:-Bresenham%E2%80%99s-Line-Drawing-Algorithm
-
-    int count = 0;
-    float t = 0.0;
-	for (t=0.; t<1.; t+=.01) { 
-        int x = x0*(1.-t) + x1*t; 
-        int y = y0*(1.-t) + y1*t; 
-
-		if (x < yLimit && y < xLimit) {
-			if (map[x][y] > 0){
-				count++;
-			}
-		}
-    } 
-	return count;
 }
 
 int pso_path_countObstructions(double *vec, int dim, void *params) {

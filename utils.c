@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <getopt.h>
+#include <stdbool.h>
 #include <time.h>
 #include "utils.h"
 
@@ -8,26 +9,26 @@
 //int maxIterations = 500; 
 
 /* Serial and parallel option */
-int serial = 0;
+bool serial = true;
 //bool parallel = 0;
-int demo = 0; //for benchmark functions
+bool demo = true; //for benchmark functions
 int timing = 0;
 
 /* Path options */
-//int inRoboID = 0;
-//double inStartX = 70.0;
-//double inStartY = 70.0;
-//double inEndX = 136.0;
-//double inEndY = 127.0;
+int inRoboID = 0;
+double inStartX = 70.0;
+double inStartY = 70.0;
+double inEndX = 136.0;
+double inEndY = 127.0;
 //double inStepSize = 1;
 //double inVelocity = 2;
 //double inOriginX = 0;
 //double inOriginY = 0;
-//double inHorizonX = 200;
-//double inHorizonY = 200;  // 70
+double inHorizonX = 200;
+double inHorizonY = 200;  // 70
 //char inFileHandle[20] = "maps/sampleMap4.dat\0";
-//char inFileHandle[] = "sample_map_OpenRooms.txt";
-//int waypoints = 5;
+char inFileHandle[] = "sample_map_OpenRooms.txt";
+int waypoints = 5;
 
 /* PSO parameters */
 //double pso_c1 = -1.0;
@@ -49,42 +50,44 @@ int verbose = 0;
 int parse_arguments(int argc, char **argv) {
     int c;
     
-    while ((c = getopt (argc, argv, "d:v:z")) != -1)
+    while ((c = getopt (argc, argv, "v:z:a:b:h:i:d:e:f:n:m:s:t")) != -1)
         switch (c) {
             case 'v':
                 verbose = 1;
                 break;
-            //case 'z':
-		//serial = 1;
-		//break;
+            case 'z':
+		serial = 1;
+		break;
 	    //case 'g':
 		//parallel = 1;
 		//break;
-            //case 'a':
-                //sscanf(optarg, "%lf", &inHorizonX);
-                //break;
-            //case 'b':
-                //sscanf(optarg, "%lf", &inHorizonY);
-                //break;
-            //case 'c':
-                //sscanf(optarg, "%lf", &inStartX);
-                //break;
-            case 'd':
-                demo = 1;
-		//sscanf(optarg, "%lf", &inStartY);
+            case 'a':
+                sscanf(optarg, "%lf", &inHorizonX);
                 break;
-            //case 'e': 
-                //sscanf(optarg, "%lf", &inEndX);
-                //break;
-            //case 'f':
-                //sscanf(optarg, "%lf", &inEndY);
-                //break;
-            //case 'n':
-                //sscanf(optarg, "%d", &waypoints);
-                //break;
-            //case 'm':
-                //inFileHandlePtr = optarg;
-                //break;
+            case 'b':
+                sscanf(optarg, "%lf", &inHorizonY);
+                break;
+            case 'h':
+                sscanf(optarg, "%lf", &inStartX);
+                break;
+	    case 'i':
+		sscanf(optarg, "%lf", &inStartY);
+		break;
+            case 'd':
+                demo = false;
+                break;
+            case 'e': 
+                sscanf(optarg, "%lf", &inEndX);
+                break;
+            case 'f':
+                sscanf(optarg, "%lf", &inEndY);
+                break;
+            case 'n':
+                sscanf(optarg, "%d", &waypoints);
+                break;
+            case 'm':
+                inFileHandlePtr = optarg;
+                break;
             //case 'p': /* PSO c1 */
                 //sscanf(optarg, "%lf", &pso_c1);
                 //break;
@@ -95,7 +98,7 @@ int parse_arguments(int argc, char **argv) {
                 //sscanf(optarg, "%lf", &pso_w_max);
                 //break;
             case 's': /* PSO w_min */
-                serial = 1;
+                serial = false;
 		//sscanf(optarg, "%lf", &pso_w_min);
                 break;
             case 't': //timing  /* PSO w_strategy */
@@ -138,6 +141,82 @@ void print_elapsed_time(char* fn_name, clock_t start, clock_t finish) {
 	printf("%s: %fms \n", fn_name, elapsed_time(start,finish));
 }
 
+double roundNum (double d) {
+  double g = 0.0, e = 0.0, f = 0.0;
+  g = floor (d);
+  e = d - g;
+  if (d > 0){
+    if (e > 0.5){
+      f = g + 1;
+    } else {
+      f = g;
+    }
+  } else {
+      if (e > 0.5) {
+          f = g - 1;
+      } else {
+          f = g;
+      }
+  }
+  return f;
+}
+
+
+int **readMap(char * fhandle, int height, int width) {
+
+    FILE *file;
+    file = fopen(fhandle, "r");
+    size_t count; 
+    char *line = (char *) malloc (sizeof (char) * width + 1);
+    
+    int i = 0, j = 0, ylim = 0;
+    int ** map = (int **) malloc (sizeof (int *) * height);
+    while (getline (&line, &count, file) != -1 && ylim < height){
+        map[i] = (int *) malloc (sizeof (int) * width);
+        for (j = 0; j < width; j++) {
+            map[i][j] = line[j] - '0';
+        }
+        i++;
+        ylim++;
+    }
+    fclose(file);
+    return map;
+}
+
+void printMap (int **map, int height, int width){
+    int i = 0, j = 0;
+    for (i = 0; i < height; i++){
+        for (j = 0; j < width; j++){
+            printf ("%d", map[i][j]);
+        }
+        printf ("\n");
+    }
+
+}
+
+double euclideanDistance(double xi, double yi, double xj, double yj) {
+    return pow( pow(xi - xj, 2) + pow(yi - yj, 2), 0.5);
+}
+
+
+int line2 (int x0, int y0, int x1, int y1, int ** map, int xLimit, int yLimit) { 
+// Source: https://github.com/ssloy/tinyrenderer/wiki/Lesson-1:-Bresenham%E2%80%99s-Line-Drawing-Algorithm
+
+    int count = 0;
+    float t = 0.0;
+	for (t=0.; t<1.; t+=.01) { 
+        int x = x0*(1.-t) + x1*t; 
+        int y = y0*(1.-t) + y1*t; 
+
+		if (x < yLimit && y < xLimit) {
+			if (map[x][y] > 0){
+				count++;
+			}
+		}
+    } 
+	return count;
+}
+
 
 /*
 void options() {
@@ -150,56 +229,6 @@ void options() {
         printf ("\tweight min = %f, weight max = %f\n", pso_w_min, pso_w_max);
     if (pso_nhood_topology_select == PSO_NHOOD_RANDOM)
         printf("\tneighborhood size = %d\n", pso_nhood_size);
-}
-*/
-
-
-/*
-void pso_set_path_settings(pso_settings_t *settings, pso_params_t *params, env_t *env, robot_t *robot, int waypoints) {
-    // WARNING 
-    // Only valid if a square environment with same start and stop 
-    // EX: (0, 0) to (100, 100) because the pso lib
-    // only considers each as an 'x-value', not knowing that
-    // we are using a vector where odds are 'x' and evens are 'y'
-    settings->x_lo = env->mins[0];
-    settings->x_hi = env->maxs[0];
-
-    settings->limits = pso_autofill_limits(settings->x_lo, settings->x_hi, settings->dim);
-
-    settings->dim = waypoints * 2;
-    // Set odd values limits using X-min and X-max
-    // and even values limits using Y-min and Y-max
-    int i;
-    int count = 0;
-    for (i = 0; i < waypoints; i++) {
-        settings->limits[0][count] = env->mins[0];
-        settings->limits[1][count] = env->maxs[0];
-        count++;
-        settings->limits[0][count] = env->mins[1];
-        settings->limits[1][count] = env->maxs[1];
-        count++;
-    }
-
-    pso_print_limits(settings->limits, settings->dim);
-
-    // Set parameters, if not default
-    if (params->c1 >= 0)
-        settings->c1 = params->c1;
-    if (params->c2 >= 0)
-        settings->c2 = params->c2;
-    if (params->w_min >= 0)
-        settings->w_min = params->w_min;
-    if (params->w_max >= 0)
-        settings->w_max = params->w_max;
-    if (params->w_strategy >= 0)
-        settings->w_strategy = params->w_strategy;
-    if (params->nhood_size >= 0)
-        settings->nhood_size = params->nhood_size;
-    if (params->nhood_topology >= 0)
-        settings->nhood_strategy = params->nhood_topology;
-
-    settings->goal = 1e-5;
-    settings->numset = INTEGER;
 }
 */
 

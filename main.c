@@ -12,7 +12,7 @@
 //#include <ctype.h>
 //#include "mpi.h"
 
-//#include "path.h"
+#include "path.h"
 #include "pso.h"
 #include "utils.h"
 #include "defs.h"
@@ -94,45 +94,18 @@ int main(int argc, char **argv) {
 	parse_arguments(argc,argv);
     	//options();
 
-	//int demo = 0;
-	//int popSize = 0;
-
-    	//Get weighting and topology	
-    	//pso_w_strategy = getPSOParam_w_stategy(pso_w_strategy_select);
-    	//pso_nhood_topology = getPSOParam_nhood_topology(pso_nhood_topology_select);
-
-    	/* Read occupancy map */
-    	//int **map = readMap (inFileHandlePtr, inHorizonY, inHorizonX);
-
-    	/* Initialize robot */
-    	//robot_t * robot = initRobot(inRoboID, inStartX, inStartY, inEndX, inEndY, inStepSize, inVelocity);
-    	//printRobot(robot);
-
-    	/* Init pso objecttive function params */
-    	//pso_params_t *pso_params;
-    	//pso_params = malloc (sizeof (pso_params_t) * 1);
-    	//pso_params->env = initEnv(inOriginX, inOriginY, inHorizonX, inHorizonY, map);
-    	//pso_params->start[0] = robot->position_coords[0];
-    	//pso_params->start[1] = robot->position_coords[1];
-    	//pso_params->stop[0] = robot->target_coords[0];
-    	//pso_params->stop[1] = robot->target_coords[1];
-    	//pso_params->c1 = pso_c1;
-    	//pso_params->c2 = pso_c2;
-    	//pso_params->w_strategy = pso_w_strategy;
-    	//pso_params->w_min = pso_w_min;
-    	//pso_params->w_max = pso_w_max;
-    	//pso_params->nhood_topology = pso_nhood_topology;
-    	//pso_params->nhood_size = pso_nhood_size;
-    	//printEnv(pso_params->env);
+	//bool demo = true;
+	bool serial = true;
 
 	
 	/* DEMO */
-	//if(demo) {
+/*
+	if(demo) {
 		
-		/* Initialise PSO settings */
+		//Initialise PSO settings
 		pso_settings_t *settings = NULL; 
 	
-		/* Initialise timer */
+		//Initialise timer
 		struct timing_report* stats = malloc(sizeof(double));
 			
 		//Begin timer
@@ -150,8 +123,9 @@ int main(int argc, char **argv) {
 		//Free timer
 		free(stats);
 		
-	//}
-/*	
+	}
+*/
+	
 	if(serial) {
 	
 		//Initialise PSO settings 
@@ -175,14 +149,14 @@ int main(int argc, char **argv) {
 		//Free timer
 		free(stats);	
 	}
-*/	
+	
 	return 0;
 }
 
-
+/*
 void pso_demo(pso_settings_t *settings, int argc, char **argv) {
 	
-		/* Initialise function settings */
+		//Initialise function settings
 		pso_obj_fun_t obj_fun = NULL;
 
     		// parse command line argument (function name)
@@ -244,15 +218,49 @@ void pso_demo(pso_settings_t *settings, int argc, char **argv) {
     		free(solution.gbest);
 
 }
+*/
 
-/*
 void pso_serial(pso_settings_t *settings) {
-    		
+
+    		//Specify hard code here
+    		//FIXME	
+
+		//Get weighting and topology	
+    		pso_w_strategy = getPSOParam_w_stategy(pso_w_strategy_select);
+    		pso_nhood_topology = getPSOParam_nhood_topology(pso_nhood_topology_select);
+
+    		//Read occupancy map
+    		int **map = readMap (inFileHandlePtr, inHorizonY, inHorizonX);
+
+    		//Initialize uav
+    		uav_t * uav = initUav(inUavID, inStartX, inStartY, inEndX, inEndY, inStepSize, inVelocity);
+    		printUav(uav);
+
+    		//Init pso objecttive function params 
+    		pso_params_t *pso_params;
+    		pso_params = malloc (sizeof (pso_params_t) * 1);
+    		pso_params->env = initEnv(inOriginX, inOriginY, inHorizonX, inHorizonY, map);
+    		pso_params->start[0] = uav->position_coords[0];
+    		pso_params->start[1] = uav->position_coords[1];
+    		pso_params->stop[0] = uav->target_coords[0];
+    		pso_params->stop[1] = uav->target_coords[1];
+    		pso_params->c1 = pso_c1;
+    		pso_params->c2 = pso_c2;
+    		pso_params->w_strategy = pso_w_strategy;
+    		pso_params->w_min = pso_w_min;
+    		pso_params->w_max = pso_w_max;
+    		pso_params->nhood_topology = pso_nhood_topology;
+    		pso_params->nhood_size = pso_nhood_size;
+    		printEnv(pso_params->env);
+
+    			
+		//Initialise settings
+		pso_settings_t settings;
+		
 		// Define objective function
     		pso_obj_fun_t obj_fun = pso_path;
     
-		// Set the problem specific settings    
-    		pso_set_path_settings(&settings, pso_params, pso_params->env, uav, waypoints);
+		// Set the problem specific settings
 		//settings.size = popSize;
 		//settings.nhood_strategy = PSO_NHOOD_RING;
     		settings.dim = waypoints * 2;
@@ -280,14 +288,13 @@ void pso_serial(pso_settings_t *settings) {
     		printf("Solution distance: %f\n", solution.error);
 
 
-    	int obstacles = pso_path_countObstructions(solution.gbest, settings.dim, pso_params);
-    	printf ("obstacles: %d\n", obstacles);
+    		int obstacles = pso_path_countObstructions(solution.gbest, settings.dim, pso_params);
+    		printf ("obstacles: %d\n", obstacles);
 
 		// Free global best buffer
     		free(solution.gbest);
   
 }
-*/
 
 
 /*

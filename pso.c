@@ -9,28 +9,6 @@
 #include "utils.h"
 #include "pso.h"
 
-/*
-double roundNum (double d) {
-  double g = 0.0, e = 0.0, f = 0.0;
-  g = floor (d);
-  e = d - g;
-  if (d > 0){
-    if (e > 0.5){
-      f = g + 1;
-    } else {
-      f = g;
-    }
-  } else {
-      if (e > 0.5) {
-          f = g - 1;
-      } else {
-          f = g;
-      }
-  }
-  return f;
-}
-
-*/
 
 // function type for the different inform functions
 typedef void (*inform_fun_t)(int *comm, double **pos_nb, double **pos_b, double *fit_b, double *gbest, int improved, pso_settings_t *settings);
@@ -204,8 +182,6 @@ void inform_random(int *comm, double **pos_nb,
 //                     PSO SETTINGS
 //==============================================================
 
-/*
-//=============================================================
 // set x value limits (high and low) using two constants
 double ** pso_autofill_limits (double x_lo, double x_hi, int dim){
     double ** limits = (double **) malloc (sizeof (double *) * 2);
@@ -228,56 +204,64 @@ void pso_print_limits (double ** limits, int dim){
     }
 
 }
-*/
 
 
 //==============================================================
 // return default pso settings
 pso_settings_t *pso_settings_new(int dim, double x_lo, double x_hi) {
 
+	bool demo = true, serial = true;
 	pso_settings_t *settings = (pso_settings_t *)malloc(sizeof(pso_settings_t));
 	if (settings == NULL) {return NULL;}
 
-  	// set some default values
-  	settings->dim = dim;
-  	settings->goal = 1e-5;
+	if (demo) {
+  		// set some default values
+  		settings->dim = dim;
+  		settings->goal = 1e-5;
 
-	settings->x_lo = (double *)malloc(settings->dim * sizeof(double));
-	if (settings->x_lo == NULL) {free(settings); return NULL;}
+		settings->x_lo = (double *)malloc(settings->dim * sizeof(double));
+		if (settings->x_lo == NULL) {free(settings); return NULL;}
 
-	settings->x_hi = (double *)malloc(settings->dim * sizeof(double));
-	if (settings->x_hi == NULL) {free(settings); free(settings->x_lo); return NULL;}
+		settings->x_hi = (double *)malloc(settings->dim * sizeof(double));
+		if (settings->x_hi == NULL) {free(settings); free(settings->x_lo); return NULL;}
 
-	for (int i=0; i<settings->dim; i++) {
-		settings->x_lo[i] = x_lo;
-		settings->x_hi[i] = x_hi;
+		for (int i=0; i<settings->dim; i++) {
+			settings->x_lo[i] = x_lo;
+			settings->x_hi[i] = x_hi;
+		}
 	}
 
+  	if (serial) {
+		settings->limits = pso_autofill_limits (settings->x_lo, settings->x_hi, settings->dim);
+		settings->dim = 30;
+		settings->x_hi = 20;
+		settings->x_lo = -20;
+		settings->goal = 1e-5;
+		settings->numset = DECIMAL;
+	}
+
+  	settings->size = pso_calc_swarm_size(settings->dim);
+  	settings->print_every = 1000;
+  	settings->steps = 100000;
+  	settings->c1 = 1.496;
+  	settings->c2 = 1.496;
+  	settings->w_max = PSO_INERTIA;
+  	settings->w_min = 0.3;
+
+  	settings->clamp_pos = 1;
+  	settings->nhood_strategy = PSO_NHOOD_RING;
+ 	settings->nhood_size = 5;
+  	settings->w_strategy = PSO_W_LIN_DEC;
+
+  	settings->rng = NULL;
+  	settings->seed = time(0);
   
-//settings->limits = pso_autofill_limits (settings->x_lo, settings->x_hi, settings->dim);
-
-  settings->size = pso_calc_swarm_size(settings->dim);
-  settings->print_every = 1000;
-  settings->steps = 100000;
-  settings->c1 = 1.496;
-  settings->c2 = 1.496;
-  settings->w_max = PSO_INERTIA;
-  settings->w_min = 0.3;
-
-  settings->clamp_pos = 1;
-  settings->nhood_strategy = PSO_NHOOD_RING;
-  settings->nhood_size = 5;
-  settings->w_strategy = PSO_W_LIN_DEC;
-
-  settings->rng = NULL;
-  settings->seed = time(0);
-  
-  return settings;
+ 	return settings;
 
 }
 
 
-//destroy PSO settings - don't think i need this since i didn't allocate memory for x_hi or x_lo
+//destroy PSO settings
 void pso_settings_free(pso_settings_t *settings) {
 	free(settings->x_lo);
 	free(settings->x_hi);
@@ -307,7 +291,7 @@ void pso_matrix_free(double **m, int size) {
 
 void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *solution, pso_settings_t *settings)
 {
-	int demo = 0;
+	bool demo = true, serial = true;
   	// Particles
   	double **pos = pso_matrix_new(settings->size, settings->dim); // position matrix
   	double **vel = pso_matrix_new(settings->size, settings->dim) ; // velocity matrix
@@ -320,7 +304,7 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
   	int *comm = (int *)malloc(settings->size *settings->size * sizeof(int)); // communications:who informs who
                                             // rows : those who inform
                                             // cols : those who are informed
-  	int improved = 0; // whether solution->error was improved during
+  	int improved; // whether solution->error was improved during
   	// the last iteration
 
   	int i, d, step;
@@ -382,11 +366,16 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
     		// for each dimension
     		for (d=0; d<settings->dim; d++) {
 			// generate two numbers within the specified range
-			a = settings->x_lo[d] + (settings->x_hi[d] - settings->x_lo[d]) *  \
-			gsl_rng_uniform(settings->rng);
-       			b = settings->x_lo[d] + (settings->x_hi[d] - settings->x_lo[d]) *     \
-			gsl_rng_uniform(settings->rng);
-       			
+			if (demo){
+				a = settings->x_lo[d] + (settings->x_hi[d] - settings->x_lo[d]) *  \
+				gsl_rng_uniform(settings->rng);
+       				b = settings->x_lo[d] + (settings->x_hi[d] - settings->x_lo[d]) *     \
+				gsl_rng_uniform(settings->rng);
+       			}
+			if (serial){
+				a = gsl_rng_uniform_int(settings->rng, settings->limits[1][i]);
+		        	b = gsl_rng_uniform_int(settings->rng, settings->limits[1][i]);
+			}
 			//a = settings->limits[0][i] + (settings->limits[1][i] - settings->limits[0][i]) 
        			// gsl_rng_uniform(settings->rng);
       			//b = settings->limits[0][i] + (settings->limits[1][i] - settings->limits[0][i])
@@ -455,6 +444,10 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
         		// update position
         			pos[i][d] += vel[i][d];
 				
+				if (settings->numset == INTEGER){
+					pos[i][d] = roundNum(pos[i][d]);
+				}
+
 				if(demo){
         				// clamp position within bounds?
         				if (settings->clamp_pos) {
@@ -477,7 +470,29 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
             						vel[i][d] = 0;
           					}
         				}
-				} 
+				}
+				if(serial) {
+					if (settings->clamp_pos) {
+          					if (pos[i][d] < settings->limits[0][i]) {
+            						pos[i][d] = settings->limits[0][i];
+            						vel[i][d] = 0;
+          					} else if (pos[i][d] > settings->limits[1][i]) {
+           		 				pos[i][d] = settings->limits[1][i];
+            						vel[i][d] = 0;
+						}
+        				} else {
+          				// enforce periodic boundary conditions
+          					if (pos[i][d] < settings->limits[0][i]) {
+            						pos[i][d] = settings->limits[1][i] - fmod(settings->limits[0][i] - pos[i][d],
+                                              			settings->limits[1][i] - settings->limits[0][i]);
+            						vel[i][d] = 0;
+          					} else if (pos[i][d] > settings->limits[1][i]) {
+            						pos[i][d] = settings->limits[0][i] + fmod(pos[i][d] - settings->limits[1][i],
+                                              			settings->limits[1][i] - settings->limits[0][i]);
+            						vel[i][d] = 0;
+          					}
+        				}
+				}	
 			}
                 	// update particle fitness
                 	fit[i] = obj_fun(pos[i], settings->dim, obj_fun_params);

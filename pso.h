@@ -5,6 +5,9 @@
 #ifndef PSO_H_
 #define PSO_H_
 
+// DISCRETIZATION FLAGS
+#define INTEGER 0
+#define DECIMAL 1
 
 // CONSTANTS
 #define PSO_MAX_SIZE 100 // max swarm size
@@ -49,7 +52,7 @@ typedef struct{
 	double *x_hi; // higher range limit
 	double goal; // optimization goal (error threshold)
 
-	//double **limits; // lower and higher ranges for each X value.
+	double **limits; // lower and higher ranges for each X value.
 
 	int size; // swarm size (number of particles)
 	int print_every; // ... N steps (set to 0 for no output)
@@ -59,6 +62,8 @@ typedef struct{
 	double c2; // social coefficient
 	double w_max; // max inertia weight value
 	double w_min; // min inertia weight value
+
+	int numset; //Set of numbers to use as X values. Default = DECIMAL.
 
 	int clamp_pos; // whether to keep particle position within defined bounds (TRUE)
 	// or apply periodic boundary conditions (FALSE)
@@ -77,9 +82,9 @@ pso_settings_t *pso_settings_new(int dim, double x_lo, double x_hi);
 void pso_settings_free(pso_settings_t *settings);
 
 // set x value limits using two constants
-//double **pso_autofill_limits (double x_lo, double x_hi, int dim);
+double **pso_autofill_limits (double x_lo, double x_hi, int dim);
 // print those limits
-//void pso_print_limits (double ** limits, int dim);
+void pso_print_limits (double ** limits, int dim);
 
 // return the swarm size based on dimensionality
 int pso_calc_swarm_size(int dim);

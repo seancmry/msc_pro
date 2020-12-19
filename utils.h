@@ -1,4 +1,6 @@
 
+#include <stdbool.h>
+
 #ifndef _UTILS_H
 #define _UTILS_H
 
@@ -7,8 +9,8 @@
 //extern int maxIterations = 500; 
 
 /* Serial and parallel option */
-//extern int demo; //for benchmark functions
-extern int serial; //for serial path example
+extern bool demo; //for benchmark functions
+extern bool serial; //for serial path example
 extern int timing;
 /* Path options */
 //extern int inRoboID;
@@ -45,6 +47,12 @@ void start_timer(struct Timer* timing);
 void end_timer(struct Timer* timing);
 double elapsed_time(clock_t start, clock_t finish);
 void print_elapsed_time(char* fn_name, clock_t start, clock_t finish);
+
+double roundNum(double d);
+int **readMap(char * fhandle, int height, int width);
+void printMap (int **map, int height, int width);
+double euclideanDistance(double xi, double yi, double xj, double yj);
+int line2 (int x0, int y0, int x1, int y1, int ** map, int xLimit, int yLimit);
 
 //void options();
 //void print_usage();

@@ -4,7 +4,7 @@ CFLAGS = -Wall -g -std=c99
 
 LDFLAGS = -lm -lgsl -lgslcblas
 
-OBJECTS = main.o pso.o utils.o
+OBJECTS = main.o pso.o path.o utils.o
 
 TARGET = prog
 

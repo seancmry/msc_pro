@@ -5,26 +5,26 @@
 #define _UTILS_H
 
 /*Initial PSO settings */
-//extern int popSize; 
-//extern int maxIterations = 500; 
+extern int popSize; 
+extern int maxIterations; 
 
 /* Serial and parallel option */
-extern bool demo; //for benchmark functions
+//extern bool demo; //for benchmark functions
 extern bool serial; //for serial path example
-extern int timing;
+//extern int timing;
 /* Path options */
-//extern int inRoboID;
-//extern double inStartX, inStartY, inEndX, inEndY;
-//extern double inStepSize, inVelocity;
-//extern double inOriginX, inOriginY, inHorizonX, inHorizonY;  // 70
-//char inFileHandle[20] = "maps/sample_map_OpenRooms.txt\0";
+extern int inUavID;
+extern double inStartX, inStartY, inEndX, inEndY;
+extern double inStepSize, inVelocity;
+extern double inOriginX, inOriginY, inHorizonX, inHorizonY;  // 70
+//extern char inFileHandle[];
 //extern char inFileHandle[] = "sample_map_OpenRooms.txt";
-//extern int waypoints;
+extern int waypoints;
 
 /* PSO parameters */
-//extern double pso_c1, pso_c2, pso_w_max, pso_w_min;
-//extern int pso_w_strategy_select, pso_nhood_size, pso_nhood_topology_select;
-//extern int pso_w_strategy, pso_nhood_topology;
+extern double pso_c1, pso_c2, pso_w_max, pso_w_min;
+extern int pso_w_strategy_select, pso_nhood_size, pso_nhood_topology_select;
+extern int pso_w_strategy, pso_nhood_topology;
 
 /* Option parsing */
 extern int verbose;
@@ -47,12 +47,6 @@ void start_timer(struct Timer* timing);
 void end_timer(struct Timer* timing);
 double elapsed_time(clock_t start, clock_t finish);
 void print_elapsed_time(char* fn_name, clock_t start, clock_t finish);
-
-double roundNum(double d);
-int **readMap(char * fhandle, int height, int width);
-void printMap (int **map, int height, int width);
-double euclideanDistance(double xi, double yi, double xj, double yj);
-int line2 (int x0, int y0, int x1, int y1, int ** map, int xLimit, int yLimit);
 
 //void options();
 //void print_usage();

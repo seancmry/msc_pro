@@ -17,6 +17,27 @@ typedef void (*inform_fun_t)(int *comm, double **pos_nb, double **pos_b, double 
 typedef double (*inertia_fun_t)(int step, pso_settings_t *settings);
 
 
+double roundNum (double d) {
+  double g = 0.0, e = 0.0, f = 0.0;
+  g = floor (d);
+  e = d - g;
+  if (d > 0){
+    if (e > 0.5){
+      f = g + 1;
+    } else {
+      f = g;
+    }
+  } else {
+      if (e > 0.5) {
+          f = g - 1;
+      } else {
+          f = g;
+      }
+  }
+  return f;
+}
+
+
 //==============================================================
 // calulate swarm size based on dimensionality
 int pso_calc_swarm_size(int dim) {
@@ -208,8 +229,8 @@ void pso_print_limits (double ** limits, int dim){
 
 //==============================================================
 // return default pso settings
-pso_settings_t *pso_settings_new(int dim, double x_lo, double x_hi) {
-
+pso_settings_t *pso_settings_new(int dim, double x_lo, double x_hi, double r_lo, double r_hi) {
+	
 	bool demo = true, serial = true;
 	pso_settings_t *settings = (pso_settings_t *)malloc(sizeof(pso_settings_t));
 	if (settings == NULL) {return NULL;}
@@ -219,15 +240,15 @@ pso_settings_t *pso_settings_new(int dim, double x_lo, double x_hi) {
   		settings->dim = dim;
   		settings->goal = 1e-5;
 
-		settings->x_lo = (double *)malloc(settings->dim * sizeof(double));
-		if (settings->x_lo == NULL) {free(settings); return NULL;}
+		settings->r_lo = (double *)malloc(settings->dim * sizeof(double));
+		if (settings->r_lo == NULL) {free(settings); return NULL;}
 
-		settings->x_hi = (double *)malloc(settings->dim * sizeof(double));
-		if (settings->x_hi == NULL) {free(settings); free(settings->x_lo); return NULL;}
+		settings->r_hi = (double *)malloc(settings->dim * sizeof(double));
+		if (settings->r_hi == NULL) {free(settings); free(settings->r_lo); return NULL;}
 
 		for (int i=0; i<settings->dim; i++) {
-			settings->x_lo[i] = x_lo;
-			settings->x_hi[i] = x_hi;
+			settings->r_lo[i] = r_lo;
+			settings->r_hi[i] = r_hi;
 		}
 	}
 
@@ -263,8 +284,8 @@ pso_settings_t *pso_settings_new(int dim, double x_lo, double x_hi) {
 
 //destroy PSO settings
 void pso_settings_free(pso_settings_t *settings) {
-	free(settings->x_lo);
-	free(settings->x_hi);
+	free(settings->r_lo);
+	free(settings->r_hi);
 	gsl_rng_free(settings->rng);
 	free(settings);
 }
@@ -367,9 +388,9 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
     		for (d=0; d<settings->dim; d++) {
 			// generate two numbers within the specified range
 			if (demo){
-				a = settings->x_lo[d] + (settings->x_hi[d] - settings->x_lo[d]) *  \
+				a = settings->r_lo[d] + (settings->r_hi[d] - settings->r_lo[d]) *  \
 				gsl_rng_uniform(settings->rng);
-       				b = settings->x_lo[d] + (settings->x_hi[d] - settings->x_lo[d]) *     \
+       				b = settings->r_lo[d] + (settings->r_hi[d] - settings->r_lo[d]) *     \
 				gsl_rng_uniform(settings->rng);
        			}
 			if (serial){
@@ -451,22 +472,22 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
 				if(demo){
         				// clamp position within bounds?
         				if (settings->clamp_pos) {
-          					if (pos[i][d] < settings->x_lo[d]) {
-            						pos[i][d] = settings->x_lo[d];
+          					if (pos[i][d] < settings->r_lo[d]) {
+            						pos[i][d] = settings->r_lo[d];
             						vel[i][d] = 0;
-          					} else if (pos[i][d] > settings->x_hi[d]) {
-           		 				pos[i][d] = settings->x_hi[d];
+          					} else if (pos[i][d] > settings->r_hi[d]) {
+           		 				pos[i][d] = settings->r_hi[d];
             						vel[i][d] = 0;
 						}
         				} else {
           				// enforce periodic boundary conditions
-          					if (pos[i][d] < settings->x_lo[d]) {
-            						pos[i][d] = settings->x_hi[d] - fmod(settings->x_lo[d] - pos[i][d],
-                                              			settings->x_hi[d] - settings->x_lo[d]);
+          					if (pos[i][d] < settings->r_lo[d]) {
+            						pos[i][d] = settings->r_hi[d] - fmod(settings->r_lo[d] - pos[i][d],
+                                              			settings->r_hi[d] - settings->r_lo[d]);
             						vel[i][d] = 0;
-          					} else if (pos[i][d] > settings->x_hi[d]) {
-            						pos[i][d] = settings->x_lo[d] + fmod(pos[i][d] - settings->x_hi[d],
-                                              			settings->x_hi[d] - settings->x_lo[d]);
+          					} else if (pos[i][d] > settings->r_hi[d]) {
+            						pos[i][d] = settings->r_lo[d] + fmod(pos[i][d] - settings->r_hi[d],
+                                              			settings->r_hi[d] - settings->r_lo[d]);
             						vel[i][d] = 0;
           					}
         				}

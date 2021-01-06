@@ -43,13 +43,16 @@ typedef struct{
 //OBJECTIVE FUNCTION TYPE
 typedef double (*pso_obj_fun_t)(double *, int, void *);
 
+double roundNum (double d);
 
 // PSO SETTINGS
 typedef struct{
 
 	int dim; // problem dimensionality
-	double *x_lo; // lower range limit
-	double *x_hi; // higher range limit
+	double x_lo; // lower range limit - serial
+	double x_hi; // higher range limit - serial 
+	double *r_lo; //lower range limit - demo
+	double *r_hi; //higher range limit - demo
 	double goal; // optimization goal (error threshold)
 
 	double **limits; // lower and higher ranges for each X value.
@@ -77,7 +80,7 @@ typedef struct{
 }pso_settings_t;
 
 
-pso_settings_t *pso_settings_new(int dim, double x_lo, double x_hi);
+pso_settings_t *pso_settings_new(int dim, double x_lo, double x_hi, double r_lo, double r_hi);
 
 void pso_settings_free(pso_settings_t *settings);
 
@@ -88,9 +91,6 @@ void pso_print_limits (double ** limits, int dim);
 
 // return the swarm size based on dimensionality
 int pso_calc_swarm_size(int dim);
-
-// set the default PSO settings
-//void pso_set_default_settings(pso_settings_t *settings);
 
 // minimize the provided obj_fun using PSO with the specified settings
 // and store the result in *solution

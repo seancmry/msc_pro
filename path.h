@@ -38,6 +38,11 @@ typedef struct {
     env_t * env;
 } pso_params_t;
 
+
+int **readMap(char * fhandle, int height, int width);
+void printMap (int **map, int height, int width);
+double euclideanDistance(double xi, double yi, double xj, double yj);
+int line2 (int x0, int y0, int x1, int y1, int ** map, int xLimit, int yLimit);
  
 uav_t * initUav(int ID, double xInit, double yInit, double xTarget, double yTarget, double stepSize, double velocity);
 env_t * initEnv(double xMin, double yMin, double xMax, double yMax, int ** map); 
@@ -49,7 +54,8 @@ int pso_path_countObstructions(double *vec, int dim, void *params);
 double pso_path_penalty(double *vec, int dim, void *params);
 double pso_path(double *vec, int dim, void *params);
 void pso_set_path_settings(pso_settings_t *settings, pso_params_t *params, env_t *env, uav_t *uav, int waypoints);
-int getPSOParam_w_stategy(int code);
+
+int getPSOParam_w_strategy(int code);
 int getPSOParam_nhood_topology(int code);
 
 #endif

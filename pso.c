@@ -229,8 +229,8 @@ void pso_print_limits (double ** limits, int dim){
 
 //==============================================================
 // return default pso settings
-pso_settings_t *pso_settings_new(int dim, double x_lo, double x_hi, double r_lo, double r_hi) {
-	
+pso_settings_t *pso_settings_new(int dim, double r_lo, double r_hi) {
+
 	bool demo = true, serial = true;
 	pso_settings_t *settings = (pso_settings_t *)malloc(sizeof(pso_settings_t));
 	if (settings == NULL) {return NULL;}
@@ -343,7 +343,7 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
     		settings->rng = gsl_rng_alloc(gsl_rng_default);
     		// seed the generator
     		gsl_rng_set(settings->rng, settings->seed);
-    		// remember to free the RNG - moved to free(settings)
+    		// remember to free the RNG - see free(settings)
   	}
 
   	// SELECT APPROPRIATE NHOOD UPDATE FUNCTION

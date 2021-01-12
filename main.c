@@ -95,7 +95,7 @@ int main(int argc, char **argv) {
     	//options();
 
 	bool serial = true;
-	//bool demo = true; //for benchmark functions
+	bool demo = true; //for benchmark functions
 	
 	/* Path options */
 	//int inRoboID = 0;
@@ -128,7 +128,7 @@ int main(int argc, char **argv) {
 
 	
 	/* DEMO */
-/*
+
 	if(demo) {
 		
 		//Initialise PSO settings
@@ -153,7 +153,7 @@ int main(int argc, char **argv) {
 		free(stats);
 		
 	}
-*/
+
 	
 	if(serial) {
 	
@@ -182,7 +182,7 @@ int main(int argc, char **argv) {
 	return 0;
 }
 
-/*
+
 void pso_demo(pso_settings_t *settings, int argc, char **argv) {
 	
 		//Initialise function settings
@@ -247,7 +247,7 @@ void pso_demo(pso_settings_t *settings, int argc, char **argv) {
     		free(solution.gbest);
 
 }
-*/
+
 
 void pso_serial(pso_settings_t *settings) {
 

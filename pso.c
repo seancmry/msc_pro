@@ -239,6 +239,7 @@ pso_settings_t *pso_settings_new(int dim, double r_lo, double r_hi) {
   		// set some default values
   		settings->dim = dim;
   		settings->goal = 1e-5;
+		
 
 		settings->r_lo = (double *)malloc(settings->dim * sizeof(double));
 		if (settings->r_lo == NULL) {free(settings); return NULL;}
@@ -259,6 +260,7 @@ pso_settings_t *pso_settings_new(int dim, double r_lo, double r_hi) {
 		settings->x_lo = -20;
 		settings->goal = 1e-5;
 		settings->numset = DECIMAL;
+		settings->seed = time(0);
 	}
 
   	settings->size = pso_calc_swarm_size(settings->dim);
@@ -275,7 +277,7 @@ pso_settings_t *pso_settings_new(int dim, double r_lo, double r_hi) {
   	settings->w_strategy = PSO_W_LIN_DEC;
 
   	settings->rng = NULL;
-  	settings->seed = time(0);
+  	settings->seed = time(NULL);
   
  	return settings;
 
@@ -327,7 +329,7 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
                                             // cols : those who are informed
   	int improved; // whether solution->error was improved during
   	// the last iteration
-
+	int free_rng = 0;
   	int i, d, step;
   	double a, b; // for matrix initialization
   	double rho1, rho2; // random numbers (coefficients)
@@ -344,6 +346,7 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
     		// seed the generator
     		gsl_rng_set(settings->rng, settings->seed);
     		// remember to free the RNG - see free(settings)
+    		free_rng = 1;
   	}
 
   	// SELECT APPROPRIATE NHOOD UPDATE FUNCTION
@@ -539,5 +542,14 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
       			printf("Step %d (w=%.2f) :: min err=%.5e\n", step, w, solution->error);
 		
 	}
+
+	//free resources
+	pso_matrix_free(pos, settings->size);
+	pso_matrix_free(vel, settings->size);
+	pso_matrix_free(pos_b, settings->size);
+	pso_matrix_free(pos_nb, settings->size);
+	free(comm);
+	free(fit);
+	free(fit_b);
 	pso_settings_free(settings);
 }

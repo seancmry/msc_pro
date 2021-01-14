@@ -9,7 +9,7 @@ extern int popSize;
 extern int maxIterations; 
 
 /* Serial and parallel option */
-//extern bool demo; //for benchmark functions
+extern bool demo; //for benchmark functions
 extern bool serial; //for serial path example
 //extern int timing;
 /* Path options */

@@ -214,13 +214,7 @@ void pso_demo(pso_settings_t *settings, int argc, char **argv) {
             			printf("Unsupported objective function: %s", argv[1]);
             			return;
         		}
-    		} else if (argc > 2) {
-        		printf("Usage: demo [PROBLEM], where problem is optional with values [ackley|sphere|rosenbrock|griewank]\n ");
-        		return;
-    		}
-
-    		// handle the default case (no argument given)
-    		if (obj_fun == NULL || settings == NULL) {
+    		} else if (obj_fun == NULL || settings == NULL) {
         		obj_fun = pso_sphere;
         		settings = pso_settings_new(30, -100, 100);
         		printf("Optimizing function: sphere (dim=%d, swarm size=%d)\n",

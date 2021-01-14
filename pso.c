@@ -239,7 +239,7 @@ pso_settings_t *pso_settings_new(int dim, double r_lo, double r_hi) {
   		// set some default values
   		settings->dim = dim;
   		settings->goal = 1e-5;
-		
+			
 
 		settings->r_lo = (double *)malloc(settings->dim * sizeof(double));
 		if (settings->r_lo == NULL) {free(settings); return NULL;}
@@ -396,10 +396,10 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
        				b = settings->r_lo[d] + (settings->r_hi[d] - settings->r_lo[d]) *     \
 				gsl_rng_uniform(settings->rng);
        			}
-			if (serial){
-				a = gsl_rng_uniform_int(settings->rng, settings->limits[1][i]);
-		        	b = gsl_rng_uniform_int(settings->rng, settings->limits[1][i]);
-			}
+			//if (serial){
+			//	a = gsl_rng_uniform_int(settings->rng, settings->limits[1][i]);
+		        //	b = gsl_rng_uniform_int(settings->rng, settings->limits[1][i]);
+			//}
 			//a = settings->limits[0][i] + (settings->limits[1][i] - settings->limits[0][i]) 
        			// gsl_rng_uniform(settings->rng);
       			//b = settings->limits[0][i] + (settings->limits[1][i] - settings->limits[0][i])
@@ -546,8 +546,8 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
 	//free resources
 	pso_matrix_free(pos, settings->size);
 	pso_matrix_free(vel, settings->size);
-	pso_matrix_free(pos_b, settings->size);
-	pso_matrix_free(pos_nb, settings->size);
+	//pso_matrix_free(pos_b, settings->size);
+	//pso_matrix_free(pos_nb, settings->size);
 	free(comm);
 	free(fit);
 	free(fit_b);

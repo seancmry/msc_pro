@@ -27,7 +27,6 @@
 #define PSO_NHOOD_RANDOM 2
 
 
-
 // === INERTIA WEIGHT UPDATE FUNCTIONS ===
 #define PSO_W_CONST 0
 #define PSO_W_LIN_DEC 1

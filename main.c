@@ -133,7 +133,9 @@ int main(int argc, char **argv) {
 		
 		//Initialise PSO settings
 		pso_settings_t *settings = NULL; 
-	
+		
+		rng_settings_t *rng_set;
+			
 		//Initialise timer
 		struct timing_report* stats = malloc(sizeof(double));
 			
@@ -141,7 +143,7 @@ int main(int argc, char **argv) {
 		start_timer(&(stats->demo_time));
 		
 		//Execute
-		pso_demo(settings,argc,argv);
+		pso_demo(settings,rng_set,argc,argv);
 
 		//Stop timer
 		end_timer(&(stats->demo_time));
@@ -154,7 +156,7 @@ int main(int argc, char **argv) {
 		
 	}
 
-	
+/*	
 	if(serial) {
 	
 		//Initialise PSO settings 
@@ -178,12 +180,14 @@ int main(int argc, char **argv) {
 		//Free timer
 		free(stats);	
 	}
-	
+*/	
 	return 0;
 }
 
 
-void pso_demo(pso_settings_t *settings, int argc, char **argv) {
+void pso_demo(pso_settings_t *settings, rng_settings_t *rng_set, int argc, char **argv) {
+
+		rng_settings(rng_set);
 	
 		//Initialise function settings
 		pso_obj_fun_t obj_fun = NULL;
@@ -235,17 +239,21 @@ void pso_demo(pso_settings_t *settings, int argc, char **argv) {
     		solution.gbest = (double *)malloc(settings->dim * sizeof(double));
 
     		// run optimization algorithm
-    		pso_solve(obj_fun, NULL, &solution, settings);
+    		pso_solve(obj_fun, NULL, &solution, settings, rng_set);
 
     		// free the gbest buffer
     		free(solution.gbest);
+		
+		//free settings
+		pso_settings_free(settings);
 
 }
 
 
-void pso_serial(pso_settings_t *settings) {
+void pso_serial(pso_settings_t *settings, rng_settings_t *rng_set) {
 
 		/* Path options */
+		//int popSize = 100;
 		int inUavID = 0;
 		double inStartX = 70.0;
 		double inStartY = 70.0;
@@ -304,15 +312,16 @@ void pso_serial(pso_settings_t *settings) {
 		//Initialise settings
 		//pso_settings_t settings;
 		
-		// Define objective function
-    		pso_obj_fun_t obj_fun = pso_path;
-    
+		// Define objective function and path settings
+    		pso_obj_fun_t obj_fun = pso_path;   
+		pso_set_path_settings(settings, pso_params, pso_params->env, uav, waypoints);
+		
 		// Set the problem specific settings
-		settings->size = popSize;
-		settings->nhood_strategy = PSO_NHOOD_RING;
+		//settings->size = popSize;
+		//settings->nhood_strategy = PSO_NHOOD_RING;
     		settings->dim = waypoints * 2;
-		settings->nhood_size = 10;
-		settings->w_strategy = PSO_W_LIN_DEC;
+		//settings->nhood_size = 10;
+		//settings->w_strategy = PSO_W_LIN_DEC;
     		settings->steps = 100000;
     		settings->print_every = 10;
     
@@ -323,7 +332,7 @@ void pso_serial(pso_settings_t *settings) {
     		solution.gbest = (double *)malloc(settings->dim * sizeof(double));
 
     		// Run pso algorithm
-    		pso_solve(obj_fun, pso_params, &solution, settings);
+    		pso_solve(obj_fun, pso_params, &solution, settings, rng_set);
     	
 		// Display best result - WILL BE GROUPED IN PRINT FUNCITON
     		int i, count = 0;

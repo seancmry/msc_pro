@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
 #include <time.h> // for time()
 #include <math.h> // for cos(), pow(), sqrt() etc.
 #include <float.h> // for DBL_MAX
@@ -162,8 +163,8 @@ void inform_ring(int *comm, double **pos_nb,
 // ============================
 // random neighborhood topology
 // ============================
-void init_comm_random(int *comm, pso_settings_t * settings) {
-
+void init_comm_random(int *comm, pso_settings_t * settings, rng_settings_t * rng_set) {
+  
   int i, j, k;
   // reset array
   memset((void *)comm, 0, sizeof(int)*settings->size*settings->size);
@@ -175,7 +176,7 @@ void init_comm_random(int *comm, pso_settings_t * settings) {
     // choose kappa (on average) informers for each particle
     for (k=0; k<settings->nhood_size; k++) {
       // generate a random index
-      j = gsl_rng_uniform_int(settings->rng, settings->size);
+      j = gsl_rng_uniform_int(rng_set->rng, settings->size);
      // particle i informs particle j
       comm[i*settings->size + j] = 1;
     }
@@ -187,13 +188,13 @@ void init_comm_random(int *comm, pso_settings_t * settings) {
 void inform_random(int *comm, double **pos_nb,
 		   double **pos_b, double *fit_b,
 		   double *gbest, int improved,
-		   pso_settings_t * settings)
+		   pso_settings_t * settings, rng_settings_t * rng_set)
 {
 
 
   // regenerate connectivity??
   if (!improved)
-    init_comm_random(comm, settings);
+    init_comm_random(comm, settings, rng_set);
   inform(comm, pos_nb, pos_b, fit_b, improved, settings);
 
 }
@@ -231,28 +232,26 @@ void pso_print_limits (double ** limits, int dim){
 // return default pso settings
 pso_settings_t *pso_settings_new(int dim, double r_lo, double r_hi) {
 
-	bool demo = true, serial = true;
+	bool serial = true;
 	pso_settings_t *settings = (pso_settings_t *)malloc(sizeof(pso_settings_t));
 	if (settings == NULL) {return NULL;}
 
-	if (demo) {
-  		// set some default values
-  		settings->dim = dim;
-  		settings->goal = 1e-5;
+  	// set some default values
+  	settings->dim = dim;
+  	settings->goal = 1e-5;
 			
 
-		settings->r_lo = (double *)malloc(settings->dim * sizeof(double));
-		if (settings->r_lo == NULL) {free(settings); return NULL;}
+	settings->r_lo = (double *)malloc(settings->dim * sizeof(double));
+	if (settings->r_lo == NULL) {free(settings); return NULL;}
 
-		settings->r_hi = (double *)malloc(settings->dim * sizeof(double));
-		if (settings->r_hi == NULL) {free(settings); free(settings->r_lo); return NULL;}
+	settings->r_hi = (double *)malloc(settings->dim * sizeof(double));
+	if (settings->r_hi == NULL) {free(settings); free(settings->r_lo); return NULL;}
 
-		for (int i=0; i<settings->dim; i++) {
-			settings->r_lo[i] = r_lo;
-			settings->r_hi[i] = r_hi;
-		}
+	for (int i=0; i<settings->dim; i++) {
+		settings->r_lo[i] = r_lo;
+		settings->r_hi[i] = r_hi;
 	}
-
+	
   	if (serial) {
 		settings->limits = pso_autofill_limits (settings->x_lo, settings->x_hi, settings->dim);
 		settings->dim = 30;
@@ -260,7 +259,6 @@ pso_settings_t *pso_settings_new(int dim, double r_lo, double r_hi) {
 		settings->x_lo = -20;
 		settings->goal = 1e-5;
 		settings->numset = DECIMAL;
-		settings->seed = time(0);
 	}
 
   	settings->size = pso_calc_swarm_size(settings->dim);
@@ -275,20 +273,20 @@ pso_settings_t *pso_settings_new(int dim, double r_lo, double r_hi) {
   	settings->nhood_strategy = PSO_NHOOD_RING;
  	settings->nhood_size = 5;
   	settings->w_strategy = PSO_W_LIN_DEC;
-
-  	settings->rng = NULL;
-  	settings->seed = time(NULL);
   
  	return settings;
 
 }
 
+void rng_settings(rng_settings_t *rng_set) {
+	rng_set->rng = NULL;
+	rng_set->seed = time(0);
+}
 
 //destroy PSO settings
 void pso_settings_free(pso_settings_t *settings) {
 	free(settings->r_lo);
 	free(settings->r_hi);
-	gsl_rng_free(settings->rng);
 	free(settings);
 }
 
@@ -312,9 +310,10 @@ void pso_matrix_free(double **m, int size) {
 //                     PSO ALGORITHM
 //==============================================================
 
-void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *solution, pso_settings_t *settings)
+void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *solution, pso_settings_t *settings, rng_settings_t *rng_set)
 {
 	bool demo = true, serial = true;
+	int free_rng = 0;
   	// Particles
   	double **pos = pso_matrix_new(settings->size, settings->dim); // position matrix
   	double **vel = pso_matrix_new(settings->size, settings->dim) ; // velocity matrix
@@ -327,24 +326,22 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
   	int *comm = (int *)malloc(settings->size *settings->size * sizeof(int)); // communications:who informs who
                                             // rows : those who inform
                                             // cols : those who are informed
-  	int improved; // whether solution->error was improved during
-  	// the last iteration
-	int free_rng = 0;
+  	int improved; // whether solution->error was improved during the last iteration
   	int i, d, step;
   	double a, b; // for matrix initialization
   	double rho1, rho2; // random numbers (coefficients)
   	double w = PSO_INERTIA; // current omega
   	inform_fun_t inform_fun = NULL; // neighborhood update function
   	inertia_fun_t calc_inertia_fun = NULL; // inertia weight update function
-
+	
   	// CHECK RANDOM NUMBER GENERATOR
-  	if (!settings->rng) {
+  	if (!rng_set->rng) {
     		// initialize random number generator
     		gsl_rng_env_setup();
     		// allocate the RNG
-    		settings->rng = gsl_rng_alloc(gsl_rng_default);
+    		rng_set->rng = gsl_rng_alloc(gsl_rng_default);
     		// seed the generator
-    		gsl_rng_set(settings->rng, settings->seed);
+    		gsl_rng_set(rng_set->rng, rng_set->seed);
     		// remember to free the RNG - see free(settings)
     		free_rng = 1;
   	}
@@ -360,7 +357,7 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
       			inform_fun = inform_ring;
       			break;
     		case PSO_NHOOD_RANDOM :
-      			init_comm_random(comm, settings);
+      			init_comm_random(comm, settings, rng_set);
       			inform_fun = inform_random;
       			break;
     		default:
@@ -390,15 +387,15 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
     		// for each dimension
     		for (d=0; d<settings->dim; d++) {
 			// generate two numbers within the specified range
-			if (demo){
-				a = settings->r_lo[d] + (settings->r_hi[d] - settings->r_lo[d]) *  \
-				gsl_rng_uniform(settings->rng);
-       				b = settings->r_lo[d] + (settings->r_hi[d] - settings->r_lo[d]) *     \
-				gsl_rng_uniform(settings->rng);
-       			}
+			//if (demo){
+				a = settings->r_lo[d] + (settings->r_hi[d] - settings->r_lo[d])  *   \
+				gsl_rng_uniform(rng_set->rng);
+       				b = settings->r_lo[d] + (settings->r_hi[d] - settings->r_lo[d])  *      \
+				gsl_rng_uniform(rng_set->rng);
+       			//}
 			//if (serial){
-			//	a = gsl_rng_uniform_int(settings->rng, settings->limits[1][i]);
-		        //	b = gsl_rng_uniform_int(settings->rng, settings->limits[1][i]);
+			//	a = gsl_rng_uniform_int(rng_set->rng, settings->limits[1][i]);
+		        //	b = gsl_rng_uniform_int(rng_set->rng, settings->limits[1][i]);
 			//}
 			//a = settings->limits[0][i] + (settings->limits[1][i] - settings->limits[0][i]) 
        			// gsl_rng_uniform(settings->rng);
@@ -427,8 +424,10 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
 		}
     	}
 	
+	/*END*/
+	
 	// initialize omega using standard value
-	w = PSO_INERTIA;
+	//if(serial) w = PSO_INERTIA;
 	
 	// RUN ALGORITHM
   	for (step=0; step<settings->steps; step++) {
@@ -459,8 +458,8 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
       			// for each dimension
       			for (d=0; d<settings->dim; d++) {
         		// calculate stochastic coefficients
-        			rho1 = settings->c1 * gsl_rng_uniform(settings->rng);
-        			rho2 = settings->c2 * gsl_rng_uniform(settings->rng);
+        			rho1 = settings->c1 * gsl_rng_uniform(rng_set->rng);
+        			rho2 = settings->c2 * gsl_rng_uniform(rng_set->rng);
 			// update velocity
         			vel[i][d] = w * vel[i][d] +	\
           				rho1 * (pos_b[i][d] - pos[i][d]) +	\
@@ -524,7 +523,7 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
       	        	if (fit[i] < fit_b[i]) {
         			fit_b[i] = fit[i];
         		// copy contents of pos[i] to pos_b[i]
-        		memmove((void *)&pos_b[i], (void *)&pos[i],
+        		memmove((void *)pos_b[i], (void *)pos[i],
                 		sizeof(double) * settings->dim);
       			}
       			// update gbest??
@@ -533,7 +532,7 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
         			// update best fitness
         			solution->error = fit[i];
         			// copy particle pos to gbest vector
-        			memmove((void *)solution->gbest, (void *)&pos[i],
+        			memmove((void *)solution->gbest, (void *)pos[i],
                 			sizeof(double) * settings->dim);
       			}
     	
@@ -542,14 +541,16 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
       			printf("Step %d (w=%.2f) :: min err=%.5e\n", step, w, solution->error);
 		
 	}
-
+ 
 	//free resources
 	pso_matrix_free(pos, settings->size);
 	pso_matrix_free(vel, settings->size);
-	//pso_matrix_free(pos_b, settings->size);
-	//pso_matrix_free(pos_nb, settings->size);
+	pso_matrix_free(pos_b, settings->size);
+	pso_matrix_free(pos_nb, settings->size);
 	free(comm);
 	free(fit);
 	free(fit_b);
-	pso_settings_free(settings);
+	if (free_rng)
+		gsl_rng_free(rng_set->rng);
+
 }

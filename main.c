@@ -94,9 +94,10 @@ int main(int argc, char **argv) {
 	parse_arguments(argc,argv);
     	//options();
 
-	bool serial = true;
+	//bool serial = true;
 	bool demo = true; //for benchmark functions
 	
+	rng_settings_t *rng_set = NULL;
 	/* Path options */
 	//int inRoboID = 0;
 	//double inStartX = 70.0;
@@ -134,7 +135,7 @@ int main(int argc, char **argv) {
 		//Initialise PSO settings
 		pso_settings_t *settings = NULL; 
 		
-		rng_settings_t *rng_set;
+		//rng_settings_t *rng_set;
 			
 		//Initialise timer
 		struct timing_report* stats = malloc(sizeof(double));

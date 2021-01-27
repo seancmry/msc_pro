@@ -163,8 +163,9 @@ void inform_ring(int *comm, double **pos_nb,
 // ============================
 // random neighborhood topology
 // ============================
-void init_comm_random(int *comm, pso_settings_t * settings, rng_settings_t * rng_set) {
-  
+void init_comm_random(int *comm, pso_settings_t * settings) {
+ 
+  rng_settings_t *rng_set; 
   int i, j, k;
   // reset array
   memset((void *)comm, 0, sizeof(int)*settings->size*settings->size);
@@ -188,13 +189,13 @@ void init_comm_random(int *comm, pso_settings_t * settings, rng_settings_t * rng
 void inform_random(int *comm, double **pos_nb,
 		   double **pos_b, double *fit_b,
 		   double *gbest, int improved,
-		   pso_settings_t * settings, rng_settings_t * rng_set)
+		   pso_settings_t * settings)
 {
 
 
   // regenerate connectivity??
   if (!improved)
-    init_comm_random(comm, settings, rng_set);
+    init_comm_random(comm, settings);
   inform(comm, pos_nb, pos_b, fit_b, improved, settings);
 
 }
@@ -357,7 +358,7 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
       			inform_fun = inform_ring;
       			break;
     		case PSO_NHOOD_RANDOM :
-      			init_comm_random(comm, settings, rng_set);
+      			init_comm_random(comm, settings);
       			inform_fun = inform_random;
       			break;
     		default:

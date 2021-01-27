@@ -97,7 +97,6 @@ int main(int argc, char **argv) {
 	//bool serial = true;
 	bool demo = true; //for benchmark functions
 	
-	rng_settings_t *rng_set = NULL;
 	/* Path options */
 	//int inRoboID = 0;
 	//double inStartX = 70.0;
@@ -135,8 +134,6 @@ int main(int argc, char **argv) {
 		//Initialise PSO settings
 		pso_settings_t *settings = NULL; 
 		
-		//rng_settings_t *rng_set;
-			
 		//Initialise timer
 		struct timing_report* stats = malloc(sizeof(double));
 			
@@ -144,7 +141,7 @@ int main(int argc, char **argv) {
 		start_timer(&(stats->demo_time));
 		
 		//Execute
-		pso_demo(settings,rng_set,argc,argv);
+		pso_demo(settings,argc,argv);
 
 		//Stop timer
 		end_timer(&(stats->demo_time));
@@ -186,9 +183,7 @@ int main(int argc, char **argv) {
 }
 
 
-void pso_demo(pso_settings_t *settings, rng_settings_t *rng_set, int argc, char **argv) {
-
-		rng_settings(rng_set);
+void pso_demo(pso_settings_t *settings, int argc, char **argv) {
 	
 		//Initialise function settings
 		pso_obj_fun_t obj_fun = NULL;
@@ -240,7 +235,7 @@ void pso_demo(pso_settings_t *settings, rng_settings_t *rng_set, int argc, char 
     		solution.gbest = (double *)malloc(settings->dim * sizeof(double));
 
     		// run optimization algorithm
-    		pso_solve(obj_fun, NULL, &solution, settings, rng_set);
+    		pso_solve(obj_fun, NULL, &solution, settings);
 
     		// free the gbest buffer
     		free(solution.gbest);
@@ -251,7 +246,7 @@ void pso_demo(pso_settings_t *settings, rng_settings_t *rng_set, int argc, char 
 }
 
 
-void pso_serial(pso_settings_t *settings, rng_settings_t *rng_set) {
+void pso_serial(pso_settings_t *settings) {
 
 		/* Path options */
 		//int popSize = 100;
@@ -333,7 +328,7 @@ void pso_serial(pso_settings_t *settings, rng_settings_t *rng_set) {
     		solution.gbest = (double *)malloc(settings->dim * sizeof(double));
 
     		// Run pso algorithm
-    		pso_solve(obj_fun, pso_params, &solution, settings, rng_set);
+    		pso_solve(obj_fun, pso_params, &solution, settings);
     	
 		// Display best result - WILL BE GROUPED IN PRINT FUNCITON
     		int i, count = 0;

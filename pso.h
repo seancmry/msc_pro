@@ -43,7 +43,15 @@ typedef struct{
 typedef double (*pso_obj_fun_t)(double *, int, void *);
 
 double roundNum (double d);
+/*
+//RNG SETTINGS
+typedef struct{
+	void *rng;
+	long seed;
+}rng_settings_t;
 
+void rng_settings(rng_settings_t *rng_set);
+*/
 // PSO SETTINGS
 typedef struct{
 
@@ -73,22 +81,14 @@ typedef struct{
 	int nhood_size; // neighborhood size
 	int w_strategy; // inertia weight strategy (see PSO_W_*)
 
-	void *rng; // pointer to random number generator (use NULL to create a new RNG)
-	long seed; // seed for the generator
+	void *rng;  //pointer to random number generator (use NULL to create a new RNG)
+	long seed;  //seed for the generator
 
 }pso_settings_t;
-
-//RNG SETTINGS
-typedef struct{
-	void *rng;
-	long seed;
-}rng_settings_t;
 
 pso_settings_t *pso_settings_new(int dim, double r_lo, double r_hi);
 
 void pso_settings_free(pso_settings_t *settings);
-
-void rng_settings(rng_settings_t * rng_set);
 
 // set x value limits using two constants
 double **pso_autofill_limits (double x_lo, double x_hi, int dim);
@@ -100,6 +100,6 @@ int pso_calc_swarm_size(int dim);
 
 // minimize the provided obj_fun using PSO with the specified settings
 // and store the result in *solution
-void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *solution, pso_settings_t *settings, rng_settings_t *rng_set);
+void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *solution, pso_settings_t *settings);
 
 #endif // PSO_H_

@@ -251,7 +251,8 @@ pso_settings_t *pso_settings_new(int dim, double r_lo, double r_hi) {
 		settings->r_lo[i] = r_lo;
 		settings->r_hi[i] = r_hi;
 	}
-	
+
+	/*
   	if (serial) {
 		settings->limits = pso_autofill_limits (settings->x_lo, settings->x_hi, settings->dim);
 		settings->dim = 30;
@@ -260,7 +261,7 @@ pso_settings_t *pso_settings_new(int dim, double r_lo, double r_hi) {
 		settings->goal = 1e-5;
 		settings->numset = DECIMAL;
 	}
-
+	*/
   	settings->size = pso_calc_swarm_size(settings->dim);
   	settings->print_every = 1000;
   	settings->steps = 100000;

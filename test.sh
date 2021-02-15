@@ -15,7 +15,13 @@ function F()
 	./prog $1 | tee -a output.dat
 }
 
-F griewank
+for i in $(seq 10)
+do
+	#F griewank
+	#F ackley
+	#F sphere
+	F rosenbrock
+done
 
 quit
 echo foo

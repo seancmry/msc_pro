@@ -10,6 +10,8 @@
 #include <stdbool.h> //for booleans
 #include <unistd.h>
 #include <ctype.h>
+#define PI 3.14159265358979323846
+
 //#include "mpi.h"
 
 #include "utils.h"
@@ -192,22 +194,22 @@ void pso_demo(pso_settings_t *settings, int argc, char **argv) {
     		if (argc == 2) {
         		if (strcmp(argv[1], "ackley") == 0) {
 				obj_fun = pso_ackley;
-				settings = pso_settings_new(40, -600, 600);
+				settings = pso_settings_new(40, -32.8, 32.8);
 				printf("Optimising function: ackley (dim=%d, swarm size=%d)\n",
 					settings->dim, settings->size);
 			} else if (strcmp(argv[1], "rosenbrock") == 0) {
             			obj_fun = pso_rosenbrock;
-            			settings = pso_settings_new(30, -2.048, 2.048);
+            			settings = pso_settings_new(40, -2.048, 2.048);
             			printf("Optimizing function: rosenbrock (dim=%d, swarm size=%d)\n",
                    			settings->dim, settings->size);
         		} else if (strcmp(argv[1], "griewank") == 0) {
             			obj_fun = pso_griewank;
-            			settings = pso_settings_new(30, -600, 600);
+            			settings = pso_settings_new(40, -600, 600);
             			printf("Optimizing function: griewank (dim=%d, swarm size=%d)\n",
                    			settings->dim, settings->size);
         		} else if (strcmp(argv[1], "sphere") == 0) {
             			obj_fun = pso_sphere;
-            			settings = pso_settings_new(30, -100, 100);
+            			settings = pso_settings_new(40, -100, 100);
             			printf("Optimizing function: sphere (dim=%d, swarm size=%d)\n",
                    			settings->dim, settings->size);
         		} else {
@@ -223,7 +225,7 @@ void pso_demo(pso_settings_t *settings, int argc, char **argv) {
 
     		// set some general PSO settings
     		settings->goal = 1e-5;
-    		settings->size = 30;
+    		settings->size = 20;
     		settings->nhood_strategy = PSO_NHOOD_RING;
     		settings->nhood_size = 10;
     		settings->w_strategy = PSO_W_LIN_DEC;

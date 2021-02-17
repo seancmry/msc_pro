@@ -264,7 +264,7 @@ pso_settings_t *pso_settings_new(int dim, double r_lo, double r_hi) {
 	*/
   	settings->size = pso_calc_swarm_size(settings->dim);
   	settings->print_every = 50;
-  	settings->steps = 2000;
+  	settings->steps = 3001;
   	settings->c1 = 1.496;
   	settings->c2 = 1.496;
   	settings->w_max = PSO_INERTIA;
@@ -439,7 +439,7 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
 		}
 
     		// check optimization goal
-
+/*
     		if (solution->error <= settings->goal) {
      	 		// SOLVED!!
       			if (settings->print_every){
@@ -447,7 +447,7 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
 			}
      			break;
     		}	
-
+*/
     		// update pos_nb matrix (find best of neighborhood for all particles)
     		inform_fun(comm, (double **)pos_nb, (double **)pos_b, fit_b, solution->gbest,
                		improved, settings);
@@ -541,7 +541,7 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
     	
 		}
     		if (settings->print_every && (step % settings->print_every == 0)) 
-      			printf("Step %d (w=%.2f) :: min err=%.5e\n", step, w, solution->error);
+      			printf("Step %d,    w=%.2f,    min_err=,    %.5e\n", step, w, solution->error);
 		
 	}
  

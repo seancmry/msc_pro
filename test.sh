@@ -5,35 +5,30 @@ function quit()
 	exit
 }
 
-if [ -f output.dat ]
-then
-	rm output.dat
-fi
-
 function F()
 {
-	./prog $1 | tee -a output.dat
+	./prog $1
 }
 
 for i in $(seq 25)
 do
-	F ackley
+	F ackley | tee -a ackley.dat
 done
 
 for i in $(seq 25)
 do 
-	F griewank
+	F griewank | tee -a griewank.dat
 done
 
 for i in $(seq 25)
 do
-	F rosenbrock
+	F rosenbrock | tee -a rosenbrock.dat
 done
 
 for i in $(seq 25)
 do	
-	F sphere
+	F sphere | tee -a sphere.dat
 done
 
 quit
-echo foo
+

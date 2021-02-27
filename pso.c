@@ -264,7 +264,7 @@ pso_settings_t *pso_settings_new(int dim, double r_lo, double r_hi) {
 	*/
   	settings->size = pso_calc_swarm_size(settings->dim);
   	settings->print_every = 50;
-  	settings->steps = 3001;
+  	settings->steps = 10001;
   	settings->c1 = 1.496;
   	settings->c2 = 1.496;
   	settings->w_max = PSO_INERTIA;

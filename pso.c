@@ -232,7 +232,7 @@ void pso_print_limits (double ** limits, int dim){
 // return default pso settings
 pso_settings_t *pso_settings_new(int dim, double r_lo, double r_hi) {
 
-	bool serial = true;
+	//bool serial = true;
 	pso_settings_t *settings = (pso_settings_t *)malloc(sizeof(pso_settings_t));
 	if (settings == NULL) {return NULL;}
 	
@@ -252,13 +252,13 @@ pso_settings_t *pso_settings_new(int dim, double r_lo, double r_hi) {
 		settings->r_hi[i] = r_hi;
 	}
 
-	
+        	
   	//if (serial) {
 		settings->dim = 30;
 		settings->x_hi = 20;
 		settings->x_lo = -20;
 		settings->goal = 1e-5;
-		settings->limits = pso_autofill_limits (settings->x_lo, settings->x_hi, settings->dim);
+		settings->limits = pso_autofill_limits(settings->x_lo, settings->x_hi, settings->dim);
 			
 	//}
 	
@@ -283,6 +283,7 @@ pso_settings_t *pso_settings_new(int dim, double r_lo, double r_hi) {
  	return settings;
 
 }
+
 
 //destroy PSO settings
 void pso_settings_free(pso_settings_t *settings) {
@@ -314,7 +315,7 @@ void pso_matrix_free(double **m, int size) {
 void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *solution, pso_settings_t *settings)
 {
 	//bool demo = true;
-	bool serial = true;
+	//bool serial = true;
 	int free_rng = 0;
   	// Particles
   	double **pos = pso_matrix_new(settings->size, settings->dim); // position matrix
@@ -551,13 +552,13 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
  
 	//free resources
 	//if (serial){ 
-		//pso_matrix_free(pos, settings->size);
-		//pso_matrix_free(vel, settings->size);
-		//pso_matrix_free(pos_b, settings->size);
-		//pso_matrix_free(pos_nb, settings->size);
-		//free(comm);
-		//free(fit);
-		//free(fit_b);
+		pso_matrix_free(pos, settings->size);
+		pso_matrix_free(vel, settings->size);
+		pso_matrix_free(pos_b, settings->size);
+		pso_matrix_free(pos_nb, settings->size);
+		free(comm);
+		free(fit);
+		free(fit_b);
 	//}
 	
 	if (free_rng)

@@ -160,7 +160,7 @@ int main(int argc, char **argv) {
 	//if(serial) {
 	
 		//Initialise PSO settings 
-		pso_settings_t *settings = NULL; 
+		pso_settings_t *settings; 
 	
 		//Initialise timer
 		struct timing_report* stats = malloc(sizeof(double));
@@ -333,7 +333,8 @@ void pso_serial(pso_settings_t *settings, int argc, char **argv) {
 
 		// Free global best buffer
     		free(solution.gbest);
-  
+ 		
+		pso_settings_free(settings); 
 }
 
 

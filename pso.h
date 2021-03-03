@@ -54,7 +54,7 @@ typedef struct{
 	double *r_hi; //higher range limit - demo
 	double goal; // optimization goal (error threshold)
 
-	double **limits; // lower and higher ranges for each X value.
+	double ** limits; // lower and higher ranges for each X value.
 
 	int size; // swarm size (number of particles)
 	int print_every; // ... N steps (set to 0 for no output)

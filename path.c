@@ -1,7 +1,4 @@
 #define _GNU_SOURCE
-
-#include <stdio.h>
-#include <stdlib.h>
 #include <math.h>
 #include <string.h>
 #include <gsl/gsl_rng.h>
@@ -13,6 +10,7 @@
 #include <ctype.h>
 
 #include "path.h"
+
 
 
 int ** readMap(int height, int width) {
@@ -196,6 +194,8 @@ void pso_set_path_settings(pso_settings_t *settings, pso_params_t *params, env_t
     // EX: (0, 0) to (100, 100) because the pso lib
     // only considers each as an 'x-value', not knowing that
     // we are using a vector where odds are 'x' and evens are 'y'
+    
+	//FIXME
     settings->x_lo = env->mins[0];
     settings->x_hi = env->maxs[0];
 

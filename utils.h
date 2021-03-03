@@ -17,7 +17,7 @@ extern int inUavID;
 extern double inStartX, inStartY, inEndX, inEndY;
 extern double inStepSize, inVelocity;
 extern double inOriginX, inOriginY, inHorizonX, inHorizonY;  // 70
-//extern char inFileHandle[];
+extern char inFileHandle[];
 //extern char inFileHandle[] = "sample_map_OpenRooms.txt";
 extern int waypoints;
 

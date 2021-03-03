@@ -43,15 +43,7 @@ typedef struct{
 typedef double (*pso_obj_fun_t)(double *, int, void *);
 
 double roundNum (double d);
-/*
-//RNG SETTINGS
-typedef struct{
-	void *rng;
-	long seed;
-}rng_settings_t;
 
-void rng_settings(rng_settings_t *rng_set);
-*/
 // PSO SETTINGS
 typedef struct{
 

@@ -15,10 +15,10 @@
 #include "path.h"
 
 
-int **readMap(char * fhandle, int height, int width) {
+int ** readMap(int height, int width) {
 
     FILE *file;
-    file = fopen(fhandle, "r");
+    file = fopen("sample_map_OpenRooms.txt", "r");
     size_t count; 
     char *line = (char *) malloc (sizeof (char) * width + 1);
     

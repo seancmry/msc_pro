@@ -235,10 +235,10 @@ pso_settings_t *pso_settings_new(int dim, double r_lo, double r_hi) {
 	bool serial = true;
 	pso_settings_t *settings = (pso_settings_t *)malloc(sizeof(pso_settings_t));
 	if (settings == NULL) {return NULL;}
-
+	
   	// set some default values
-  	settings->dim = dim;
-  	settings->goal = 1e-5;
+  	//settings->dim = dim;
+  	//settings->goal = 1e-5;
 			
 
 	settings->r_lo = (double *)malloc(settings->dim * sizeof(double));
@@ -252,23 +252,25 @@ pso_settings_t *pso_settings_new(int dim, double r_lo, double r_hi) {
 		settings->r_hi[i] = r_hi;
 	}
 
-	/*
-  	if (serial) {
-		settings->limits = pso_autofill_limits (settings->x_lo, settings->x_hi, settings->dim);
+	
+  	//if (serial) {
 		settings->dim = 30;
 		settings->x_hi = 20;
 		settings->x_lo = -20;
 		settings->goal = 1e-5;
-		settings->numset = DECIMAL;
-	}
-	*/
+		settings->limits = pso_autofill_limits (settings->x_lo, settings->x_hi, settings->dim);
+			
+	//}
+	
   	settings->size = pso_calc_swarm_size(settings->dim);
   	settings->print_every = 50;
-  	settings->steps = 10001;
+  	settings->steps = 10000;
   	settings->c1 = 1.496;
   	settings->c2 = 1.496;
   	settings->w_max = PSO_INERTIA;
   	settings->w_min = 0.3;
+
+	settings->numset = DECIMAL;
 
   	settings->clamp_pos = 1;
   	settings->nhood_strategy = PSO_NHOOD_RING;
@@ -311,7 +313,8 @@ void pso_matrix_free(double **m, int size) {
 
 void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *solution, pso_settings_t *settings)
 {
-	bool demo = true, serial = true;
+	//bool demo = true;
+	bool serial = true;
 	int free_rng = 0;
   	// Particles
   	double **pos = pso_matrix_new(settings->size, settings->dim); // position matrix
@@ -386,21 +389,22 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
     		// for each dimension
     		for (d=0; d<settings->dim; d++) {
 			// generate two numbers within the specified range
-			if (demo){
+			/*if (demo){
 				a = settings->r_lo[d] + (settings->r_hi[d] - settings->r_lo[d])  *   \
 				gsl_rng_uniform(settings->rng);
        				b = settings->r_lo[d] + (settings->r_hi[d] - settings->r_lo[d])  *      \
 				gsl_rng_uniform(settings->rng);
-       			}
+       			} */
 			//if (serial){
-			//	a = gsl_rng_uniform_int(rng_set->rng, settings->limits[1][i]);
-		        //	b = gsl_rng_uniform_int(rng_set->rng, settings->limits[1][i]);
+				a = gsl_rng_uniform_int(settings->rng, settings->limits[1][i]);
+		        	b = gsl_rng_uniform_int(settings->rng, settings->limits[1][i]);
 			//}
-			//a = settings->limits[0][i] + (settings->limits[1][i] - settings->limits[0][i]) 
-       			// gsl_rng_uniform(settings->rng);
-      			//b = settings->limits[0][i] + (settings->limits[1][i] - settings->limits[0][i])
-       			// gsl_rng_uniform(settings->rng);
-
+			/*
+			a = settings->limits[0][i] + (settings->limits[1][i] - settings->limits[0][i]) 
+   			 gsl_rng_uniform(settings->rng);
+      			b = settings->limits[0][i] + (settings->limits[1][i] - settings->limits[0][i])
+       			 gsl_rng_uniform(settings->rng);
+			*/
       			// initialize position
       			pos[i][d] = a;
       			// best position is the same
@@ -471,8 +475,8 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
 				if (settings->numset == INTEGER){
 					pos[i][d] = roundNum(pos[i][d]);
 				}
-
-				//if(demo){
+				/*
+				if(demo){
         				// clamp position within bounds?
         				if (settings->clamp_pos) {
           					if (pos[i][d] < settings->r_lo[d]) {
@@ -494,9 +498,9 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
             						vel[i][d] = 0;
           					}
         				}
-				//}
-				/*
-				if(serial) {
+				}
+				*/
+				//if(serial) {
 					if (settings->clamp_pos) {
           					if (pos[i][d] < settings->limits[0][i]) {
             						pos[i][d] = settings->limits[0][i];
@@ -517,8 +521,8 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
             						vel[i][d] = 0;
           					}
         				}
-				}
-				*/	
+				//}
+					
 			}
                 	// update particle fitness
                 	fit[i] = obj_fun(pos[i], settings->dim, obj_fun_params);
@@ -546,13 +550,16 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
 	}
  
 	//free resources
-	//pso_matrix_free(pos, settings->size);
-	//pso_matrix_free(vel, settings->size);
-	//pso_matrix_free(pos_b, settings->size);
-	//pso_matrix_free(pos_nb, settings->size);
-	//free(comm);
-	//free(fit);
-	//free(fit_b);
+	//if (serial){ 
+		//pso_matrix_free(pos, settings->size);
+		//pso_matrix_free(vel, settings->size);
+		//pso_matrix_free(pos_b, settings->size);
+		//pso_matrix_free(pos_nb, settings->size);
+		//free(comm);
+		//free(fit);
+		//free(fit_b);
+	//}
+	
 	if (free_rng)
 		gsl_rng_free(settings->rng);
 

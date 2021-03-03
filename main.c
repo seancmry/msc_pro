@@ -97,7 +97,7 @@ int main(int argc, char **argv) {
     	//options();
 
 	//bool serial = true;
-	bool demo = true; //for benchmark functions
+	//bool demo = true; //for benchmark functions
 	
 	/* Path options */
 	//int inRoboID = 0;
@@ -130,7 +130,7 @@ int main(int argc, char **argv) {
 
 	
 	/* DEMO */
-
+/*
 	if(demo) {
 		
 		//Initialise PSO settings
@@ -155,9 +155,9 @@ int main(int argc, char **argv) {
 		free(stats);
 		
 	}
-
-/*	
-	if(serial) {
+*/
+	
+	//if(serial) {
 	
 		//Initialise PSO settings 
 		pso_settings_t *settings = NULL; 
@@ -169,23 +169,23 @@ int main(int argc, char **argv) {
 		start_timer(&(stats->serial_time));
 		
 		//Execute
-		pso_serial(settings);
+		pso_serial(settings, argc, argv);
 
 		//Stop timer
 		end_timer(&(stats->serial_time));
 
 		//Print timing
-		print_elapsed_time((char*) "DEMO ", stats->serial_time.start, stats->serial_time.finish);
+		print_elapsed_time((char*) "SERIAL ", stats->serial_time.start, stats->serial_time.finish);
 
 		//Free timer
 		free(stats);	
-	}
-*/	
+	//}
+	
 	//MPI_Finalize();
 	return 0;
 }
 
-
+/*
 void pso_demo(pso_settings_t *settings, int argc, char **argv) {
 	
 		//Initialise function settings
@@ -247,45 +247,30 @@ void pso_demo(pso_settings_t *settings, int argc, char **argv) {
 		pso_settings_free(settings);
 
 }
+*/
 
+void pso_serial(pso_settings_t *settings, int argc, char **argv) {
 
-void pso_serial(pso_settings_t *settings) {
-
-		/* Path options */
-		//int popSize = 100;
-		int inUavID = 0;
-		double inStartX = 70.0;
-		double inStartY = 70.0;
-		double inEndX = 136.0;
-		double inEndY = 127.0;
-		double inStepSize = 1;
-		double inVelocity = 2;
-		double inOriginX = 0;
-		double inOriginY = 0;
-		double inHorizonX = 200;
-		double inHorizonY = 200;  // 70
-		//char inFileHandle[20] = "maps/sampleMap4.dat\0";
-		char inFileHandlePtr[] = "sample_map_OpenRooms.txt";
-		int waypoints = 5;
-
-		/* PSO parameters */
-		double pso_c1 = -1.0;
-		double pso_c2 = -1.0;
-		double pso_w_max = -1.0;
-		double pso_w_min = -1.0;
-		int pso_w_strategy_select = -1;
-		int pso_nhood_size = -1;
-		int pso_nhood_topology_select = -1;
-		int pso_w_strategy = -1;
-		int pso_nhood_topology = -1;
-
-
+		//Arguments
+		parse_arguments(argc, argv);
+	
 		//Get weighting and topology	
     		pso_w_strategy = getPSOParam_w_strategy(pso_w_strategy_select);
     		pso_nhood_topology = getPSOParam_nhood_topology(pso_nhood_topology_select);
 
+		//Print info
+    		printf ("Dimension = (%f,%f), Start = (%f,%f), Target = (%f,%f)\n", 
+            		inHorizonX, inHorizonY, inStartX, inStartY, inEndX, inEndY);
+    		printf ("Map File = %s\n", inFileHandlePtr);
+    		printf ("PSO: c1 = %f, c2 = %f, weight strategy = %d, neighborhood topology = %d\n", 
+           		pso_c1, pso_c2, pso_w_strategy, pso_nhood_topology);
+    		if (pso_w_strategy == PSO_W_LIN_DEC)
+        		printf ("\tweight min = %f, weight max = %f\n", pso_w_min, pso_w_max);
+    		if (pso_nhood_topology_select == PSO_NHOOD_RANDOM)
+        		printf("\tneighborhood size = %d\n", pso_nhood_size);
+
     		//Read occupancy map
-    		int **map = readMap (inFileHandlePtr, inHorizonY, inHorizonX);
+    		int **map = readMap (inHorizonY, inHorizonX);
 
     		//Initialize uav
     		uav_t * uav = initUav(inUavID, inStartX, inStartY, inEndX, inEndY, inStepSize, inVelocity);
@@ -321,7 +306,7 @@ void pso_serial(pso_settings_t *settings) {
     		settings->dim = waypoints * 2;
 		//settings->nhood_size = 10;
 		//settings->w_strategy = PSO_W_LIN_DEC;
-    		settings->steps = 100000;
+    		settings->steps = 3000;
     		settings->print_every = 10;
     
 		// Init global best solution

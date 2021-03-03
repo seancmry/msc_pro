@@ -5,6 +5,7 @@
 #ifndef PATH_H_
 #define PATH_H_
 
+
 typedef struct {
     int ID; 
     double position_coords[2];
@@ -39,7 +40,7 @@ typedef struct {
 } pso_params_t;
 
 
-int **readMap(char * fhandle, int height, int width);
+int ** readMap(int height, int width);
 void printMap (int **map, int height, int width);
 double euclideanDistance(double xi, double yi, double xj, double yj);
 int line2 (int x0, int y0, int x1, int y1, int ** map, int xLimit, int yLimit);

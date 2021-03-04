@@ -26,9 +26,6 @@ double inOriginX = 0;
 double inOriginY = 0;
 double inHorizonX = 200;
 double inHorizonY = 200;  // 70
-//char inFileHandle[20] = "maps/sampleMap4.dat\0";
-//char *inFileHandlePtr;
-char inFileHandle[] = "sample_map_OpenRooms.txt";
 int waypoints = 5;
 
 /* PSO parameters */

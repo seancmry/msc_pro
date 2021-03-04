@@ -13,7 +13,6 @@ TARGET = prog
 
 #Serial profiling (gprof)
 all: $(OBJECTS)
-	#Uncomment for gprof
 	$(CC) $(CFLAGS) -o $(TARGET) $^ $(LDFLAGS)
 
 #Parallel profiling (Score-P, Vampir)

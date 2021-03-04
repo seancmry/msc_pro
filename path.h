@@ -56,7 +56,6 @@ void pso_set_path_settings(pso_settings_t *settings, pso_params_t *params, env_t
 
 int getPSOParam_w_strategy(int code);
 int getPSOParam_nhood_topology(int code);
-
 #endif
 
 

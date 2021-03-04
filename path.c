@@ -1,4 +1,3 @@
-#define _GNU_SOURCE
 #include <math.h>
 #include <string.h>
 #include <gsl/gsl_rng.h>
@@ -10,7 +9,6 @@
 #include <ctype.h>
 
 #include "path.h"
-
 
 
 int ** readMap(int height, int width) {
@@ -255,4 +253,5 @@ int getPSOParam_nhood_topology(int code){
         return PSO_NHOOD_RANDOM;
     return code;
 }
+
 

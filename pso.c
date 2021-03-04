@@ -77,8 +77,8 @@ void inform_global(int *comm, double **pos_nb,
   // all particles have the same attractor (gbest)
   // copy the contents of gbest to pos_nb
   for (i=0; i<settings->size; i++)
-    memmove((void *)pos_nb[i], (void *)gbest,
-            sizeof(double) * settings->dim);
+    	memmove((void *)pos_nb[i], (void *)gbest,
+            	sizeof(double) * settings->dim);
 }
 
 
@@ -311,10 +311,11 @@ void pso_serial_settings(pso_settings_t *settings){
 	settings->seed = time(0);
 }
 
+
 //destroy PSO settings
 void pso_settings_free(pso_settings_t *settings) {
-	//free(settings->r_lo);
-	//free(settings->r_hi);
+	free(settings->r_lo);
+	free(settings->r_hi);
 	free(settings);
 }
 
@@ -470,7 +471,7 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
 		}
 
     		// check optimization goal
-/*
+
     		if (solution->error <= settings->goal) {
      	 		// SOLVED!!
       			if (settings->print_every){
@@ -478,7 +479,7 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
 			}
      			break;
     		}	
-*/
+
     		// update pos_nb matrix (find best of neighborhood for all particles)
     		inform_fun(comm, (double **)pos_nb, (double **)pos_b, fit_b, solution->gbest,
                		improved, settings);

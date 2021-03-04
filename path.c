@@ -188,14 +188,14 @@ double pso_path(double *vec, int dim, void *params) {
     return distance;
 }
 
+
 void pso_set_path_settings(pso_settings_t *settings, pso_params_t *params, env_t *env, uav_t *uav, int waypoints) {
-    /* WARNING */
+    // WARNING
     // Only valid if a square environment with same start and stop 
     // EX: (0, 0) to (100, 100) because the pso lib
     // only considers each as an 'x-value', not knowing that
     // we are using a vector where odds are 'x' and evens are 'y'
-    
-	//FIXME
+  
     settings->x_lo = env->mins[0];
     settings->x_hi = env->maxs[0];
 
@@ -236,6 +236,7 @@ void pso_set_path_settings(pso_settings_t *settings, pso_params_t *params, env_t
     settings->goal = 1e-5;
     settings->numset = INTEGER;
 }
+
 
 int getPSOParam_w_strategy(int code){
     if (code == 0)

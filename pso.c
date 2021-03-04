@@ -227,7 +227,7 @@ void pso_print_limits (double ** limits, int dim){
 
 }
 
-
+/*
 //==============================================================
 // return default pso settings
 pso_settings_t *pso_settings_new(int dim, double r_lo, double r_hi) {
@@ -278,17 +278,43 @@ pso_settings_t *pso_settings_new(int dim, double r_lo, double r_hi) {
   	settings->w_strategy = PSO_W_LIN_DEC;
 
 	settings->rng = NULL;
-	settings->seed = time(0);
-  
+	settings->seed = time(0);  
  	return settings;
 
 }
+*/
 
+void pso_serial_settings(pso_settings_t *settings){
+	
+	settings->dim = 30;
+	settings->x_hi = 20;
+	settings->x_lo = -20;
+	settings->goal = 1e-5;
+	settings->limits = pso_autofill_limits(settings->x_lo, settings->x_hi, settings->dim);
+
+  	settings->size = pso_calc_swarm_size(settings->dim);
+  	settings->print_every = 50;
+  	settings->steps = 100000;
+  	settings->c1 = 1.496;
+  	settings->c2 = 1.496;
+  	settings->w_max = PSO_INERTIA;
+  	settings->w_min = 0.3;
+
+	settings->numset = DECIMAL;
+
+  	settings->clamp_pos = 1;
+  	settings->nhood_strategy = PSO_NHOOD_RING;
+ 	settings->nhood_size = 5;
+  	settings->w_strategy = PSO_W_LIN_DEC;
+
+	settings->rng = NULL;
+	settings->seed = time(0);
+}
 
 //destroy PSO settings
 void pso_settings_free(pso_settings_t *settings) {
-	free(settings->r_lo);
-	free(settings->r_hi);
+	//free(settings->r_lo);
+	//free(settings->r_hi);
 	free(settings);
 }
 

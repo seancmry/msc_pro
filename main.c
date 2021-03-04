@@ -157,10 +157,7 @@ int main(int argc, char **argv) {
 	}
 */
 	
-	//if(serial) {
-	
-		//Initialise PSO settings 
-		pso_settings_t *settings; 
+	//if(serial) { 
 	
 		//Initialise timer
 		struct timing_report* stats = malloc(sizeof(double));
@@ -169,7 +166,7 @@ int main(int argc, char **argv) {
 		start_timer(&(stats->serial_time));
 		
 		//Execute
-		pso_serial(settings, argc, argv);
+		pso_serial(argc, argv);
 
 		//Stop timer
 		end_timer(&(stats->serial_time));
@@ -249,11 +246,10 @@ void pso_demo(pso_settings_t *settings, int argc, char **argv) {
 }
 */
 
-void pso_serial(pso_settings_t *settings, int argc, char **argv) {
-
-		//Arguments
-		parse_arguments(argc, argv);
-	
+void pso_serial(int argc, char **argv) {
+    
+	        parse_arguments(argc, argv);
+    
 		//Get weighting and topology	
     		pso_w_strategy = getPSOParam_w_strategy(pso_w_strategy_select);
     		pso_nhood_topology = getPSOParam_nhood_topology(pso_nhood_topology_select);
@@ -294,8 +290,8 @@ void pso_serial(pso_settings_t *settings, int argc, char **argv) {
     		printEnv(pso_params->env);
     			
 		//Initialise settings
-		//pso_settings_t settings;
-		
+		pso_settings_t *settings = NULL;
+	        pso_serial_settings(settings);	
 		// Define objective function and path settings
     		pso_obj_fun_t obj_fun = pso_path;   
 		pso_set_path_settings(settings, pso_params, pso_params->env, uav, waypoints);
@@ -304,8 +300,8 @@ void pso_serial(pso_settings_t *settings, int argc, char **argv) {
 		//settings->size = popSize;
 		//settings->nhood_strategy = PSO_NHOOD_RING;
     		settings->dim = waypoints * 2;
-		//settings->nhood_size = 10;
-		//settings->w_strategy = PSO_W_LIN_DEC;
+		//settings.nhood_size = 10;
+		//settings.w_strategy = PSO_W_LIN_DEC;
     		settings->steps = 3000;
     		settings->print_every = 10;
     

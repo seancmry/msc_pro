@@ -50,11 +50,13 @@ typedef struct{
 	int dim; // problem dimensionality
 	double x_lo; // lower range limit - serial
 	double x_hi; // higher range limit - serial 
-	double *r_lo; //lower range limit - demo
-	double *r_hi; //higher range limit - demo
+	//double *r_lo; 
+	//lower range limit - demo
+	//double *r_hi; 
+	//higher range limit - demo
 	double goal; // optimization goal (error threshold)
 
-	double ** limits; // lower and higher ranges for each X value.
+	double **limits; // lower and higher ranges for each X value.
 
 	int size; // swarm size (number of particles)
 	int print_every; // ... N steps (set to 0 for no output)
@@ -82,7 +84,7 @@ typedef struct{
 
 void pso_serial_settings(pso_settings_t *settings);
 
-void pso_settings_free(pso_settings_t *settings);
+//void pso_settings_free(pso_settings_t *settings);
 
 // set x value limits using two constants
 double **pso_autofill_limits (double x_lo, double x_hi, int dim);

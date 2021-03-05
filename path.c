@@ -1,3 +1,5 @@
+#define _GNU_SOURCE
+#include <stdio.h>
 #include <math.h>
 #include <string.h>
 #include <gsl/gsl_rng.h>
@@ -11,13 +13,16 @@
 #include "path.h"
 
 
-int ** readMap(int height, int width) {
+int ** readMap(char * fhandle, int height, int width) {
 
     FILE *file;
-    file = fopen("sample_map_OpenRooms.txt", "r");
+    file = fopen(fhandle, "r");
     size_t count; 
-    char *line = (char *) malloc (sizeof (char) * width + 1);
-    
+    char *line = (char *)malloc(sizeof(char) * (width + 1));
+    if (line == NULL) {
+	printf("unable to allocate buffer\n");
+	exit(1);
+    }
     int i = 0, j = 0, ylim = 0;
     int ** map = (int **) malloc (sizeof (int *) * height);
     while (getline (&line, &count, file) != -1 && ylim < height){

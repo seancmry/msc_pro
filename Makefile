@@ -7,7 +7,8 @@ CFLAGS = -Wall -g -std=c99
 #PREP_CFLAGS = -L/home/support/apps/cports/rhel-6.x86_64/gnu/papi/5.6.0/lib
 LDFLAGS = -lm -lgsl -lgslcblas
 
-OBJECTS = main.o path.o pso.o utils.o
+#OBJECTS = main.o pso.o utils.o
+OBJECTS = path.o utils.o main.o pso.o
 
 TARGET = prog
 

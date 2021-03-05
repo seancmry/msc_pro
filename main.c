@@ -247,10 +247,10 @@ void pso_demo(pso_settings_t *settings, int argc, char **argv) {
 */
 
 void pso_serial(int argc, char **argv) {
-    
+   
+		/*Initial PSO settings */
 	        parse_arguments(argc, argv);
-   		char inFileHandle[] = "sample_map_OpenRooms.txt";
-    		
+
 		//Get weighting and topology	
     		pso_w_strategy = getPSOParam_w_strategy(pso_w_strategy_select);
     		pso_nhood_topology = getPSOParam_nhood_topology(pso_nhood_topology_select);
@@ -267,7 +267,8 @@ void pso_serial(int argc, char **argv) {
         		printf("\tneighborhood size = %d\n", pso_nhood_size);
 
     		//Read occupancy map
-    		int **map = readMap (inHorizonY, inHorizonX);
+    		int **map = readMap (inFileHandlePtr, inHorizonY, inHorizonX);
+		
     		//Initialize uav
     		uav_t * uav = initUav(inUavID, inStartX, inStartY, inEndX, inEndY, inStepSize, inVelocity);
     		printUav(uav);

@@ -6,12 +6,12 @@
 
 /*Initial PSO settings */
 int popSize = 100;
-int maxIterations = 500; 
+//int maxIterations = 500; 
 
 /* Serial and parallel option */
 bool serial = true;
 //bool parallel = 0;
-bool demo = true; //for benchmark functions
+//bool demo = true; //for benchmark functions
 //int timing = 0;
 
 /* Path options */

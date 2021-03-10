@@ -227,7 +227,7 @@ void pso_print_limits (double ** limits, int dim){
 
 }
 
-/*
+
 //==============================================================
 // return default pso settings
 pso_settings_t *pso_settings_new(int dim, double r_lo, double r_hi) {
@@ -282,8 +282,8 @@ pso_settings_t *pso_settings_new(int dim, double r_lo, double r_hi) {
  	return settings;
 
 }
-*/
 
+/*
 void pso_serial_settings(pso_settings_t *settings){
 	
 	settings->dim = 30;
@@ -310,15 +310,15 @@ void pso_serial_settings(pso_settings_t *settings){
 	settings->rng = NULL;
 	settings->seed = time(0);
 }
+*/
 
-/*
 //destroy PSO settings
 void pso_settings_free(pso_settings_t *settings) {
 	free(settings->r_lo);
 	free(settings->r_hi);
 	free(settings);
 }
-*/
+
 
 double **pso_matrix_new(int size, int dim) {
 	double **m = (double **)malloc(size *sizeof(double *));

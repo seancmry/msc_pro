@@ -50,9 +50,9 @@ typedef struct{
 	int dim; // problem dimensionality
 	double x_lo; // lower range limit - serial
 	double x_hi; // higher range limit - serial 
-	//double *r_lo; 
+	double *r_lo; 
 	//lower range limit - demo
-	//double *r_hi; 
+	double *r_hi; 
 	//higher range limit - demo
 	double goal; // optimization goal (error threshold)
 
@@ -80,11 +80,11 @@ typedef struct{
 
 }pso_settings_t;
 
-//pso_settings_t *pso_settings_new(int dim, double r_lo, double r_hi);
+pso_settings_t *pso_settings_new(int dim, double r_lo, double r_hi);
 
-void pso_serial_settings(pso_settings_t *settings);
+//void pso_serial_settings(pso_settings_t *settings);
 
-//void pso_settings_free(pso_settings_t *settings);
+void pso_settings_free(pso_settings_t *settings);
 
 // set x value limits using two constants
 double **pso_autofill_limits (double x_lo, double x_hi, int dim);

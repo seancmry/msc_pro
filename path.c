@@ -193,15 +193,10 @@ double pso_path(double *vec, int dim, void *params) {
 
 
 void pso_set_path_settings(pso_settings_t *settings, pso_params_t *params, env_t *env, uav_t *uav, int waypoints) {
-    // WARNING
-    // Only valid if a square environment with same start and stop 
-    // EX: (0, 0) to (100, 100) because the pso lib
-    // only considers each as an 'x-value', not knowing that
-    // we are using a vector where odds are 'x' and evens are 'y'
-  
+     
     settings->x_lo = env->mins[0];
     settings->x_hi = env->maxs[0];
-
+    
     settings->limits = pso_autofill_limits(settings->x_lo, settings->x_hi, settings->dim);
 
     settings->dim = waypoints * 2;

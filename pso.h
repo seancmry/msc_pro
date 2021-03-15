@@ -82,7 +82,7 @@ typedef struct{
 
 pso_settings_t *pso_settings_new(int dim, double r_lo, double r_hi);
 
-//void pso_serial_settings(pso_settings_t *settings);
+void pso_serial_settings(pso_settings_t *settings);
 
 void pso_settings_free(pso_settings_t *settings);
 

@@ -158,8 +158,6 @@ int main(int argc, char **argv) {
 */
 	
 	//if(serial) { 
-	
-		pso_settings_t *settings = NULL;
 			
 		//Initialise timer
 		struct timing_report* stats = malloc(sizeof(double));
@@ -168,7 +166,7 @@ int main(int argc, char **argv) {
 		start_timer(&(stats->serial_time));
 		
 		//Execute
-		pso_serial(settings,argc,argv);
+		pso_serial(argc,argv);
 
 		//Stop timer
 		end_timer(&(stats->serial_time));
@@ -248,7 +246,7 @@ void pso_demo(pso_settings_t *settings, int argc, char **argv) {
 }
 */
 
-void pso_serial(pso_settings_t *settings, int argc, char **argv) {
+void pso_serial(int argc, char **argv) {
    
 		/*Initial PSO settings */
 	        parse_arguments(argc, argv);
@@ -293,48 +291,45 @@ void pso_serial(pso_settings_t *settings, int argc, char **argv) {
     		printEnv(pso_params->env);
     			
 		//Initialise settings
-		//pso_settings_t *settings = NULL;
-	        //pso_serial_settings(settings);	
+		pso_settings_t settings;
+	        pso_serial_settings(&settings);	
 		// Define objective function and path settings
     		pso_obj_fun_t obj_fun = pso_path;   
-		pso_set_path_settings(settings, pso_params, pso_params->env, uav, waypoints);
+		pso_set_path_settings(&settings, pso_params, pso_params->env, uav, waypoints);
 		
 		// Set the problem specific settings
 		//settings.size = popSize;
 		//settings.nhood_strategy = PSO_NHOOD_RING;
-    		settings->dim = waypoints * 2;
+    		settings.dim = waypoints * 2;
 		//settings.nhood_size = 10;
 		//settings.w_strategy = PSO_W_LIN_DEC;
-    		settings->steps = 3000;
-    		settings->print_every = 10;
+    		settings.steps = 3000;
+    		settings.print_every = 10;
     
 		// Init global best solution
     		pso_result_t solution;
     
  		// allocate memory for the best position buffer
-    		solution.gbest = malloc(settings->dim * sizeof(double));
+    		solution.gbest = malloc(settings.dim * sizeof(double));
 
     		// Run pso algorithm
-    		pso_solve(obj_fun, pso_params, &solution, settings);
+    		pso_solve(obj_fun, pso_params, &solution, &settings);
     	
 		// Display best result - WILL BE GROUPED IN PRINT FUNCITON
     		int i, count = 0;
     		printf ("Solution waypoints:\n");
-    		for(i=0;i<settings->dim/2;i++){
+    		for(i=0;i<settings.dim/2;i++){
         		printf ("(%f, %f)\n", solution.gbest[count], solution.gbest[count + 1]);
         		count = count + 2;
     		}
     		printf("Solution distance: %f\n", solution.error);
 
 
-    		int obstacles = pso_path_countObstructions(solution.gbest, settings->dim, pso_params);
+    		int obstacles = pso_path_countObstructions(solution.gbest, settings.dim, pso_params);
     		printf ("obstacles: %d\n", obstacles);
 
 		// Free global best buffer
     		free(solution.gbest);
-
-		//Free settings
-		pso_settings_free(settings);
  		
 }
 

@@ -300,10 +300,11 @@ void pso_serial(int argc, char **argv) {
 		// Set the problem specific settings
 		//settings.size = popSize;
 		//settings.nhood_strategy = PSO_NHOOD_RING;
-    		settings.dim = waypoints * 2;
+    		settings.dim = waypoints * 100;
+		printf("\t Number of waypoints = %d\n", settings.dim);
 		//settings.nhood_size = 10;
 		//settings.w_strategy = PSO_W_LIN_DEC;
-    		settings.steps = 3000;
+    		settings.steps = 10001;
     		settings.print_every = 10;
     
 		// Init global best solution

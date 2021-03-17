@@ -47,7 +47,7 @@ char *inFileHandlePtr = NULL;
 int parse_arguments(int argc, char **argv) {
     int c;
     
-    while ((c = getopt (argc, argv, "a:b:c:d:e:f:n:m:p:q:r:s:t:w:x:v")) != -1)
+    while ((c = getopt (argc, argv, "a:b:c:d:e:f:n:m:p:q:r:s:t:w:x:v:z")) != -1)
         switch (c) {
             case 'v':
   		verbose = 1;

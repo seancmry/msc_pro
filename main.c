@@ -10,7 +10,6 @@
 #include <stdbool.h> //for booleans
 #include <unistd.h>
 #include <ctype.h>
-#define PI 3.14159265358979323846
 
 #include "mpi.h"
 

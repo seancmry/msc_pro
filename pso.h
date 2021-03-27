@@ -44,6 +44,7 @@ typedef double (*pso_obj_fun_t)(double *, int, void *);
 
 double roundNum (double d);
 
+
 // PSO SETTINGS
 typedef struct{
 
@@ -81,10 +82,11 @@ typedef struct{
 }pso_settings_t;
 
 pso_settings_t *pso_settings_new(int dim, double r_lo, double r_hi);
-
 void pso_serial_settings(pso_settings_t *settings);
-
 void pso_settings_free(pso_settings_t *settings);
+
+
+double MPI_calc_inertia_lin_dec(int step, pso_settings_t *settings);
 
 // set x value limits using two constants
 double **pso_autofill_limits (double x_lo, double x_hi, int dim);

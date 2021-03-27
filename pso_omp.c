@@ -6,14 +6,12 @@
 #include <float.h> // for DBL_MAX
 #include <string.h> // for mem*
 #include <gsl/gsl_rng.h>
-#include <mpi.h>
+
 #include <omp.h>
 
 #include "utils.h"
 #include "pso.h"
 
-#define REQUEST 1
-#define REPLY 2
 
 // function type for the different inform functions
 typedef void (*inform_fun_t)(int *comm, double **pos_nb, double **pos_b, double *fit_b, double *gbest, int improved, pso_settings_t *settings);
@@ -51,65 +49,21 @@ int pso_calc_swarm_size(int dim) {
 }
 
 
-//FIXME
 //==============================================================
 //          INERTIA WEIGHT UPDATE STRATEGIES
 //==============================================================
 // calculate linearly decreasing inertia weight
-double MPI_calc_inertia_lin_dec(int step, pso_settings_t *settings) {
+double calc_inertia_lin_dec(int step, pso_settings_t *settings) {
 
-	//Get rank and size of original comm
-	int world_rank, world_size;
-	MPI_Comm world = MPI_COMM_WORLD;
-	MPI_Comm_rank(world, &world_rank);
-	MPI_Comm_size(world, &world_size);	
-	
-	//Get group of processes in world
-	MPI_Group world_group;
-	MPI_Comm_group(world, &world_group);
-	int dec_stage = 3 * settings->steps / 4;
-	//Set as number of elements per proc
-	int nelems = dec_stage;	
-
-	//Construct group
-	MPI_Group worker_group;
-	MPI_Group_incl(world_group, step, &dec_stage, &worker_group);
-
-	//Construct new comm based on the group
-	MPI_Comm worker_comm;
-	MPI_Comm_create_group(world, worker_group, 0, &worker_comm);
-
-	int worker_rank = -1, worker_size = -1;
-	//Set this rank to MPI_COMM_NULL if it isn't in the new communicator
-	if (MPI_COMM_NULL != worker_comm) {
-		MPI_Comm_rank(worker_comm, &worker_rank);
-		MPI_Comm_size(worker_comm, &worker_size);
-	}
-
-	//printf("WORLD RANK/SIZE: %d%d --- PRIME RANK/SIZE: %d%d\n", world_rank, world_size, worker_rank, worker_size);
-	MPI_Group_free(&world_group);
-	MPI_Group_free(&worker_group);
-
-	int i;
-	float lcount = 0, gcount; //local and global count
-	for (i = 0; i < nelems; i++){
-		if (step <= dec_stage) {
-			lcount = settings->w_min + (settings->w_max - settings->w_min) *     \
-			(dec_stage - step) / dec_stage;
-		} else {
-			lcount = settings->w_min;
-		}
-	}
-	
-	MPI_Allreduce(&lcount, &gcount, 1, MPI_FLOAT, MPI_SUM, world);
-	
-	if(MPI_COMM_NULL != worker_comm) {
-		MPI_Comm_free(&worker_comm);
-	}
-	return gcount;
+  int dec_stage = 3 * settings->steps / 4;
+  if (step <= dec_stage)
+    return settings->w_min + (settings->w_max - settings->w_min) *	\
+      (dec_stage - step) / dec_stage;
+  else
+    return settings->w_min;
 }
 
-//FIXME
+
 //==============================================================
 //          NEIGHBORHOOD (COMM) MATRIX STRATEGIES
 //==============================================================
@@ -129,7 +83,7 @@ void inform_global(int *comm, double **pos_nb,
 }
 
 
-//FIXME
+
 // ===============================================================
 // general inform function :: according to the connectivity
 // matrix COMM, it copies the best position (from pos_b) of the
@@ -162,7 +116,7 @@ void inform(int *comm, double **pos_nb, double **pos_b, double *fit_b,
 // =============
 // ring topology
 // =============
-//FIXME
+
 // topology initialization :: this is a static (i.e. fixed) topology
 void init_comm_ring(int *comm, pso_settings_t * settings) {
   int i;
@@ -196,7 +150,7 @@ void init_comm_ring(int *comm, pso_settings_t * settings) {
 
 
 
-//FIXME
+
 void inform_ring(int *comm, double **pos_nb,
 		 double **pos_b, double *fit_b,
 		 double *gbest, int improved,
@@ -211,7 +165,7 @@ void inform_ring(int *comm, double **pos_nb,
 // ============================
 // random neighborhood topology
 // ============================
-//FIXME
+
 void init_comm_random(int *comm, pso_settings_t * settings) {
  
   int i, j, k;
@@ -233,7 +187,7 @@ void init_comm_random(int *comm, pso_settings_t * settings) {
 }
 
 
-//FIXME
+
 void inform_random(int *comm, double **pos_nb,
 		   double **pos_b, double *fit_b,
 		   double *gbest, int improved,
@@ -252,7 +206,7 @@ void inform_random(int *comm, double **pos_nb,
 //==============================================================
 //                     PSO SETTINGS
 //==============================================================
-//FIXME
+
 // set x value limits (high and low) using two constants
 double ** pso_autofill_limits (double x_lo, double x_hi, int dim){
     double ** limits = (double **) malloc (sizeof (double *) * 2);
@@ -368,7 +322,7 @@ void pso_settings_free(pso_settings_t *settings) {
 	free(settings);
 }
 
-//FIXME
+
 double **pso_matrix_new(int size, int dim) {
 	double **m = (double **)malloc(size *sizeof(double *));
 	for (int i = 0; i<size; i++) {
@@ -387,7 +341,7 @@ void pso_matrix_free(double **m, int size) {
 //==============================================================
 //                     PSO ALGORITHM
 //==============================================================
-//FIXME
+
 void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *solution, pso_settings_t *settings)
 {
 	//bool parallel = true;
@@ -452,7 +406,7 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
       	/*     calc_inertia_fun = calc_inertia_const; */
       	/*     break; */
     		case PSO_W_LIN_DEC :
-      			calc_inertia_fun = MPI_calc_inertia_lin_dec;
+      			calc_inertia_fun = calc_inertia_lin_dec;
       			break;
     	}
 
@@ -460,7 +414,7 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
   	solution->error = DBL_MAX;
 
 	/* START */
-	//FIXME
+	
   	// SWARM INITIALIZATION
   	// for each particle
   	#pragma omp parallel for private(a,b) reduction(min:solution->gbest)

@@ -12,8 +12,7 @@
 #include "utils.h"
 #include "pso.h"
 
-#define REQUEST 1
-#define REPLY 2
+#define NPROCS 4
 
 // function type for the different inform functions
 typedef void (*inform_fun_t)(int *comm, double **pos_nb, double **pos_b, double *fit_b, double *gbest, int improved, pso_settings_t *settings);
@@ -51,7 +50,7 @@ int pso_calc_swarm_size(int dim) {
 }
 
 
-//FIXME
+
 //==============================================================
 //          INERTIA WEIGHT UPDATE STRATEGIES
 //==============================================================
@@ -59,54 +58,47 @@ int pso_calc_swarm_size(int dim) {
 double MPI_calc_inertia_lin_dec(int step, pso_settings_t *settings) {
 
 	//Get rank and size of original comm
-	int world_rank, world_size;
-	MPI_Comm world = MPI_COMM_WORLD;
-	MPI_Comm_rank(world, &world_rank);
-	MPI_Comm_size(world, &world_size);	
+	int rank, size;
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+	MPI_Comm_size(MPI_COMM_WORLD, &size);	
 	
-	//Get group of processes in world
-	MPI_Group world_group;
-	MPI_Comm_group(world, &world_group);
+	/*
+	We determine the decreased weight based on the row and split the communicator on that basis.
+	We then use the original rank for ordering.
+	What happens then is that the value gets stored in val[i] and distributed 
+	among all procs (as defined above = 4) through MPI_Alltoall. As it runs now, the programme
+	accounts for a total of w*4 weights for a program run across 4 procs in parallel. This 
+	will need to be adjusted so that the program is only run once across 4 procs.
+	*/
+	
 	int dec_stage = 3 * settings->steps / 4;
-	//Set as number of elements per proc
-	int nelems = dec_stage;	
 
-	//Construct group
-	MPI_Group worker_group;
-	MPI_Group_incl(world_group, step, &dec_stage, &worker_group);
+	//Construct new comm
+	MPI_Comm row_comm;
+	MPI_Comm_split(MPI_COMM_WORLD, dec_stage, rank, &row_comm);
+	int row_rank, row_size;
+	MPI_Comm_rank(row_comm, &row_rank);
+	MPI_Comm_size(row_comm, &row_size);
 
-	//Construct new comm based on the group
-	MPI_Comm worker_comm;
-	MPI_Comm_create_group(world, worker_group, 0, &worker_comm);
-
-	int worker_rank = -1, worker_size = -1;
-	//Set this rank to MPI_COMM_NULL if it isn't in the new communicator
-	if (MPI_COMM_NULL != worker_comm) {
-		MPI_Comm_rank(worker_comm, &worker_rank);
-		MPI_Comm_size(worker_comm, &worker_size);
-	}
-
-	//printf("WORLD RANK/SIZE: %d%d --- PRIME RANK/SIZE: %d%d\n", world_rank, world_size, worker_rank, worker_size);
-	MPI_Group_free(&world_group);
-	MPI_Group_free(&worker_group);
-
+	//printf("WORLD RANK/SIZE: %d%d --- PRIME RANK/SIZE: %d%d\n", world_rank, world_size, row_rank, row_size);
+	//MPI_Comm_free(&row_comm);
 	int i;
-	float lcount = 0, gcount; //local and global count
-	for (i = 0; i < nelems; i++){
+	double val[NPROCS], recv_buf[NPROCS];
+	for(i = 0; i < NPROCS; i++){
 		if (step <= dec_stage) {
-			lcount = settings->w_min + (settings->w_max - settings->w_min) *     \
+			val[i] = settings->w_min + (settings->w_max - settings->w_min) *     \
 			(dec_stage - step) / dec_stage;
 		} else {
-			lcount = settings->w_min;
+			val[i] = settings->w_min;
 		}
 	}
 	
-	MPI_Allreduce(&lcount, &gcount, 1, MPI_FLOAT, MPI_SUM, world);
+	MPI_Alltoall(&val, 1, MPI_DOUBLE, recv_buf, 1, MPI_DOUBLE, row_comm);
 	
-	if(MPI_COMM_NULL != worker_comm) {
-		MPI_Comm_free(&worker_comm);
+	if(MPI_COMM_NULL != row_comm) {
+		MPI_Comm_free(&row_comm);
 	}
-	return gcount;
+	return recv[i];
 }
 
 //FIXME
@@ -452,7 +444,7 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
       	/*     calc_inertia_fun = calc_inertia_const; */
       	/*     break; */
     		case PSO_W_LIN_DEC :
-      			calc_inertia_fun = MPI_calc_inertia_lin_dec;
+      			calc_inertia_fun = MPI_calc_inertia_lin_dec; //This is where the MPI calculation is done for the w_strategy.
       			break;
     	}
 

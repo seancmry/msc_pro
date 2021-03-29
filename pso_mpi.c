@@ -98,7 +98,7 @@ double MPI_calc_inertia_lin_dec(int step, pso_settings_t *settings) {
 	if(MPI_COMM_NULL != row_comm) {
 		MPI_Comm_free(&row_comm);
 	}
-	return recv[i];
+	return recv_buf[i];
 }
 
 //FIXME
@@ -360,21 +360,6 @@ void pso_settings_free(pso_settings_t *settings) {
 	free(settings);
 }
 
-//FIXME
-double **pso_matrix_new(int size, int dim) {
-	double **m = (double **)malloc(size *sizeof(double *));
-	for (int i = 0; i<size; i++) {
-		m[i] = (double *)malloc(dim * sizeof(double));
-	}
-	return m;
-}
-
-void pso_matrix_free(double **m, int size) {
-	for(int i=0; i<size; i++) {
-		free(m[i]);
-	}
-	free(m);
-}
 
 //==============================================================
 //                     PSO ALGORITHM
@@ -382,6 +367,22 @@ void pso_matrix_free(double **m, int size) {
 //FIXME
 void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *solution, pso_settings_t *settings)
 {
+	//FIXME - OLD MATRIX FUNCS SHOULD BE SUBSUMED - SEE HEAT EQN EX
+	/*
+	double **pso_matrix_new(int size, int dim)
+		double **m = (double **)malloc(size *sizeof(double *));
+		for (int i = 0; i<size; i++) {
+			m[i] = (double *)malloc(dim * sizeof(double));
+		}
+		return m;
+
+	void pso_matrix_free(double **m, int size) 
+		for(int i=0; i<size; i++) {
+			free(m[i]);
+		}
+		free(m);
+	*/
+
 	//bool parallel = true;
 	//bool demo = true;
 	//bool serial = true;

@@ -7,7 +7,6 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <time.h>
-#include <stdbool.h> //for booleans
 #include <unistd.h>
 #include <ctype.h>
 

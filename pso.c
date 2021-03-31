@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdbool.h>
 #include <time.h> // for time()
 #include <math.h> // for cos(), pow(), sqrt() etc.
 #include <float.h> // for DBL_MAX

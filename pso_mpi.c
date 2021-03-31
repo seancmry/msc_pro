@@ -54,6 +54,18 @@ int pso_calc_swarm_size(int dim) {
 //          INERTIA WEIGHT UPDATE STRATEGIES
 //==============================================================
 // calculate linearly decreasing inertia weight
+double calc_inertia_lin_dec(int step, pso_settings_t *settings) {
+
+  int dec_stage = 3 * settings->steps / 4;
+  if (step <= dec_stage)
+    return settings->w_min + (settings->w_max - settings->w_min) *	\
+      (dec_stage - step) / dec_stage;
+  else
+    return settings->w_min;
+}
+
+
+// calculate linearly decreasing inertia weight
 double MPI_calc_inertia_lin_dec(int step, pso_settings_t *settings) {
 
 	//Get rank and size of original comm
@@ -359,6 +371,22 @@ void pso_settings_free(pso_settings_t *settings) {
 	free(settings);
 }
 
+//OLD MATRIX ALLOCATION FUNCTIONS
+double **pso_matrix_new(int size, int dim){
+	double **m = (double **)malloc(size *sizeof(double *));
+	for (int i = 0; i<size; i++) {
+		m[i] = (double *)malloc(dim * sizeof(double));
+	}
+	return m;
+}
+
+void pso_matrix_free(double **m, int size){ 
+	for(int i=0; i<size; i++) {
+		free(m[i]);
+	}
+	free(m);
+}
+
 
 //==============================================================
 //                     PSO ALGORITHM
@@ -442,8 +470,10 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
       	/*     calc_inertia_fun = calc_inertia_const; */
       	/*     break; */
     		case PSO_W_LIN_DEC :
-      			calc_inertia_fun = MPI_calc_inertia_lin_dec; //This is where the MPI calculation is done for the w_strategy.
-      			break;
+	 		//This is where the MPI calculation is done for the w_strategy.		
+      			//calc_inertia_fun = MPI_calc_inertia_lin_dec;	
+      			calc_inertia_fun = calc_inertia_lin_dec; 
+			break;
     	}
 
   	// INITIALIZE SOLUTION
@@ -606,6 +636,8 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
                 		sizeof(double) * settings->dim);
       			}
       			// update gbest??
+      			//
+      			//FIXME
       			#pragma omp for
       			if (fit[i] < solution->error) {
         			improved = 1;

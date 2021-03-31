@@ -85,15 +85,24 @@ double pso_griewank(double *vec, int dim, void *params) {
 
 int main(int argc, char **argv) {
 
-	int rank, size;
+	int rank, size, particles;
 	MPI_Init(&argc, &argv);
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 	MPI_Comm_size(MPI_COMM_WORLD, &size);
 
     	//Parse arguments and print options
-	parse_arguments(argc,argv);
-    	//options();
+	parse_arguments(argc,argv);	
 	
+	if (rank == 0){
+		particles = settings->size / size;
+	}
+	MPI_Bcast(&particles, 1, MPI_INT, 0, MPI_COMM_WORLD);
+	
+	if (rank == 0){
+		particles += settings->size%size;
+	}	
+
+
 	/* Path options */
 	//int inRoboID = 0;
 	//double inStartX = 70.0;

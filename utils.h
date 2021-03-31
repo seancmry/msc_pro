@@ -40,7 +40,8 @@ struct Timer{
 
 struct timing_report{
 	//struct Timer demo_time;
-	struct Timer serial_time;
+	//struct Timer serial_time;
+	struct Timer parallel_time;
 };
 
 void start_timer(struct Timer* timing);

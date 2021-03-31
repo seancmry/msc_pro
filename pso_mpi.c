@@ -383,9 +383,7 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
 		free(m);
 	*/
 
-	//bool parallel = true;
-	//bool demo = true;
-	//bool serial = true;
+
 	int free_rng = 0;
   	// Particles
   	double **pos = pso_matrix_new(settings->size, settings->dim); // position matrix

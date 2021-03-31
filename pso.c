@@ -341,8 +341,6 @@ void pso_matrix_free(double **m, int size) {
 
 void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *solution, pso_settings_t *settings)
 {
-	//bool demo = true;
-	//bool serial = true;
 	int free_rng = 0;
   	// Particles
   	double **pos = pso_matrix_new(settings->size, settings->dim); // position matrix

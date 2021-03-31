@@ -94,9 +94,6 @@ int main(int argc, char **argv) {
     	//Parse arguments and print options
 	parse_arguments(argc,argv);
     	//options();
-
-	//bool serial = true;
-	//bool demo = true; //for benchmark functions
 	
 	/* Path options */
 	//int inRoboID = 0;

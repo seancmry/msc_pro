@@ -15,7 +15,7 @@ CFLAGS=-I/home/support/spack/spack-0.16.1/spack/opt/spack/linux-scientific7-x86_
 LDFLAGS+=-L/home/support/spack/spack-0.16.1/spack/opt/spack/linux-scientific7-x86_64/gcc-9.3.0/gsl-2.5-c2jmkgwsye3xruhcuieuw5f7vzmsqi74/lib
 
 #OBJECTS = main.o pso.o utils.o
-OBJECTS = main.o utils.o path.o pso_mpi.o
+OBJECTS = main.o utils.o path.o pso.o
 
 TARGET = prog
 

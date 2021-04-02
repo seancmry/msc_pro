@@ -53,17 +53,6 @@ int pso_calc_swarm_size(int dim) {
 //==============================================================
 //          INERTIA WEIGHT UPDATE STRATEGIES
 //==============================================================
-// calculate linearly decreasing inertia weight
-double calc_inertia_lin_dec(int step, pso_settings_t *settings) {
-
-  int dec_stage = 3 * settings->steps / 4;
-  if (step <= dec_stage)
-    return settings->w_min + (settings->w_max - settings->w_min) *	\
-      (dec_stage - step) / dec_stage;
-  else
-    return settings->w_min;
-}
-
 
 // calculate linearly decreasing inertia weight
 double MPI_calc_inertia_lin_dec(int step, pso_settings_t *settings) {
@@ -116,20 +105,8 @@ double MPI_calc_inertia_lin_dec(int step, pso_settings_t *settings) {
 //==============================================================
 //          NEIGHBORHOOD (COMM) MATRIX STRATEGIES
 //==============================================================
-// global neighborhood - changed double *pos_nb to double **pos_nb
-void inform_global(int *comm, double **pos_nb,
-		   double **pos_b, double *fit_b,
-		   double *gbest, int improved,
-		   pso_settings_t *settings)
-{
 
-  int i;
-  // all particles have the same attractor (gbest)
-  // copy the contents of gbest to pos_nb
-  for (i=0; i<settings->size; i++)
-    	memmove((void *)pos_nb[i], (void *)gbest,
-            	sizeof(double) * settings->dim);
-}
+
 
 
 //FIXME
@@ -137,27 +114,8 @@ void inform_global(int *comm, double **pos_nb,
 // general inform function :: according to the connectivity
 // matrix COMM, it copies the best position (from pos_b) of the
 // informers of each particle to the pos_nb matrix
-void inform(int *comm, double **pos_nb, double **pos_b, double *fit_b,
-	    int improved, pso_settings_t * settings)
-{
-  int i, j;
-  int b_n; // best neighbor in terms of fitness
 
-  // for each particle
-  for (j=0; j<settings->size; j++) {
-    b_n = j; // self is best
-    // who is the best informer??
-    for (i=0; i<settings->size; i++)
-      // the i^th particle informs the j^th particle
-      if (comm[i*settings->size + j] && fit_b[i] < fit_b[b_n])
-        // found a better informer for j^th particle
-        b_n = i;
-    // copy pos_b of b_n^th particle to pos_nb[j]
-    memmove((void *)pos_nb[j],
-            (void *)pos_b[b_n],
-            sizeof(double) * settings->dim);
-  }
-}
+
 
 
 
@@ -166,96 +124,28 @@ void inform(int *comm, double **pos_nb, double **pos_b, double *fit_b,
 // ring topology
 // =============
 //FIXME
-// topology initialization :: this is a static (i.e. fixed) topology
-void init_comm_ring(int *comm, pso_settings_t * settings) {
-  int i;
-  // reset array
-  memset((void *)comm, 0, sizeof(int)*settings->size*settings->size);
-
-  // choose informers
-  for (i=0; i<settings->size; i++) {
-    // set diagonal to 1
-    comm[i*settings->size+i] = 1;
-    if (i==0) {
-      // look right
-      comm[i*settings->size+i+1] = 1;
-      // look left
-      comm[(i+1)*settings->size-1] = 1;
-    } else if (i==settings->size-1) {
-      // look right
-      comm[i*settings->size] = 1;
-      // look left
-      comm[i*settings->size+i-1] = 1;
-    } else {
-      // look right
-      comm[i*settings->size+i+1] = 1;
-      // look left
-      comm[i*settings->size+i-1] = 1;
-    }
-
-  }
-
-}
 
 
 
-//FIXME
-void inform_ring(int *comm, double **pos_nb,
-		 double **pos_b, double *fit_b,
-		 double *gbest, int improved,
-		 pso_settings_t * settings)
-{
 
-  // update pos_nb matrix
-  inform(comm, pos_nb, pos_b, fit_b, improved, settings);
 
-}
-
+  
 // ============================
 // random neighborhood topology
 // ============================
 //FIXME
-void init_comm_random(int *comm, pso_settings_t * settings) {
- 
-  int i, j, k;
-  // reset array
-  memset((void *)comm, 0, sizeof(int)*settings->size*settings->size);
-
-  // choose informers
-  for (i=0; i<settings->size; i++) {
-    // each particle informs itself
-    comm[i*settings->size + i] = 1;
-    // choose kappa (on average) informers for each particle
-    for (k=0; k<settings->nhood_size; k++) {
-      // generate a random index
-      j = gsl_rng_uniform_int(settings->rng, settings->size);
-     // particle i informs particle j
-      comm[i*settings->size + j] = 1;
-    }
-  }
-}
 
 
-//FIXME
-void inform_random(int *comm, double **pos_nb,
-		   double **pos_b, double *fit_b,
-		   double *gbest, int improved,
-		   pso_settings_t * settings)
-{
 
 
-  // regenerate connectivity??
-  if (!improved)
-    init_comm_random(comm, settings);
-  inform(comm, pos_nb, pos_b, fit_b, improved, settings);
 
-}
+
 
 
 //==============================================================
 //                     PSO SETTINGS
 //==============================================================
-//FIXME
+
 // set x value limits (high and low) using two constants
 double ** pso_autofill_limits (double x_lo, double x_hi, int dim){
     double ** limits = (double **) malloc (sizeof (double *) * 2);
@@ -394,22 +284,6 @@ void pso_matrix_free(double **m, int size){
 //FIXME
 void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *solution, pso_settings_t *settings)
 {
-	//FIXME - OLD MATRIX FUNCS SHOULD BE SUBSUMED - SEE HEAT EQN EX
-	/*
-	double **pso_matrix_new(int size, int dim)
-		double **m = (double **)malloc(size *sizeof(double *));
-		for (int i = 0; i<size; i++) {
-			m[i] = (double *)malloc(dim * sizeof(double));
-		}
-		return m;
-
-	void pso_matrix_free(double **m, int size) 
-		for(int i=0; i<size; i++) {
-			free(m[i]);
-		}
-		free(m);
-	*/
-
 
 	int free_rng = 0;
   	// Particles

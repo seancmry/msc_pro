@@ -84,12 +84,18 @@ double pso_griewank(double *vec, int dim, void *params) {
 
 
 int main(int argc, char **argv) {
-
-	int rank, size, particles;
+	/*
+	MPI_Comm cart_comm;
+	int dim[] = {4, 3}; //Will run on 12 procs
+	int period[] = {1, 0}; //Left to right and back around again (periodic boundary conditions)
+	int reorder = 0;
+	int source, dest, dimension, versus, particles;
+	*/
+	int rank, size;
 	MPI_Init(&argc, &argv);
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 	MPI_Comm_size(MPI_COMM_WORLD, &size);
-
+	/*
     	//Parse arguments and print options
 	parse_arguments(argc,argv);	
 	
@@ -101,6 +107,16 @@ int main(int argc, char **argv) {
 	if (rank == 0){
 		particles += settings->size%size;
 	}	
+
+	//Create cartesian topology and sendrecv data in grid (with ring fashion)
+	MPI_Cart_create(MPI_COMM_WORLD, 2, dim, period, reorder, &cart_comm);
+	for (dimension = 0; dimension < 2; dimension++){
+		for (versus = -1; versus < 2; versus +=2) {
+			MPI_Cart_shift(ring_comm, dimension, versus, &source, &dest);
+			MPI_Sendrecv(buffer, N, MPI_DOUBLE, source, source_tag, buffer, N, MPI_DOUBLE, dest, dtag, grid_comm, &stat);
+		}
+	} 
+	*/
 
 
 	/* Path options */
@@ -206,7 +222,7 @@ int main(int argc, char **argv) {
 	return 0;
 }
 
-/*
+
 void pso_demo(pso_settings_t *settings, int argc, char **argv) {
 	
 		//Initialise function settings
@@ -268,9 +284,8 @@ void pso_demo(pso_settings_t *settings, int argc, char **argv) {
 		pso_settings_free(settings);
 
 }
-*/
 
-/*
+
 void pso_serial(int argc, char **argv) {
    
 		//Initial PSO settings
@@ -358,7 +373,7 @@ void pso_serial(int argc, char **argv) {
     		free(solution.gbest);
  		
 }
-*/
+
 
 void pso_parallel(int argc, char **argv) {
    

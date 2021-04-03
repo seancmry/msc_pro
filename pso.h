@@ -26,6 +26,8 @@
 // **see http://clerc.maurice.free.fr/pso/random_topology.pdf**
 #define PSO_NHOOD_RANDOM 2
 
+//Parallel
+#define PSO_NHOOD_MPI 3
 
 // === INERTIA WEIGHT UPDATE FUNCTIONS ===
 #define PSO_W_CONST 0

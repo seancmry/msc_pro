@@ -84,13 +84,23 @@ double pso_griewank(double *vec, int dim, void *params) {
 
 
 int main(int argc, char **argv) {
-	/*
-	MPI_Comm cart_comm;
-	int dim[] = {4, 3}; //Will run on 12 procs
+	
+  	double **g1, **g2;
+	int dims[2] = {N,N};
 	int period[] = {1, 0}; //Left to right and back around again (periodic boundary conditions)
 	int reorder = 0;
+	int pbc[2] = {0,0};		
+	int coords[2];
 	int source, dest, dimension, versus, particles;
-	*/
+	int chunk_rows, chunk_cols;
+	int rank, size;
+	int cols, rows;
+	int up, down, left, right;
+	int xs, xe, ys, ye;
+	int i;
+	MPI_Comm cart_comm;
+	MPI_Datatype coltype, rowtype;
+
 	int rank, size;
 	MPI_Init(&argc, &argv);
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -199,6 +209,51 @@ int main(int argc, char **argv) {
 	//}
 
 */
+		if(rows%N != 0 || cols%N != 0){
+			printf("ERROR:: Rows or cols are not divisible by the given number of processes\n");
+			MPI_Finalize();
+			return 1;
+		}else{
+			chunk_rows = rows/N;
+			chunk_cols = cols/N;
+		}
+
+		MPI_Bcast(&chunk_rows,1,MPI_INT,0,MPI_COMM_WORLD);
+		MPI_Bcast(&chunk_cols,1,MPI_INT,0,MPI_COMM_WORLD);
+
+		g1 = malloc((chunk_rows+2) * sizeof(double *));
+		g1[0] = malloc((chunk_rows+2) * (chunk_cols+2) * sizeof(double));
+		for(i=0;i<(chunk_rows+2);i++){
+			g1[i] = g1[0] + i * (chunk_cols+2);
+		}
+		g2 = malloc((chunk_rows+2) * sizeof(double *));
+		g2[0] = malloc((chunk_rows+2) * (chunk_cols+2) * sizeof(double));
+		for(i=0;i<(chunk_rows+2);i++){
+			g2[i] = g2[0] + i * (chunk_cols+2);
+		}
+		//intialise dirichlet
+		initialize(g1,rank,chunk_rows+2,chunk_cols+2,&xs,&xe,&ys,&ye);
+		/*if(rank==0){
+			print_grid(g1,rank,chunk_rows,chunk_cols);
+			printf("%i, %i, %i, %i\n",xs,xe,ys,ye);
+		}*/
+		initialize(g2,rank,chunk_rows+2,chunk_cols+2,&xs,&xe,&ys,&ye);	
+
+
+		//cartesian communicator
+		MPI_Cart_create(MPI_COMM_WORLD,2,dims,pbc,0,&cart_comm);
+		MPI_Cart_coords(cart_comm,rank,2,coords);
+		//get neighbours
+		MPI_Cart_shift(cart_comm,0,1,&up,&down);
+		MPI_Cart_shift(cart_comm,1,1,&left,&right);
+		//vector datatype
+		MPI_Type_vector(1,chunk_cols,chunk_cols+2,MPI_DOUBLE,&rowtype);
+        	MPI_Type_vector(chunk_rows,1,chunk_cols+2,MPI_DOUBLE,&coltype);
+        	MPI_Type_commit(&rowtype);
+        	MPI_Type_commit(&coltype);
+
+		//Solve - i.e. pso_solve
+		itersolve(g1,g2,rank,xs,xe,ys,ye,left,right,up,down,coords,chunk_rows,chunk_cols,rowtype,coltype,cart_comm);
 
 		//Initialise timer
 		struct timing_report* stats = malloc(sizeof(double));
@@ -207,7 +262,7 @@ int main(int argc, char **argv) {
 		start_timer(&(stats->parallel_time));
 		
 		//Execute
-		pso_parallel(argc,argv);
+		pso_solve;
 
 		//Stop timer
 		end_timer(&(stats->parallel_time));
@@ -217,9 +272,19 @@ int main(int argc, char **argv) {
 
 		//Free timer
 		free(stats);
-	
-	MPI_Finalize();
-	return 0;
+
+		//Free data
+		MPI_Type_free(&coltype);
+		MPI_Type_free(&rowtype);
+		MPI_Comm_free(&cart_comm);
+		MPI_Finalize();	
+
+		free(g1[0]);
+		free(g1);
+		free(g2[0]);
+		free(g2);
+
+		return 0;
 }
 
 
@@ -373,163 +438,4 @@ void pso_serial(int argc, char **argv) {
     		free(solution.gbest);
  		
 }
-
-
-void pso_parallel_path(int argc, char **argv) {
-  		double **g1, **g2;
-		int dims[2] = {N,N};
-		int pbc[2] = {0,0};
-		int coords[2];
-		int chunk_rows, chunk_cols;
-		int rank, size;
-		int cols, rows;
-		int up, down, left, right;
-		int xs, xe, ys, ye;
-		int i;
-		MPI_Comm cart_comm;
-		MPI_Datatype coltype, rowtype;
-
-		//Parse args
-	        parse_arguments(argc, argv);
-
-		if(rows%N != 0 || cols%N != 0){
-			printf("ERROR:: Rows or cols are not divisible by the given number of processes\n");
-			MPI_Finalize();
-			return 1;
-		}else{
-			chunk_rows = rows/N;
-			chunk_cols = cols/N;
-		}
-
-		MPI_Bcast(&chunk_rows,1,MPI_INT,0,MPI_COMM_WORLD);
-		MPI_Bcast(&chunk_cols,1,MPI_INT,0,MPI_COMM_WORLD);
-
-		g1 = malloc((chunk_rows+2) * sizeof(double *));
-		g1[0] = malloc((chunk_rows+2) * (chunk_cols+2) * sizeof(double));
-		for(i=0;i<(chunk_rows+2);i++){
-			g1[i] = g1[0] + i * (chunk_cols+2);
-		}
-		g2 = malloc((chunk_rows+2) * sizeof(double *));
-		g2[0] = malloc((chunk_rows+2) * (chunk_cols+2) * sizeof(double));
-		for(i=0;i<(chunk_rows+2);i++){
-			g2[i] = g2[0] + i * (chunk_cols+2);
-		}
-		//intialise dirichlet
-		initialize(g1,rank,chunk_rows+2,chunk_cols+2,&xs,&xe,&ys,&ye);
-		/*if(rank==0){
-			print_grid(g1,rank,chunk_rows,chunk_cols);
-			printf("%i, %i, %i, %i\n",xs,xe,ys,ye);
-		}*/
-		initialize(g2,rank,chunk_rows+2,chunk_cols+2,&xs,&xe,&ys,&ye);	
-
-
-		//cartesian communicator
-		MPI_Cart_create(MPI_COMM_WORLD,2,dims,pbc,0,&cart_comm);
-		MPI_Cart_coords(cart_comm,rank,2,coords);
-		//get neighbours
-		MPI_Cart_shift(cart_comm,0,1,&up,&down);
-		MPI_Cart_shift(cart_comm,1,1,&left,&right);
-		//vector datatype
-		MPI_Type_vector(1,chunk_cols,chunk_cols+2,MPI_DOUBLE,&rowtype);
-        	MPI_Type_vector(chunk_rows,1,chunk_cols+2,MPI_DOUBLE,&coltype);
-        	MPI_Type_commit(&rowtype);
-        	MPI_Type_commit(&coltype);
-
-		//Solve
-		itersolve(g1,g2,rank,xs,xe,ys,ye,left,right,up,down,coords,chunk_rows,chunk_cols,rowtype,coltype,cart_comm);
-
-		//PSO BIT
-		//Get weighting and topology	
-    		pso_w_strategy = getPSOParam_w_strategy(pso_w_strategy_select);
-    		pso_nhood_topology = getPSOParam_nhood_topology(pso_nhood_topology_select);
-
-		//Print info
-    		printf ("Dimension = (%f,%f), Start = (%f,%f), Target = (%f,%f)\n", 
-            		inHorizonX, inHorizonY, inStartX, inStartY, inEndX, inEndY);
-    		printf ("Map File = sample map\n");
-    		printf ("PSO: c1 = %f, c2 = %f, weight strategy = %d, neighborhood topology = %d\n", 
-           		pso_c1, pso_c2, pso_w_strategy, pso_nhood_topology);
-    		if (pso_w_strategy == PSO_W_LIN_DEC)
-        		printf ("\tweight min = %f, weight max = %f\n", pso_w_min, pso_w_max);
-    		if (pso_nhood_topology_select == PSO_NHOOD_RANDOM)
-        		printf("\tneighborhood size = %d\n", pso_nhood_size);
-
-    		//Read occupancy map
-    		int **map = readMap (inFileHandlePtr, inHorizonY, inHorizonX);
-		
-    		//Initialize uav
-    		uav_t * uav = initUav(inUavID, inStartX, inStartY, inEndX, inEndY, inStepSize, inVelocity);
-    		printUav(uav);
-
-    		//Init pso objecttive function params 
-    		pso_params_t *pso_params;
-    		pso_params = malloc (sizeof (pso_params_t) * 1);
-    		pso_params->env = initEnv(inOriginX, inOriginY, inHorizonX, inHorizonY, map);
-    		pso_params->start[0] = uav->position_coords[0];
-    		pso_params->start[1] = uav->position_coords[1];
-    		pso_params->stop[0] = uav->target_coords[0];
-    		pso_params->stop[1] = uav->target_coords[1];
-    		pso_params->c1 = pso_c1;
-    		pso_params->c2 = pso_c2;
-    		pso_params->w_strategy = pso_w_strategy;
-    		pso_params->w_min = pso_w_min;
-    		pso_params->w_max = pso_w_max;
-    		pso_params->nhood_topology = pso_nhood_topology;
-    		pso_params->nhood_size = pso_nhood_size;
-    		printEnv(pso_params->env);
-    			
-		//Initialise settings
-		pso_settings_t settings;
-	        pso_serial_settings(&settings);	
-		// Define objective function and path settings
-    		pso_obj_fun_t obj_fun = pso_path;   
-		pso_set_path_settings(&settings, pso_params, pso_params->env, uav, waypoints);
-		
-		// Set the problem specific settings
-		//settings.size = popSize;
-		//settings.nhood_strategy = PSO_NHOOD_RING;
-    		settings.dim = waypoints * 100;
-		printf("\t Number of waypoints = %d\n", settings.dim);
-		//settings.nhood_size = 10;
-		//settings.w_strategy = PSO_W_LIN_DEC;
-    		settings.steps = 10001;
-    		settings.print_every = 10;
-    
-		// Init global best solution
-    		pso_result_t solution;
-    
- 		// allocate memory for the best position buffer
-    		solution.gbest = malloc(settings.dim * sizeof(double));
-
-    		// Run pso algorithm
-    		pso_solve(obj_fun, pso_params, &solution, &settings);
-    	
-		// Display best result - WILL BE GROUPED IN PRINT FUNCITON
-    		int i, count = 0;
-    		printf ("Solution waypoints:\n");
-    		for(i=0;i<settings.dim/2;i++){
-        		printf ("(%f, %f)\n", solution.gbest[count], solution.gbest[count + 1]);
-        		count = count + 2;
-    		}
-    		printf("Solution distance: %f\n", solution.error);
-    		
-		int obstacles = pso_path_countObstructions(solution.gbest, settings.dim, pso_params);
-    		printf ("obstacles: %d\n", obstacles);
-
-
-		free(solution.gbest);
-
-		//Free data
-		MPI_Type_free(&coltype);
-		MPI_Type_free(&rowtype);
-		MPI_Comm_free(&cart_comm);
-		MPI_Finalize();	
-
-		free(g1[0]);
-		free(g1);
-		free(g2[0]);
-		free(g2);
-     		
-}
-
 

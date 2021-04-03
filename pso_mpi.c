@@ -13,9 +13,6 @@
 
 #define N 4
 
-// function type for the different inform functions
-typedef void (*inform_fun_t)(int *comm, double **pos_nb, double **pos_b, double *fit_b, double *gbest, int improved, pso_settings_t *settings);
-
 //function type for the different inertia calculation functions
 typedef double (*inertia_fun_t)(int step, pso_settings_t *settings);
 
@@ -103,6 +100,7 @@ double MPI_calc_inertia_lin_dec(int step, pso_settings_t *settings) {
 	return recv_buf[i];
 }
 
+
 //FIXME
 //==============================================================
 //          NEIGHBORHOOD (COMM) MATRIX STRATEGIES
@@ -133,8 +131,47 @@ void inform_global(int *comm, double **pos_nb,
 // general inform function :: according to the connectivity
 // matrix COMM, it copies the best position (from pos_b) of the
 // informers of each particle to the pos_nb matrix
+/*
+void inform(int *comm, double **pos_nb, double **pos_b, double *fit_b,
+	    int improved, pso_settings_t * settings)
+{
+  int i, j;
+  int b_n; // best neighbor in terms of fitness
+
+  // for each particle
+  for (j=0; j<settings->size; j++) {
+    b_n = j; // self is best
+    // who is the best informer??
+    for (i=0; i<settings->size; i++)
+      // the i^th particle informs the j^th particle
+      if (comm[i*settings->size + j] && fit_b[i] < fit_b[b_n])
+        // found a better informer for j^th particle
+        b_n = i;
+    // copy pos_b of b_n^th particle to pos_nb[j]
+    memmove((void *)pos_nb[j],
+            (void *)pos_b[b_n],
+            sizeof(double) * settings->dim);
+  }
+}
+*/
 
 
+
+// exchanges row/column with 4 neighbours
+void MPI_inform(double **x, int xs, int xe, int ys, int ye, MPI_Comm comm, int nbrleft, int nbrright, int nbrup, int nbrdown, MPI_Datatype coltype, MPI_Status stat){
+	
+	MPI_Sendrecv(&x[xe][ys], (ye-ys+1), MPI_DOUBLE, nbrright, 0, 
+			&x[xs-1][ys], (ye-ys+1), MPI_DOUBLE, nbrleft, 0, comm, &stat);
+	
+	MPI_Sendrecv(&x[xs][ys], (ye-ys+1), MPI_DOUBLE, nbrleft, 0, 
+			&x[xe+1][ys], (ye-ys+1), MPI_DOUBLE, nbrright, 0, comm, &stat);
+	
+	MPI_Sendrecv(&x[xs][ye], 1, coltype, nbrup, 0, 
+			&x[xs][ys-1], 1, coltype, nbrdown, 0, comm, &stat);
+	
+	MPI_Sendrecv(&x[xs][ys], 1, coltype, nbrdown, 0, 
+			&x[xs][ye+1], 1, coltype, nbrup, 0, comm, &stat);
+}
 
 
 
@@ -143,8 +180,7 @@ void inform_global(int *comm, double **pos_nb,
 // ring topology
 // =============
 //FIXME - far less code involved than serial version
-
-void MPI_init_comm_ring(MPI_Comm ring_comm, pso_settings_t *settings){
+void MPI_init_comm_ring(MPI_Comm ring_comm, pso_settings_t){
 
 	int rank, val, size, false=0;
     	int nbrright, nbrleft;
@@ -358,20 +394,10 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
     		free_rng = 1;
   	}
 
-  	// SELECT APPROPRIATE NHOOD UPDATE FUNCTION
+  	// SELECT NHOOD UPDATE FUNCTION
   	switch (settings->nhood_strategy) {
-    		case PSO_NHOOD_GLOBAL :
-      			// comm matrix not used
-      			inform_fun = inform_global;
-      			break;
-    		case PSO_NHOOD_RING :
-      			init_comm_ring(comm, settings);
-      			inform_fun = inform_ring;
-      			break;
-    		case PSO_NHOOD_RANDOM :
-      			init_comm_random(comm, settings);
-      			inform_fun = inform_random;
-      			break;
+		case PSO_NHOOD_MPI:
+			inform_fun = inform_mpi; //test
     		default:
       			//use global as default
       			inform_fun = inform_global;

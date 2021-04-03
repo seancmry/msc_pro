@@ -11,7 +11,7 @@
 #include "utils.h"
 #include "pso.h"
 
-#define NPROCS 4
+#define N 4
 
 // function type for the different inform functions
 typedef void (*inform_fun_t)(int *comm, double **pos_nb, double **pos_b, double *fit_b, double *gbest, int improved, pso_settings_t *settings);
@@ -83,8 +83,8 @@ double MPI_calc_inertia_lin_dec(int step, pso_settings_t *settings) {
 	//printf("WORLD RANK/SIZE: %d%d --- PRIME RANK/SIZE: %d%d\n", world_rank, world_size, row_rank, row_size);
 	//MPI_Comm_free(&row_comm);
 	int i;
-	double val[NPROCS], recv_buf[NPROCS];
-	for(i = 0; i < NPROCS; i++){
+	double val[N], recv_buf[N];
+	for(i = 0; i < N; i++){
 		if (step <= dec_stage) {
 			val[i] = settings->w_min + (settings->w_max - settings->w_min) *     \
 			(dec_stage - step) / dec_stage;
@@ -92,8 +92,10 @@ double MPI_calc_inertia_lin_dec(int step, pso_settings_t *settings) {
 			val[i] = settings->w_min;
 		}
 	}
-	
+	//May change this to Scatter-gather routine. Problem: I don't want a process 0.	
 	MPI_Alltoall(&val, 1, MPI_DOUBLE, recv_buf, 1, MPI_DOUBLE, row_comm);
+	
+	MPI_Barrier(MPI_COMM_WORLD);
 	
 	if(MPI_COMM_NULL != row_comm) {
 		MPI_Comm_free(&row_comm);
@@ -105,7 +107,92 @@ double MPI_calc_inertia_lin_dec(int step, pso_settings_t *settings) {
 //==============================================================
 //          NEIGHBORHOOD (COMM) MATRIX STRATEGIES
 //==============================================================
+//global inform
+void inform_global(int *comm, double **pos_nb,
+		   double **pos_b, double *fit_b,
+		   double *gbest, int improved,
+		   pso_settings_t *settings)
+{
+	//SERIAL
+	/*
+  	int i;
+  	// all particles have the same attractor (gbest)
+  	// copy the contents of gbest to pos_nb
+  	for (i=0; i<settings->size; i++)
+    		memmove((void *)pos_nb[i], (void *)gbest,
+            		sizeof(double) * settings->dim);
+	*/
 
+	double **g1, **g2;
+	int dims[2] = {N,N};
+	int pbc[2] = {0,0};
+	int coords[2];
+	int chunk_rows, chunk_cols;
+	int rank, size;
+	int cols, rows;
+	int up, down, left, right;
+	int xs, xe, ys, ye;
+	int i;
+	MPI_Comm cart_comm;
+	MPI_Datatype coltype, rowtype;
+
+	if(rows%N != 0 || cols%N != 0){
+		printf("ERROR:: Rows or cols are not divisible by the given number of processes\n");
+		MPI_Finalize();
+		return 1;
+	}else{
+		chunk_rows = rows/N;
+		chunk_cols = cols/N;
+	}
+
+	MPI_Bcast(&chunk_rows,1,MPI_INT,0,MPI_COMM_WORLD);
+	MPI_Bcast(&chunk_cols,1,MPI_INT,0,MPI_COMM_WORLD);
+
+	g1 = malloc((chunk_rows+2) * sizeof(double *));
+	g1[0] = malloc((chunk_rows+2) * (chunk_cols+2) * sizeof(double));
+	for(i=0;i<(chunk_rows+2);i++){
+		g1[i] = g1[0] + i * (chunk_cols+2);
+	}
+	g2 = malloc((chunk_rows+2) * sizeof(double *));
+	g2[0] = malloc((chunk_rows+2) * (chunk_cols+2) * sizeof(double));
+	for(i=0;i<(chunk_rows+2);i++){
+		g2[i] = g2[0] + i * (chunk_cols+2);
+	}
+	//intialise dirichlet
+	initialize(g1,rank,chunk_rows+2,chunk_cols+2,&xs,&xe,&ys,&ye);
+	/*if(rank==0){
+		print_grid(g1,rank,chunk_rows,chunk_cols);
+		printf("%i, %i, %i, %i\n",xs,xe,ys,ye);
+	}*/
+	initialize(g2,rank,chunk_rows+2,chunk_cols+2,&xs,&xe,&ys,&ye);	
+
+	//cartesian communicator
+	MPI_Cart_create(MPI_COMM_WORLD,2,dims,pbc,0,&cart_comm);
+	MPI_Cart_coords(cart_comm,rank,2,coords);
+	//get neighbours
+	MPI_Cart_shift(cart_comm,0,1,&up,&down);
+	MPI_Cart_shift(cart_comm,1,1,&left,&right);
+	//vector datatype
+	MPI_Type_vector(1,chunk_cols,chunk_cols+2,MPI_DOUBLE,&rowtype);
+        MPI_Type_vector(chunk_rows,1,chunk_cols+2,MPI_DOUBLE,&coltype);
+        MPI_Type_commit(&rowtype);
+        MPI_Type_commit(&coltype);
+
+	//Solve
+	itersolve(g1,g2,rank,xs,xe,ys,ye,left,right,up,down,coords,chunk_rows,chunk_cols,rowtype,coltype,cart_comm);
+
+	//Free data
+	MPI_Type_free(&coltype);
+	MPI_Type_free(&rowtype);
+	MPI_Comm_free(&cart_comm);
+	MPI_Finalize();	
+
+	free(g1[0]);
+	free(g1);
+	free(g2[0]);
+	free(g2);
+	
+}
 
 
 

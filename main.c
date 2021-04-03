@@ -375,11 +375,70 @@ void pso_serial(int argc, char **argv) {
 }
 
 
-void pso_parallel(int argc, char **argv) {
-   
-		/*Initial PSO settings */
+void pso_parallel_path(int argc, char **argv) {
+  		double **g1, **g2;
+		int dims[2] = {N,N};
+		int pbc[2] = {0,0};
+		int coords[2];
+		int chunk_rows, chunk_cols;
+		int rank, size;
+		int cols, rows;
+		int up, down, left, right;
+		int xs, xe, ys, ye;
+		int i;
+		MPI_Comm cart_comm;
+		MPI_Datatype coltype, rowtype;
+
+		//Parse args
 	        parse_arguments(argc, argv);
 
+		if(rows%N != 0 || cols%N != 0){
+			printf("ERROR:: Rows or cols are not divisible by the given number of processes\n");
+			MPI_Finalize();
+			return 1;
+		}else{
+			chunk_rows = rows/N;
+			chunk_cols = cols/N;
+		}
+
+		MPI_Bcast(&chunk_rows,1,MPI_INT,0,MPI_COMM_WORLD);
+		MPI_Bcast(&chunk_cols,1,MPI_INT,0,MPI_COMM_WORLD);
+
+		g1 = malloc((chunk_rows+2) * sizeof(double *));
+		g1[0] = malloc((chunk_rows+2) * (chunk_cols+2) * sizeof(double));
+		for(i=0;i<(chunk_rows+2);i++){
+			g1[i] = g1[0] + i * (chunk_cols+2);
+		}
+		g2 = malloc((chunk_rows+2) * sizeof(double *));
+		g2[0] = malloc((chunk_rows+2) * (chunk_cols+2) * sizeof(double));
+		for(i=0;i<(chunk_rows+2);i++){
+			g2[i] = g2[0] + i * (chunk_cols+2);
+		}
+		//intialise dirichlet
+		initialize(g1,rank,chunk_rows+2,chunk_cols+2,&xs,&xe,&ys,&ye);
+		/*if(rank==0){
+			print_grid(g1,rank,chunk_rows,chunk_cols);
+			printf("%i, %i, %i, %i\n",xs,xe,ys,ye);
+		}*/
+		initialize(g2,rank,chunk_rows+2,chunk_cols+2,&xs,&xe,&ys,&ye);	
+
+
+		//cartesian communicator
+		MPI_Cart_create(MPI_COMM_WORLD,2,dims,pbc,0,&cart_comm);
+		MPI_Cart_coords(cart_comm,rank,2,coords);
+		//get neighbours
+		MPI_Cart_shift(cart_comm,0,1,&up,&down);
+		MPI_Cart_shift(cart_comm,1,1,&left,&right);
+		//vector datatype
+		MPI_Type_vector(1,chunk_cols,chunk_cols+2,MPI_DOUBLE,&rowtype);
+        	MPI_Type_vector(chunk_rows,1,chunk_cols+2,MPI_DOUBLE,&coltype);
+        	MPI_Type_commit(&rowtype);
+        	MPI_Type_commit(&coltype);
+
+		//Solve
+		itersolve(g1,g2,rank,xs,xe,ys,ye,left,right,up,down,coords,chunk_rows,chunk_cols,rowtype,coltype,cart_comm);
+
+		//PSO BIT
 		//Get weighting and topology	
     		pso_w_strategy = getPSOParam_w_strategy(pso_w_strategy_select);
     		pso_nhood_topology = getPSOParam_nhood_topology(pso_nhood_topology_select);
@@ -453,46 +512,24 @@ void pso_parallel(int argc, char **argv) {
         		count = count + 2;
     		}
     		printf("Solution distance: %f\n", solution.error);
-
-
-    		int obstacles = pso_path_countObstructions(solution.gbest, settings.dim, pso_params);
+    		
+		int obstacles = pso_path_countObstructions(solution.gbest, settings.dim, pso_params);
     		printf ("obstacles: %d\n", obstacles);
 
-		// Free global best buffer
-    		free(solution.gbest);
- 		
+
+		free(solution.gbest);
+
+		//Free data
+		MPI_Type_free(&coltype);
+		MPI_Type_free(&rowtype);
+		MPI_Comm_free(&cart_comm);
+		MPI_Finalize();	
+
+		free(g1[0]);
+		free(g1);
+		free(g2[0]);
+		free(g2);
+     		
 }
 
 
-
-
-/*
-int empty_file(FILE* file) {
-	size_t size;
-
-	fseek(file, 0, SEEK_END);
-	size = ftell(file);
-
-	return size ? 0 : 1;
-
-}
-
-void timing_to_file(char *fname) {
-	FILE *fptr;
-	
-	fptr = fopen(fname, "a+");
-	if (!fptr)
-		printf("Could not open file %s\n", fname);
-	
-	if (empty_file(fptr))
-		fprintf(fptr, "Data printed below - change this row to headings\n");
-	if (parallel) {
-		fprintf(fptr, "parallel and serial data here\n");
-	}
-	else {
-		fprintf(fptr, "serial data here\n");
-	}
-	fclose(fptr);
-}
-
-*/

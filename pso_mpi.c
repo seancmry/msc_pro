@@ -123,74 +123,6 @@ void inform_global(int *comm, double **pos_nb,
             		sizeof(double) * settings->dim);
 	*/
 
-	double **g1, **g2;
-	int dims[2] = {N,N};
-	int pbc[2] = {0,0};
-	int coords[2];
-	int chunk_rows, chunk_cols;
-	int rank, size;
-	int cols, rows;
-	int up, down, left, right;
-	int xs, xe, ys, ye;
-	int i;
-	MPI_Comm cart_comm;
-	MPI_Datatype coltype, rowtype;
-
-	if(rows%N != 0 || cols%N != 0){
-		printf("ERROR:: Rows or cols are not divisible by the given number of processes\n");
-		MPI_Finalize();
-		return 1;
-	}else{
-		chunk_rows = rows/N;
-		chunk_cols = cols/N;
-	}
-
-	MPI_Bcast(&chunk_rows,1,MPI_INT,0,MPI_COMM_WORLD);
-	MPI_Bcast(&chunk_cols,1,MPI_INT,0,MPI_COMM_WORLD);
-
-	g1 = malloc((chunk_rows+2) * sizeof(double *));
-	g1[0] = malloc((chunk_rows+2) * (chunk_cols+2) * sizeof(double));
-	for(i=0;i<(chunk_rows+2);i++){
-		g1[i] = g1[0] + i * (chunk_cols+2);
-	}
-	g2 = malloc((chunk_rows+2) * sizeof(double *));
-	g2[0] = malloc((chunk_rows+2) * (chunk_cols+2) * sizeof(double));
-	for(i=0;i<(chunk_rows+2);i++){
-		g2[i] = g2[0] + i * (chunk_cols+2);
-	}
-	//intialise dirichlet
-	initialize(g1,rank,chunk_rows+2,chunk_cols+2,&xs,&xe,&ys,&ye);
-	/*if(rank==0){
-		print_grid(g1,rank,chunk_rows,chunk_cols);
-		printf("%i, %i, %i, %i\n",xs,xe,ys,ye);
-	}*/
-	initialize(g2,rank,chunk_rows+2,chunk_cols+2,&xs,&xe,&ys,&ye);	
-
-	//cartesian communicator
-	MPI_Cart_create(MPI_COMM_WORLD,2,dims,pbc,0,&cart_comm);
-	MPI_Cart_coords(cart_comm,rank,2,coords);
-	//get neighbours
-	MPI_Cart_shift(cart_comm,0,1,&up,&down);
-	MPI_Cart_shift(cart_comm,1,1,&left,&right);
-	//vector datatype
-	MPI_Type_vector(1,chunk_cols,chunk_cols+2,MPI_DOUBLE,&rowtype);
-        MPI_Type_vector(chunk_rows,1,chunk_cols+2,MPI_DOUBLE,&coltype);
-        MPI_Type_commit(&rowtype);
-        MPI_Type_commit(&coltype);
-
-	//Solve
-	itersolve(g1,g2,rank,xs,xe,ys,ye,left,right,up,down,coords,chunk_rows,chunk_cols,rowtype,coltype,cart_comm);
-
-	//Free data
-	MPI_Type_free(&coltype);
-	MPI_Type_free(&rowtype);
-	MPI_Comm_free(&cart_comm);
-	MPI_Finalize();	
-
-	free(g1[0]);
-	free(g1);
-	free(g2[0]);
-	free(g2);
 	
 }
 
@@ -210,9 +142,30 @@ void inform_global(int *comm, double **pos_nb,
 // =============
 // ring topology
 // =============
-//FIXME
+//FIXME - far less code involved than serial version
 
+void MPI_init_comm_ring(MPI_Comm ring_comm, pso_settings_t *settings){
 
+	int rank, val, size, false=0;
+    	int nbrright, nbrleft;
+    	MPI_Status stat;
+
+    	MPI_Cart_create(MPI_COMM_WORLD, 1, &size, &false, 1, &ring_comm);
+    	MPI_Cart_shift(ring_comm, 0, 1, &nbrleft, &nbrright);
+    	MPI_Comm_rank(ring_comm, &rank);
+    	MPI_Comm_size(ring_comm, &size);
+    	
+	//Find neighbours
+	do {
+		if (rank == 0){
+	    	scanf( "%d", &val);
+	    	MPI_Send(&val, 1, MPI_INT, nbrright, 0, ring_comm);
+	} else {
+	    	MPI_Recv(&val, 1, MPI_INT, nbrleft, 0, ring_comm, &stat);
+	    	MPI_Send(&val, 1, MPI_INT, nbrright, 0, ring_comm);
+	}
+	printf( "Process %d got %d\n", rank, val);
+}
 
 
 

@@ -252,9 +252,6 @@ int main(int argc, char **argv) {
         	MPI_Type_commit(&rowtype);
         	MPI_Type_commit(&coltype);
 
-		//Solve - i.e. pso_solve
-		itersolve(g1,g2,rank,xs,xe,ys,ye,left,right,up,down,coords,chunk_rows,chunk_cols,rowtype,coltype,cart_comm);
-
 		//Initialise timer
 		struct timing_report* stats = malloc(sizeof(double));
 			
@@ -262,7 +259,7 @@ int main(int argc, char **argv) {
 		start_timer(&(stats->parallel_time));
 		
 		//Execute
-		pso_solve;
+		pso_solve(g1,g2,rank,xs,xe,ys,ye,left,right,up,down,coords,chunk_rows,chunk_cols,rowtype,coltype,cart_comm);
 
 		//Stop timer
 		end_timer(&(stats->parallel_time));

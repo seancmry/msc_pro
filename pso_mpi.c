@@ -250,7 +250,6 @@ void pso_print_limits (double ** limits, int dim){
 // return default pso settings
 pso_settings_t *pso_settings_new(int dim, double r_lo, double r_hi) {
 
-	//bool serial = true;
 	pso_settings_t *settings = (pso_settings_t *)malloc(sizeof(pso_settings_t));
 	if (settings == NULL) {return NULL;}
 	
@@ -269,16 +268,6 @@ pso_settings_t *pso_settings_new(int dim, double r_lo, double r_hi) {
 		settings->r_lo[i] = r_lo;
 		settings->r_hi[i] = r_hi;
 	}
-
-        	
-  	//if (serial) {
-		settings->dim = 30;
-		settings->x_hi = 20;
-		settings->x_lo = -20;
-		settings->goal = 1e-5;
-		settings->limits = pso_autofill_limits(settings->x_lo, settings->x_hi, settings->dim);
-			
-	//}
 	
   	settings->size = pso_calc_swarm_size(settings->dim);
   	settings->print_every = 10;
@@ -358,7 +347,7 @@ void pso_matrix_free(double **m, int size){
 //                     PSO ALGORITHM
 //==============================================================
 //FIXME
-void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *solution, pso_settings_t *settings)
+void MPI_pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *solution, pso_settings_t *settings)
 {
 
 	int free_rng = 0;

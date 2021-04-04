@@ -63,9 +63,9 @@ double MPI_calc_inertia_lin_dec(int step, pso_settings_t *settings) {
 	We determine the decreased weight based on the row and split the communicator on that basis.
 	We then use the original rank for ordering.
 	What happens then is that the value gets stored in val[i] and distributed 
-	among all procs (as defined above = 4) through MPI_Alltoall. As it runs now, the programme
-	accounts for a total of w*4 weights for a program run across 4 procs in parallel. This 
-	will need to be adjusted so that the program is only run once across 4 procs.
+	among all procs (as defined above = 4) through MPI_Scatter. As it ran with MPI_Alltoall, the programme
+	accounted for a total of w*4 weights for a program run across 4 procs in parallel. This 
+	will need to be adjusted so that the program is only run once across 4 procs and MPI_Scatter should do this.
 	*/
 	
 	int dec_stage = 3 * settings->steps / 4;
@@ -89,8 +89,8 @@ double MPI_calc_inertia_lin_dec(int step, pso_settings_t *settings) {
 			val[i] = settings->w_min;
 		}
 	}
-	//May change this to Scatter-gather routine. Problem: I don't want a process 0.	
-	MPI_Alltoall(&val, 1, MPI_DOUBLE, recv_buf, 1, MPI_DOUBLE, row_comm);
+	//Was originally executed as an MPI_Alltoall routine. Problem: I don't want a process 0.	
+	MPI_Scatter(&val, 1, MPI_DOUBLE, recv_buf, 1, MPI_DOUBLE, row_comm);
 	
 	MPI_Barrier(MPI_COMM_WORLD);
 	

@@ -10,6 +10,7 @@ Scripts now updated when loading the new version through the following:
 ```
 module load gcc/9.3.0
 module load gsl/2.5
+module load openmpi/3.1.6
 ```
 
 

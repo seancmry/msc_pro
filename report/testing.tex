@@ -2,12 +2,7 @@
  
 \begin{document}
 
-
-
-
 \subsection{Demo Analysis}
-
-
 
 \begin{table}[h]
 \caption{Parameter settings}
@@ -178,13 +173,13 @@ The first element will be to check the error achieved against the number of iter
  \hline
  Function   & Ackley  & Sphere & Rosenbrock & Griewank \\
  \hline
- Best fitness  & 1.4433E+01 & 5.7015E+04 & 1.9829E+05 & 4.8773E+01  \\
+ Best fitness  & \textbf{1.4433E+01} & 5.7015E+04 & 1.9829E+05 & \textbf{4.8773E+01}  \\
  
- Mean fitness & 1.6645E+01 & 1.3874E+05 & 2.1792E+05 & 3.0480E+02 \\
+ Mean fitness & \textbf{1.6645E+01} & 1.3874E+05 & 2.1792E+05 & \textbf{3.0480E+02} \\
  
- Poorest fitness & 1.9972E+01 & 1.5935E+06 & 2.2998E+05 & 1.4501E+04\\
+ Poorest fitness & \textbf{1.9972E+01} & 1.5935E+06 & 2.2998E+05 & 1.4501E+04\\
  
- Standard deviation & 6.1797E-01 & 2.7717E+04 & 6.9748E+03 & 7.1154E+01 \\
+ Standard deviation & \textbf{6.1797E-01} & 2.7717E+04 & 6.9748E+03 & \textbf{7.1154E+01} \\
  
  Mean time (ms) & 147818.00 & 95558.40 & 74689.60 & 134804.80\\
  \hline
@@ -199,13 +194,13 @@ The first element will be to check the error achieved against the number of iter
  \hline
  Function   & Ackley  & Sphere & Rosenbrock & Griewank \\
  \hline
- Best fitness   & 1.7250E+01 & 3.2513E+05 & 4.3102E+05 &  7.3685E+02 \\
+ Best fitness   & \textbf{1.7250E+01} & 3.2513E+05 & 4.3102E+05 &  \textbf{7.3685E+02} \\
  
- Mean fitness & 1.8593E+01 & 5.7175E+05 & 4.5025E+05 & 1.6362E+03 \\
+ Mean fitness & \textbf{1.8593E+01} & 5.7175E+05 & 4.5025E+05 & 1.6362E+03 \\
  
- Poorest fitness & 1.9993E+01 & 3.2470E+06 & 4.6860E+05 & 2.9311E+04 \\
+ Poorest fitness & \textbf{1.9993E+01} & 3.2470E+06 & 4.6860E+05 & 2.9311E+04 \\
  
- Standard deviation & 3.2277E-01 & 1.1247E+05 & 1.0289E+04 & 3.2838E+02 \\
+ Standard deviation & \textbf{3.2277E-01} & 1.1247E+05 & 1.0289E+04 & \textbf{3.2838E+02} \\
  
  Mean time (ms) & 560022.80 & 419196.80 & 299853.20 & 590098.00 \\
  \hline
@@ -295,9 +290,9 @@ Griewank decayed the most in terms of timing. Less deviation between the average
 
 \newpage
 
-\subsection{Next steps}
-
+\begin{remark}
 The next step will be to run these same tests in parallel to see what the performance improvement is by adjusting the number of processors. With the path planning problem, the serial evaluation will look at how increasing the number of particles affects performance, and thus with the parallel evaluation of that application, the same assessment will take place, but with the spread of N particles across multiple processors. The appendix will be further developed to accommodate more graphical analysis that cannot be included in the main body of the report.
+\end{remark}
 
 \subsection{Increment and Problem Dimensionality}
 
@@ -310,10 +305,123 @@ The authors of this paper have argued that the best results are typically obtain
 
 \subsection{Profiling}
 
-X
+Profile was conducted using a mixture of Vampir, Score-P, and \texttt{gprof}, the latter of which was used for both the demo code and serial application. An example of how the profiling was run is given as
+
+$$ \texttt{gprof -b ./prog ackley > analysis.txt}$$
+
+\newpage
+
+{\small \verbatiminput{demoanalysis2.txt}}
+
+As evidenced by the \texttt{gprof} profiling of the demo code, the key sections that the parallel implementation will seek to improve will include the \texttt{pso\_solve} algorithm elements, the topological functions and related inform functions (\texttt{inform\_ring}, \texttt{inform\_random}, and \texttt{inform\_global}), and the elements that deal with the allocation of matrices.
+\par
+As well as these functions, the evidence from the profiling suggests that the calculation of the inertia weight should be sped up in light of the call count on that function (\texttt{calc\_inertia\_lin\_dec}).
+
+
+\newpage
+\subsection{Serial Path analysis}
+
+
+\lstinputlisting[language=C, caption=Path parameter settings and additional PSO settings]{pathparameters.c}
+
+In addition to the parameter settings for the demo analysis, the serial parameter settings are shown above. The previous settings that were used for the highest range during the demo analysis were left unchanged and are exactly as shown in that table.
+\par
+Note: increasing the number of particles through the \texttt{PopSize} variable will break the \texttt{gsl} generator and lead to a memory leak, so this will be removed. The correct way in this instance will be to adjust the dimensions via the multiplier in the code, as the size of the swarm is conditional on the number of dimensions. This gives us the best of both worlds in the sense that we can test for the effects of an increased number of dimensions as well as an increase in the size of the swarm.
+
+\subsubsection{Number of obstacles per run}
+This merits a discussion as the informed observer would think that a random generation of obstacles would give different results no matter how many dimensions each run was conducted in. This is not the case as tests were carried out with a map containing pre-existing obstacles and there were no measurable effects on timing found.
+
+
+\subsubsection{Testing}
+Testing was conducted on the provided map \texttt{sample\_map\_Doorways.txt} to check for the influence on obstacles on the timing of the initial runs and it was found that they had no real measurable effect. The same can be said for the effect on the error. This is likely due to the low number of obstacles included with the map; this number would have to be increased if there are to be any noticeable effects, but this is beyond the scope of this report.
+\par
+\textbf{NOTE}: below should be changed to a stacked bar graph upon completion of the parallel tests.
+
+\begin{figure}[!htbp]
+\caption{Average solution distance.}
+\centering
+\includegraphics[width=0.9\textwidth]{soldist.png}
+\end{figure}
+
+\begin{figure}[!htbp]
+\caption{Timing across runs.}
+\centering
+\includegraphics[width=0.9\textwidth]{timeserial.png}
+\end{figure}
+
+\begin{remark}
+Will upgrade to include parallel timing.
+\end{remark}
+
+\begin{figure}[!htbp]
+\caption{Convergence graph.}
+\centering
+\includegraphics[width=0.9\textwidth]{pathconverge.png}
+\end{figure}
+
+
+
+\newpage
+
+\pagestyle{empty}
+\begin{landscape}
+\begin{table}[!htbp]
+\small
+\caption{\small Results across different $N^100$.}
+\label{table:X}
+\begin{tabular}{ p{1.8cm} p{1.8cm} p{1.8cm} p{1.8cm} p{1.8cm} p{1.8cm} p{1.8cm} p{1.8cm} p{1.8cm} p{1.8cm} p{1.8cm}}
+ \hline
+   N & 1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 & 9 & 10 \\
+ \hline
+  Obstacles (avg)	& 0	& 19 &	99.6 & 264.8 & 548 & 804.4 & 1284 & 2058 & 2034.8 & 2812.4 \\
+  Solution distance (avg) & 611.78 & 1854.10 & 3628.08 & 6699.95 & 9435.24 & 12243.68 & 15541.26 & 19564.87 & 21802.40 & 25707.28 \\
+   Avg error & 6.6852E+02 & 2.0838E+03 & 3.9828E+03 & 7.1107E+03 & 9.8900E+03 & 1.2818E+04 & 1.6163E+04 & 2.0074E+04 & 2.2412E+04 & 2.6416E+04 \\
+  Best & 	4.3074E+02 & 	1.3755E+03 & 	2.1111E+03 & 	5.0095E+03	 & 7.2606E+03	 & 8.1969E+03	 & 1.2458E+04	 & 1.6955E+04	  & 1.9115E+04	 &  2.1504E+04 \\
+Worst & 	4.2178E+03 & 	8.866E+03 & 1.4031E+04 & 	1.9283E+04 & 	2.3186E+04 & 	2.9204E+04 & 	3.3699E+04 & 	3.8305E+04 & 	4.3142E+04	 & 4.7813E+04 \\
+Standard deviation & 	1.1201E+02	& 3.3027E+02	& 6.8822E+02	& 8.2608E+02	& 1.0447E+03	& 1.2427E+03	& 1.5363E+03	& 1.1984E+03	 & 1.4494E+03	& 1.5479E+03 \\
+Time (average,ms)	& 31956	& 63414.8	& 94690	& 126811.2	& 158425.2	& 190279.6	& 221928	& 254361.2 &	285816.4	& 317517.2 \\
+ \hline
+\end{tabular}
+\end{table}
+\end{landscape}
+\pagestyle{plain}
+
+\newpage
+
 
 \subsection{PSO Topologies}
 
-X
+Each of the following topologies is used to determine the matrix strategy used to update the neighbouring particles upon running the algorithm. It should be noted that the testing phases for the serial and demo versions specified the global topology as the default for each test. Upon completion of the parallel version, the each topology will be tested with $N = 100$ and compared with the resulting parallel implementation for different numbers of processes. 
+\par
+Both the random and ring topologies are governed by a general inform function, which copies \texttt{pos\_b} of each particle to \texttt{pos\_nb} of the matrix itself. This takes the principle of the best informer and applies it to the general function in \texttt{pso\_solve}. The global inform function is unconnected to this function and is the default function for this purpose.
+\par
+The idea will be to both initialise and execute the inform communication within a singular function for both global, ring, and random topologies to avoid the communication overhead associated with the initialising and execution of each function separately. This is where \texttt{MPI\_Cart\_create} will be employed to create three separate topologies for such a purpose.
+
+\subsubsection{Global}
+
+In this case, all particles are drawn to the best position \texttt{pos\_b} at that particular iteration and copy the contents of \texttt{pos\_b} to the next best position, \texttt{pos\_nb}. 
+
+\subsubsection{Ring}
+
+This is a fixed topology. The array is reset and informer particles are chosen, with the diagonal being set to 1. The adjacent particles inform each other in a ring fashion.
+
+\subsubsection{Random}
+
+An average number of particles is chosen to act as informers, with a random integer generated to denote the topology to be chosen. Each particle informs itself in this case at the beginning, with particle $i$ informing particle $j$ thereafter.
+
+\subsection{Parallel Implementation}
+
+\subsection{MPI functions}
+
+\subsubsection{\texttt{MPI\_calc\_inertia\_lin\_dec}}
+
+The first function organises the linearly descending inertia weights between different processes to speed up the computation of the appropriate weighting for each iteration. The goal is to ensure that - for example, given 4 processes - that the computation is always 4x ahead.
+\par
+The function utilises a combination of \texttt{MPI\_Comm\_split} and \texttt{MPI\_Alltoall} to first create a new communicator to based on the row order and to split the communicator on that basis. The original rank is used for ordering. What happens then is that the value gets stored in \texttt{val[i]} and distributed among all processes through \texttt{MPI\_Alltoall}. As it runs, the program accounts for a total of $\omega * 4$ weights for a program run across 4 processes in parallel. This will need to be adjusted so that the program calculates an individual weight, but to make it available to all processes.
+
+\subsubsection{MPI topologies}
+
+The general inform function will be cut out due to the ability of \texttt{MPI\_Cart\_shift} and related functions to enable efficient communication between processes, which will be mapped with the individual values for \texttt{pos\_b} and \texttt{pos\_nb}. These two variables will feature prominently in the new topological set-ups given their link to delivering a solution.
+
 
 \end{document}

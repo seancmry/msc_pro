@@ -259,7 +259,7 @@ int main(int argc, char **argv) {
 		start_timer(&(stats->parallel_time));
 		
 		//Execute
-		pso_solve(g1,g2,rank,xs,xe,ys,ye,left,right,up,down,coords,chunk_rows,chunk_cols,rowtype,coltype,cart_comm);
+		pso_solve(...);
 
 		//Stop timer
 		end_timer(&(stats->parallel_time));

@@ -8,7 +8,16 @@
 \BOOKMARK [3][-]{subsubsection.0.2.2}{Sphere}{subsection.0.2}% 8
 \BOOKMARK [3][-]{subsubsection.0.2.3}{Rosenbrock}{subsection.0.2}% 9
 \BOOKMARK [3][-]{subsubsection.0.2.4}{Griewank}{subsection.0.2}% 10
-\BOOKMARK [2][-]{subsection.0.3}{Next steps}{}% 11
-\BOOKMARK [2][-]{subsection.0.4}{Increment and Problem Dimensionality}{}% 12
-\BOOKMARK [2][-]{subsection.0.5}{Profiling}{}% 13
-\BOOKMARK [2][-]{subsection.0.6}{PSO Topologies}{}% 14
+\BOOKMARK [2][-]{subsection.0.3}{Increment and Problem Dimensionality}{}% 11
+\BOOKMARK [2][-]{subsection.0.4}{Profiling}{}% 12
+\BOOKMARK [2][-]{subsection.0.5}{Serial Path analysis}{}% 13
+\BOOKMARK [3][-]{subsubsection.0.5.1}{Number of obstacles per run}{subsection.0.5}% 14
+\BOOKMARK [3][-]{subsubsection.0.5.2}{Testing}{subsection.0.5}% 15
+\BOOKMARK [2][-]{subsection.0.6}{PSO Topologies}{}% 16
+\BOOKMARK [3][-]{subsubsection.0.6.1}{Global}{subsection.0.6}% 17
+\BOOKMARK [3][-]{subsubsection.0.6.2}{Ring}{subsection.0.6}% 18
+\BOOKMARK [3][-]{subsubsection.0.6.3}{Random}{subsection.0.6}% 19
+\BOOKMARK [2][-]{subsection.0.7}{Parallel Implementation}{}% 20
+\BOOKMARK [2][-]{subsection.0.8}{MPI functions}{}% 21
+\BOOKMARK [3][-]{subsubsection.0.8.1}{MPI\137calc\137inertia\137lin\137dec}{subsection.0.8}% 22
+\BOOKMARK [3][-]{subsubsection.0.8.2}{MPI topologies}{subsection.0.8}% 23

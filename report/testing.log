@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.17 (MiKTeX 2.9) (preloaded format=pdflatex 2018.10.18)  1 MAR 2021 14:15
+This is pdfTeX, Version 3.14159265-2.6-1.40.17 (MiKTeX 2.9) (preloaded format=pdflatex 2018.10.18)  4 APR 2021 15:15
 entering extended mode
 **./testing.tex
 (testing.tex
@@ -304,7 +304,17 @@ fg"
 File: listings.cfg 2020/03/24 1.8d listings configuration
 ))
 Package: listings 2020/03/24 1.8d (Carsten Heinz)
- ("C:\Program Files (x86)\MiKTeX 2.9\tex\latex\xcolor\xcolor.sty"
+
+("C:\Users\Sean\AppData\Local\Programs\MiKTeX 2.9\tex\latex\oberdiek\pdflscape.
+sty"
+Package: pdflscape 2016/05/14 v0.11 Display of landscape pages in PDF (HO)
+
+("C:\Users\Sean\AppData\Local\Programs\MiKTeX 2.9\tex\latex\graphics\lscape.sty
+"
+Package: lscape 2000/10/22 v3.01 Landscape Pages (DPC)
+)
+Package pdflscape Info: Auto-detected driver: pdftex on input line 81.
+) ("C:\Program Files (x86)\MiKTeX 2.9\tex\latex\xcolor\xcolor.sty"
 Package: xcolor 2016/05/11 v2.12 LaTeX color extensions (UK)
 
 ("C:\Users\Sean\AppData\Local\Programs\MiKTeX 2.9\tex\latex\graphics-cfg\color.
@@ -593,7 +603,22 @@ sty"
 Package: subcaption 2018/05/01 v1.1-162 Sub-captions (AR)
 \c@subfigure=\count141
 \c@subtable=\count142
+)
+("C:\Users\Sean\AppData\Local\Programs\MiKTeX 2.9\tex\latex\amscls\amsthm.sty"
+Package: amsthm 2017/10/31 v2.20.4
+\thm@style=\toks28
+\thm@bodyfont=\toks29
+\thm@headfont=\toks30
+\thm@notefont=\toks31
+\thm@headpunct=\toks32
+\thm@preskip=\skip74
+\thm@postskip=\skip75
+\thm@headsep=\skip76
+\dth@everypar=\toks33
 ))) (testing.aux
+
+LaTeX Warning: Label `table:X' multiply defined.
+
 
 LaTeX Warning: Label `table:X' multiply defined.
 
@@ -677,12 +702,12 @@ LaTeX Font Info:    ... okay on input line 3.
 \scratchbox=\box43
 \nofMPsegments=\count144
 \nofMParguments=\count145
-\everyMPshowfont=\toks28
+\everyMPshowfont=\toks34
 \MPscratchCnt=\count146
 \MPscratchDim=\dimen156
 \MPnumerator=\count147
 \makeMPintoPDFobject=\count148
-\everyMPtoPDFconversion=\toks29
+\everyMPtoPDFconversion=\toks35
 )
 ("C:\Users\Sean\AppData\Local\Programs\MiKTeX 2.9\tex\latex\oberdiek\epstopdf-b
 ase.sty"
@@ -727,146 +752,146 @@ LaTeX Info: Redefining \nameref on input line 3.
 Package caption Info: Begin \AtBeginDocument code.
 Package caption Info: End \AtBeginDocument code.
 
-Overfull \hbox (3.56964pt too wide) in paragraph at lines 17--17
+Overfull \hbox (3.56964pt too wide) in paragraph at lines 12--12
 []\OT1/cmr/m/n/12 Parameter| 
  []
 
 
-Overfull \hbox (3.11552pt too wide) in paragraph at lines 17--18
+Overfull \hbox (3.11552pt too wide) in paragraph at lines 12--13
 []\OT1/cmtt/m/n/12 nhood[]size| 
  []
 
 
-Overfull \hbox (39.04424pt too wide) in paragraph at lines 15--22
+Overfull \hbox (39.04424pt too wide) in paragraph at lines 10--17
 [][] 
  []
 
 
-LaTeX Warning: Citation `funcs' on page 1 undefined on input line 26.
+LaTeX Warning: Citation `funcs' on page 1 undefined on input line 21.
 
 
-Overfull \hbox (5.26889pt too wide) in paragraph at lines 49--50
+Overfull \hbox (5.26889pt too wide) in paragraph at lines 44--45
 []\OT1/cmr/m/n/12 The Ack-ley func-tion has a global min-i-mum of $\OML/cmm/m/i
 t/12 f \OT1/cmr/m/n/12 = 0$ where $\OML/cmm/m/it/12 x \OT1/cmr/m/n/12 = (0\OML/
 cmm/m/it/12 ; \OT1/cmr/m/n/12 0\OML/cmm/m/it/12 ; :::; \OT1/cmr/m/n/12 0)$
  []
 
-LaTeX Font Info:    Try loading font information for OMS+cmr on input line 56.
+LaTeX Font Info:    Try loading font information for OMS+cmr on input line 51.
 ("C:\Users\Sean\AppData\Local\Programs\MiKTeX 2.9\tex\latex\base\omscmr.fd"
 File: omscmr.fd 2014/09/29 v2.5h Standard LaTeX font definitions
 )
 LaTeX Font Info:    Font shape `OMS/cmr/m/n' in size <12> not available
-(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 56.
+(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 51.
 
 [1
 
 {C:/Users/Sean/AppData/Local/MiKTeX/2.9/pdftex/config/pdftex.map}] [2]
-Underfull \hbox (badness 10000) in paragraph at lines 78--78
+Underfull \hbox (badness 10000) in paragraph at lines 73--73
 []\OT1/cmr/m/n/10.95 Standard de-vi-a-
  []
 
 
-Overfull \hbox (37.80614pt too wide) in paragraph at lines 68--83
+Overfull \hbox (37.80614pt too wide) in paragraph at lines 63--78
 [][] 
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 100--100
+Underfull \hbox (badness 10000) in paragraph at lines 95--95
 []\OT1/cmr/m/n/10.95 Standard de-vi-a-
  []
 
 
-Overfull \hbox (37.80614pt too wide) in paragraph at lines 90--105
+Overfull \hbox (37.80614pt too wide) in paragraph at lines 85--100
 [][] 
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 122--122
+Underfull \hbox (badness 10000) in paragraph at lines 117--117
 []\OT1/cmr/m/n/10.95 Standard de-vi-a-
  []
 
 
-Overfull \hbox (37.80614pt too wide) in paragraph at lines 112--127
+Overfull \hbox (37.80614pt too wide) in paragraph at lines 107--122
 [][] 
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 144--144
+Underfull \hbox (badness 10000) in paragraph at lines 139--139
 []\OT1/cmr/m/n/10.95 Standard de-vi-a-
  []
 
 
-Overfull \hbox (37.80614pt too wide) in paragraph at lines 134--149
+Overfull \hbox (37.80614pt too wide) in paragraph at lines 129--144
 [][] 
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 166--166
+Underfull \hbox (badness 10000) in paragraph at lines 161--161
 []\OT1/cmr/m/n/10.95 Standard de-vi-a-
  []
 
 
-Overfull \hbox (37.80614pt too wide) in paragraph at lines 156--171
+Overfull \hbox (37.80614pt too wide) in paragraph at lines 151--166
 [][] 
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 187--187
+Underfull \hbox (badness 10000) in paragraph at lines 182--182
 []\OT1/cmr/m/n/10.95 Standard de-vi-a-
  []
 
 
-Overfull \hbox (37.80614pt too wide) in paragraph at lines 177--192
+Overfull \hbox (37.80614pt too wide) in paragraph at lines 172--187
 [][] 
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 208--208
+Underfull \hbox (badness 10000) in paragraph at lines 203--203
 []\OT1/cmr/m/n/10.95 Standard de-vi-a-
  []
 
 
-Overfull \hbox (37.80614pt too wide) in paragraph at lines 198--213
+Overfull \hbox (37.80614pt too wide) in paragraph at lines 193--208
 [][] 
  []
 
 [3] [4]
-<stdev.png, id=95, 462.528pt x 346.896pt>
+<stdev.png, id=131, 462.528pt x 346.896pt>
 File: stdev.png Graphic file (type png)
 <use stdev.png>
-Package pdftex.def Info: stdev.png  used on input line 221.
+Package pdftex.def Info: stdev.png  used on input line 216.
 (pdftex.def)             Requested size: 342.62576pt x 256.97955pt.
-<Figure_n1000.png, id=97, 462.528pt x 346.896pt>
+<Figure_n1000.png, id=133, 462.528pt x 346.896pt>
 File: Figure_n1000.png Graphic file (type png)
 <use Figure_n1000.png>
-Package pdftex.def Info: Figure_n1000.png  used on input line 227.
+Package pdftex.def Info: Figure_n1000.png  used on input line 222.
 (pdftex.def)             Requested size: 342.62576pt x 256.97955pt.
  [5 <./stdev.png> <./Figure_n1000.png>]
-<demo_timings.png, id=106, 462.528pt x 346.896pt>
+<demo_timings.png, id=142, 462.528pt x 346.896pt>
 File: demo_timings.png Graphic file (type png)
 <use demo_timings.png>
-Package pdftex.def Info: demo_timings.png  used on input line 237.
+Package pdftex.def Info: demo_timings.png  used on input line 232.
 (pdftex.def)             Requested size: 342.62576pt x 256.97955pt.
  [6 <./demo_timings.png>]
-<ackley100.png, id=113, 462.528pt x 346.896pt>
+<ackley100.png, id=149, 462.528pt x 346.896pt>
 File: ackley100.png Graphic file (type png)
 <use ackley100.png>
-Package pdftex.def Info: ackley100.png  used on input line 247.
+Package pdftex.def Info: ackley100.png  used on input line 242.
 (pdftex.def)             Requested size: 152.27682pt x 114.20607pt.
-<sphere100.png, id=114, 462.528pt x 346.896pt>
+<sphere100.png, id=150, 462.528pt x 346.896pt>
 File: sphere100.png Graphic file (type png)
 <use sphere100.png>
-Package pdftex.def Info: sphere100.png  used on input line 254.
+Package pdftex.def Info: sphere100.png  used on input line 249.
 (pdftex.def)             Requested size: 152.27682pt x 114.20607pt.
-<rosenbrock100.png, id=115, 462.528pt x 346.896pt>
+<rosenbrock100.png, id=151, 462.528pt x 346.896pt>
 File: rosenbrock100.png Graphic file (type png)
 <use rosenbrock100.png>
-Package pdftex.def Info: rosenbrock100.png  used on input line 261.
+Package pdftex.def Info: rosenbrock100.png  used on input line 256.
 (pdftex.def)             Requested size: 152.27682pt x 114.20607pt.
-<griewank100.png, id=116, 462.528pt x 346.896pt>
+<griewank100.png, id=152, 462.528pt x 346.896pt>
 File: griewank100.png Graphic file (type png)
 <use griewank100.png>
-Package pdftex.def Info: griewank100.png  used on input line 268.
+Package pdftex.def Info: griewank100.png  used on input line 263.
 (pdftex.def)             Requested size: 152.27682pt x 114.20607pt.
 
 [7 <./ackley100.png> <./sphere100.png> <./rosenbrock100.png> <./griewank100.png
@@ -880,16 +905,326 @@ y"
 File: lstmisc.sty 2020/03/24 1.8d (Carsten Heinz)
 ) (pso_calc_swarm_size.c)
 
-LaTeX Warning: Citation `ssize' on page 9 undefined on input line 306.
+LaTeX Warning: Citation `ssize' on page 9 undefined on input line 301.
 
-Package atveryend Info: Empty hook `BeforeClearDocument' on input line 319.
 [9]
-Package atveryend Info: Empty hook `AfterLastShipout' on input line 319.
+File: demoanalysis2.txt  (verbatim)
+
+Overfull \hbox (44.70502pt too wide) in paragraph at lines 314--314
+[]  \OT1/cmtt/m/n/10.95 0.00      1.14     0.00    10001     0.00     0.00  cal
+c_inertia_lin_dec[] 
+ []
+
+
+Overfull \hbox (10.21289pt too wide) in paragraph at lines 314--314
+[]  \OT1/cmtt/m/n/10.95 0.00      1.14     0.00        4     0.00     0.00  pso
+_matrix_new[] 
+ []
+
+
+Overfull \hbox (10.21289pt too wide) in paragraph at lines 314--314
+[]  \OT1/cmtt/m/n/10.95 0.00      1.14     0.00        1     0.00     0.00  ini
+t_comm_ring[] 
+ []
+
+
+Overfull \hbox (15.96158pt too wide) in paragraph at lines 314--314
+[]  \OT1/cmtt/m/n/10.95 0.00      1.14     0.00        1     0.00     0.00  par
+se_arguments[] 
+ []
+
+
+Overfull \hbox (33.20764pt too wide) in paragraph at lines 314--314
+[]  \OT1/cmtt/m/n/10.95 0.00      1.14     0.00        1     0.00     0.00  pri
+nt_elapsed_time[] 
+ []
+
+
+Overfull \hbox (38.95633pt too wide) in paragraph at lines 314--314
+[]  \OT1/cmtt/m/n/10.95 0.00      1.14     0.00        1     0.00     0.00  pso
+_calc_swarm_size[] 
+ []
+
+
+Overfull \hbox (27.45895pt too wide) in paragraph at lines 314--314
+[]  \OT1/cmtt/m/n/10.95 0.00      1.14     0.00        1     0.00     0.00  pso
+_settings_free[] 
+ []
+
+
+Overfull \hbox (21.71027pt too wide) in paragraph at lines 314--314
+[]  \OT1/cmtt/m/n/10.95 0.00      1.14     0.00        1     0.00     0.00  pso
+_settings_new[] 
+ []
+
+[10] (pathparameters.c) [11]
+<soldist.png, id=215, 462.528pt x 346.896pt>
+File: soldist.png Graphic file (type png)
+<use soldist.png>
+Package pdftex.def Info: soldist.png  used on input line 343.
+(pdftex.def)             Requested size: 342.62576pt x 256.97955pt.
+<timeserial.png, id=216, 462.528pt x 346.896pt>
+File: timeserial.png Graphic file (type png)
+<use timeserial.png>
+Package pdftex.def Info: timeserial.png  used on input line 349.
+(pdftex.def)             Requested size: 342.62576pt x 256.97955pt.
+<pathconverge.png, id=217, 462.528pt x 346.896pt>
+File: pathconverge.png Graphic file (type png)
+<use pathconverge.png>
+Package pdftex.def Info: pathconverge.png  used on input line 359.
+(pdftex.def)             Requested size: 342.62576pt x 256.97955pt.
+ [12 <./soldist.png>] [13 <./timeserial.png> <./pathconverge.png>]
+Underfull \hbox (badness 10000) in paragraph at lines 376--376
+[]\OT1/cmr/m/n/10.95 Obstacles
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 377--377
+[]\OT1/cmr/m/n/10.95 Solution
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 377--377
+\OT1/cmr/m/n/10.95 dis-tance
+ []
+
+
+Overfull \hbox (6.12045pt too wide) in paragraph at lines 378--378
+[]\OT1/cmr/m/n/10.95 6.6852E+02| 
+ []
+
+
+Overfull \hbox (6.12045pt too wide) in paragraph at lines 378--378
+[]\OT1/cmr/m/n/10.95 2.0838E+03| 
+ []
+
+
+Overfull \hbox (6.12045pt too wide) in paragraph at lines 378--378
+[]\OT1/cmr/m/n/10.95 3.9828E+03| 
+ []
+
+
+Overfull \hbox (6.12045pt too wide) in paragraph at lines 378--378
+[]\OT1/cmr/m/n/10.95 7.1107E+03| 
+ []
+
+
+Overfull \hbox (6.12045pt too wide) in paragraph at lines 378--378
+[]\OT1/cmr/m/n/10.95 9.8900E+03| 
+ []
+
+
+Overfull \hbox (6.12045pt too wide) in paragraph at lines 378--378
+[]\OT1/cmr/m/n/10.95 1.2818E+04| 
+ []
+
+
+Overfull \hbox (6.12045pt too wide) in paragraph at lines 378--378
+[]\OT1/cmr/m/n/10.95 1.6163E+04| 
+ []
+
+
+Overfull \hbox (6.12045pt too wide) in paragraph at lines 378--378
+[]\OT1/cmr/m/n/10.95 2.0074E+04| 
+ []
+
+
+Overfull \hbox (6.12045pt too wide) in paragraph at lines 378--378
+[]\OT1/cmr/m/n/10.95 2.2412E+04| 
+ []
+
+
+Overfull \hbox (6.12045pt too wide) in paragraph at lines 378--379
+[]\OT1/cmr/m/n/10.95 2.6416E+04| 
+ []
+
+
+Overfull \hbox (6.12045pt too wide) in paragraph at lines 379--379
+[]\OT1/cmr/m/n/10.95 4.3074E+02| 
+ []
+
+
+Overfull \hbox (6.12045pt too wide) in paragraph at lines 379--379
+[]\OT1/cmr/m/n/10.95 1.3755E+03| 
+ []
+
+
+Overfull \hbox (6.12045pt too wide) in paragraph at lines 379--379
+[]\OT1/cmr/m/n/10.95 2.1111E+03| 
+ []
+
+
+Overfull \hbox (6.12045pt too wide) in paragraph at lines 379--379
+[]\OT1/cmr/m/n/10.95 5.0095E+03| 
+ []
+
+
+Overfull \hbox (6.12045pt too wide) in paragraph at lines 379--379
+[]\OT1/cmr/m/n/10.95 7.2606E+03| 
+ []
+
+
+Overfull \hbox (6.12045pt too wide) in paragraph at lines 379--379
+[]\OT1/cmr/m/n/10.95 8.1969E+03| 
+ []
+
+
+Overfull \hbox (6.12045pt too wide) in paragraph at lines 379--379
+[]\OT1/cmr/m/n/10.95 1.2458E+04| 
+ []
+
+
+Overfull \hbox (6.12045pt too wide) in paragraph at lines 379--379
+[]\OT1/cmr/m/n/10.95 1.6955E+04| 
+ []
+
+
+Overfull \hbox (6.12045pt too wide) in paragraph at lines 379--379
+[]\OT1/cmr/m/n/10.95 1.9115E+04| 
+ []
+
+
+Overfull \hbox (6.12045pt too wide) in paragraph at lines 379--380
+[]\OT1/cmr/m/n/10.95 2.1504E+04| 
+ []
+
+
+Overfull \hbox (6.12045pt too wide) in paragraph at lines 380--380
+[]\OT1/cmr/m/n/10.95 4.2178E+03| 
+ []
+
+
+Overfull \hbox (0.64545pt too wide) in paragraph at lines 380--380
+[]\OT1/cmr/m/n/10.95 8.866E+03| 
+ []
+
+
+Overfull \hbox (6.12045pt too wide) in paragraph at lines 380--380
+[]\OT1/cmr/m/n/10.95 1.4031E+04| 
+ []
+
+
+Overfull \hbox (6.12045pt too wide) in paragraph at lines 380--380
+[]\OT1/cmr/m/n/10.95 1.9283E+04| 
+ []
+
+
+Overfull \hbox (6.12045pt too wide) in paragraph at lines 380--380
+[]\OT1/cmr/m/n/10.95 2.3186E+04| 
+ []
+
+
+Overfull \hbox (6.12045pt too wide) in paragraph at lines 380--380
+[]\OT1/cmr/m/n/10.95 2.9204E+04| 
+ []
+
+
+Overfull \hbox (6.12045pt too wide) in paragraph at lines 380--380
+[]\OT1/cmr/m/n/10.95 3.3699E+04| 
+ []
+
+
+Overfull \hbox (6.12045pt too wide) in paragraph at lines 380--380
+[]\OT1/cmr/m/n/10.95 3.8305E+04| 
+ []
+
+
+Overfull \hbox (6.12045pt too wide) in paragraph at lines 380--380
+[]\OT1/cmr/m/n/10.95 4.3142E+04| 
+ []
+
+
+Overfull \hbox (6.12045pt too wide) in paragraph at lines 380--381
+[]\OT1/cmr/m/n/10.95 4.7813E+04| 
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 381--381
+[]\OT1/cmr/m/n/10.95 Standard
+ []
+
+
+Overfull \hbox (6.12045pt too wide) in paragraph at lines 381--381
+[]\OT1/cmr/m/n/10.95 1.1201E+02| 
+ []
+
+
+Overfull \hbox (6.12045pt too wide) in paragraph at lines 381--381
+[]\OT1/cmr/m/n/10.95 3.3027E+02| 
+ []
+
+
+Overfull \hbox (6.12045pt too wide) in paragraph at lines 381--381
+[]\OT1/cmr/m/n/10.95 6.8822E+02| 
+ []
+
+
+Overfull \hbox (6.12045pt too wide) in paragraph at lines 381--381
+[]\OT1/cmr/m/n/10.95 8.2608E+02| 
+ []
+
+
+Overfull \hbox (6.12045pt too wide) in paragraph at lines 381--381
+[]\OT1/cmr/m/n/10.95 1.0447E+03| 
+ []
+
+
+Overfull \hbox (6.12045pt too wide) in paragraph at lines 381--381
+[]\OT1/cmr/m/n/10.95 1.2427E+03| 
+ []
+
+
+Overfull \hbox (6.12045pt too wide) in paragraph at lines 381--381
+[]\OT1/cmr/m/n/10.95 1.5363E+03| 
+ []
+
+
+Overfull \hbox (6.12045pt too wide) in paragraph at lines 381--381
+[]\OT1/cmr/m/n/10.95 1.1984E+03| 
+ []
+
+
+Overfull \hbox (6.12045pt too wide) in paragraph at lines 381--381
+[]\OT1/cmr/m/n/10.95 1.4494E+03| 
+ []
+
+
+Overfull \hbox (6.12045pt too wide) in paragraph at lines 381--382
+[]\OT1/cmr/m/n/10.95 1.5479E+03| 
+ []
+
+
+Overfull \hbox (67.12862pt too wide) in paragraph at lines 372--385
+[][] 
+ []
+
+[14
+
+]
+LaTeX Font Info:    Font shape `OT1/cmtt/bx/n' in size <12> not available
+(Font)              Font shape `OT1/cmtt/m/n' tried instead on input line 416.
+ [15
+
+]
+Overfull \hbox (8.99817pt too wide) in paragraph at lines 420--421
+[]\OT1/cmr/m/n/12 The func-tion utilises a com-bi-na-tion of \OT1/cmtt/m/n/12 M
+PI[]Comm[]split \OT1/cmr/m/n/12 and \OT1/cmtt/m/n/12 MPI[]Alltoall
+ []
+
+
+Overfull \hbox (20.37766pt too wide) in paragraph at lines 424--425
+\OT1/cmr/m/n/12 The gen-eral in-form func-tion will be cut out due to the abil-
+ity of \OT1/cmtt/m/n/12 MPI[]Cart[]shift
+ []
+
+Package atveryend Info: Empty hook `BeforeClearDocument' on input line 427.
+[16]
+Package atveryend Info: Empty hook `AfterLastShipout' on input line 427.
  (testing.aux)
-Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 319.
-Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 319.
+Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 427.
+Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 427.
 Package rerunfilecheck Info: File `testing.out' has not changed.
-(rerunfilecheck)             Checksum: 561BFD0432F98F501F6C7E755D1A48DD;921.
+(rerunfilecheck)             Checksum: 31C019F7A48F96E5B4A3121EFE691B40;1578.
 
 
 LaTeX Warning: There were undefined references.
@@ -899,13 +1234,13 @@ LaTeX Warning: There were multiply-defined labels.
 
  ) 
 Here is how much of TeX's memory you used:
- 12252 strings out of 492976
- 186274 string characters out of 3127081
- 505868 words of memory out of 3000000
- 15859 multiletter control sequences out of 15000+200000
- 9747 words of font info for 36 fonts, out of 3000000 for 9000
+ 12465 strings out of 492976
+ 189578 string characters out of 3127081
+ 532585 words of memory out of 3000000
+ 16005 multiletter control sequences out of 15000+200000
+ 10598 words of font info for 40 fonts, out of 3000000 for 9000
  1141 hyphenation exceptions out of 8191
- 50i,12n,51p,642b,1302s stack positions out of 5000i,500n,10000p,200000b,50000s
+ 50i,12n,51p,652b,1302s stack positions out of 5000i,500n,10000p,200000b,50000s
 <C:/Users/Sean/AppData/Local/Programs/MiKTeX 2.9/fonts/type1/public/amsfonts/
 cm/cmbx10.pfb><C:/Users/Sean/AppData/Local/Programs/MiKTeX 2.9/fonts/type1/publ
 ic/amsfonts/cm/cmbx12.pfb><C:/Users/Sean/AppData/Local/Programs/MiKTeX 2.9/font
@@ -918,11 +1253,12 @@ pfb><C:/Users/Sean/AppData/Local/Programs/MiKTeX 2.9/fonts/type1/public/amsfont
 s/cm/cmr6.pfb><C:/Users/Sean/AppData/Local/Programs/MiKTeX 2.9/fonts/type1/publ
 ic/amsfonts/cm/cmr8.pfb><C:/Users/Sean/AppData/Local/Programs/MiKTeX 2.9/fonts/
 type1/public/amsfonts/cm/cmsy10.pfb><C:/Users/Sean/AppData/Local/Programs/MiKTe
-X 2.9/fonts/type1/public/amsfonts/cm/cmtt10.pfb><C:/Users/Sean/AppData/Local/Pr
-ograms/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmtt12.pfb>
-Output written on testing.pdf (9 pages, 348663 bytes).
+X 2.9/fonts/type1/public/amsfonts/cm/cmti12.pfb><C:/Users/Sean/AppData/Local/Pr
+ograms/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmtt10.pfb><C:/Users/Sean/AppD
+ata/Local/Programs/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmtt12.pfb>
+Output written on testing.pdf (16 pages, 437071 bytes).
 PDF statistics:
- 194 PDF objects out of 1000 (max. 8388607)
- 43 named destinations out of 1000 (max. 500000)
- 148 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 308 PDF objects out of 1000 (max. 8388607)
+ 90 named destinations out of 1000 (max. 500000)
+ 235 words of extra memory for PDF output out of 10000 (max. 10000000)
 

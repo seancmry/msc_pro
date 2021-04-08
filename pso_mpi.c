@@ -174,50 +174,6 @@ void MPI_inform(double **x, int xs, int xe, int ys, int ye, MPI_Comm comm, int n
 }
 
 
-
-
-// =============
-// ring topology
-// =============
-//FIXME - far less code involved than serial version
-void MPI_init_comm_ring(MPI_Comm ring_comm, pso_settings_t){
-
-	int rank, val, size, false=0;
-    	int nbrright, nbrleft;
-    	MPI_Status stat;
-
-    	MPI_Cart_create(MPI_COMM_WORLD, 1, &size, &false, 1, &ring_comm);
-    	MPI_Cart_shift(ring_comm, 0, 1, &nbrleft, &nbrright);
-    	MPI_Comm_rank(ring_comm, &rank);
-    	MPI_Comm_size(ring_comm, &size);
-    	
-	//Find neighbours
-	do {
-		if (rank == 0){
-	    	scanf( "%d", &val);
-	    	MPI_Send(&val, 1, MPI_INT, nbrright, 0, ring_comm);
-	} else {
-	    	MPI_Recv(&val, 1, MPI_INT, nbrleft, 0, ring_comm, &stat);
-	    	MPI_Send(&val, 1, MPI_INT, nbrright, 0, ring_comm);
-	}
-	printf( "Process %d got %d\n", rank, val);
-}
-
-
-
-  
-// ============================
-// random neighborhood topology
-// ============================
-//FIXME
-
-
-
-
-
-
-
-
 //==============================================================
 //                     PSO SETTINGS
 //==============================================================

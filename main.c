@@ -239,6 +239,30 @@ int main(int argc, char **argv) {
 		}*/
 		initialize(g2,rank,chunk_rows+2,chunk_cols+2,&xs,&xe,&ys,&ye);	
 
+//FIXME - taken from pso_mpi.c. Should set up a switch operation for selecting the type of topology here in main only.
+void MPI_init_comm_ring(MPI_Comm ring_comm, pso_settings_t){
+
+	int rank, val, size, false=0;
+    	int nbrright, nbrleft;
+    	MPI_Status stat;
+
+    	MPI_Cart_create(MPI_COMM_WORLD, 1, &size, &false, 1, &ring_comm);
+    	MPI_Cart_shift(ring_comm, 0, 1, &nbrleft, &nbrright);
+    	MPI_Comm_rank(ring_comm, &rank);
+    	MPI_Comm_size(ring_comm, &size);
+    	
+	//Find neighbours
+	do {
+		if (rank == 0){
+	    	scanf( "%d", &val);
+	    	MPI_Send(&val, 1, MPI_INT, nbrright, 0, ring_comm);
+	} else {
+	    	MPI_Recv(&val, 1, MPI_INT, nbrleft, 0, ring_comm, &stat);
+	    	MPI_Send(&val, 1, MPI_INT, nbrright, 0, ring_comm);
+	}
+	printf( "Process %d got %d\n", rank, val);
+}
+
 
 		//cartesian communicator
 		MPI_Cart_create(MPI_COMM_WORLD,2,dims,pbc,0,&cart_comm);

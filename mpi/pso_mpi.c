@@ -16,28 +16,6 @@
 //function type for the different inertia calculation functions
 typedef double (*inertia_fun_t)(int step, pso_settings_t *settings);
 
-
-double roundNum (double d) {
-  double g = 0.0, e = 0.0, f = 0.0;
-  g = floor (d);
-  e = d - g;
-  if (d > 0){
-    if (e > 0.5){
-      f = g + 1;
-    } else {
-      f = g;
-    }
-  } else {
-      if (e > 0.5) {
-          f = g - 1;
-      } else {
-          f = g;
-      }
-  }
-  return f;
-}
-
-
 //==============================================================
 // calulate swarm size based on dimensionality
 int pso_calc_swarm_size(int dim) {
@@ -373,15 +351,15 @@ void MPI_pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *so
     		// for each dimension
     		for (d=0; d<settings->dim; d++) {
 			// generate two numbers within the specified range
-			/*if (demo){
+			//if (demo){
 				a = settings->r_lo[d] + (settings->r_hi[d] - settings->r_lo[d])  *   \
 				gsl_rng_uniform(settings->rng);
        				b = settings->r_lo[d] + (settings->r_hi[d] - settings->r_lo[d])  *      \
 				gsl_rng_uniform(settings->rng);
-       			} */
+       			//}
 			//if (serial){
-				a = gsl_rng_uniform_int(settings->rng, settings->limits[1][i]);
-		        	b = gsl_rng_uniform_int(settings->rng, settings->limits[1][i]);
+				//a = gsl_rng_uniform_int(settings->rng, settings->limits[1][i]);
+		        	//b = gsl_rng_uniform_int(settings->rng, settings->limits[1][i]);
 			//}
 			/*
 			a = settings->limits[0][i] + (settings->limits[1][i] - settings->limits[0][i]) 
@@ -461,8 +439,8 @@ void MPI_pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *so
 				if (settings->numset == INTEGER){
 					pos[i][d] = roundNum(pos[i][d]);
 				}
-				/*
-				if(demo){
+				
+				//if(demo){
         				// clamp position within bounds?
         				if (settings->clamp_pos) {
           					if (pos[i][d] < settings->r_lo[d]) {
@@ -484,8 +462,8 @@ void MPI_pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *so
             						vel[i][d] = 0;
           					}
         				}
-				}
-				*/
+				//}
+				/*
 				//if(serial) {
 					if (settings->clamp_pos) {
           					if (pos[i][d] < settings->limits[0][i]) {
@@ -508,7 +486,7 @@ void MPI_pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *so
           					}
         				}
 				//}
-					
+				*/	
 			}
                 	// update particle fitness
                 	fit[i] = obj_fun(pos[i], settings->dim, obj_fun_params);
@@ -521,8 +499,6 @@ void MPI_pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *so
                 		sizeof(double) * settings->dim);
       			}
       			// update gbest??
-      			//
-      			//FIXME
       			//#pragma omp for
       			if (fit[i] < solution->error) {
         			improved = 1;

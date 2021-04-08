@@ -9,7 +9,7 @@ LDFLAGS = -lm -lgsl -lgslcblas
 CFLAGS=-I/home/support/spack/spack-0.16.1/spack/opt/spack/linux-scientific7-x86_64/gcc-9.3.0/gsl-2.5-c2jmkgwsye3xruhcuieuw5f7vzmsqi74/include -I/home/support/apps/apps/openmpi/rhel-7/3.1.6-gcc9.3.0/include
 LDFLAGS+=-L/home/support/spack/spack-0.16.1/spack/opt/spack/linux-scientific7-x86_64/gcc-9.3.0/gsl-2.5-c2jmkgwsye3xruhcuieuw5f7vzmsqi74/lib
 
-OBJECTS = main.o utils.o path.o mpi_pso.o
+OBJECTS = main.o utils.o mpi_pso.o
 
 TARGET = prog
 

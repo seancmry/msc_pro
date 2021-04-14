@@ -5,9 +5,8 @@
 #include "utils.h"
 
 /*Initial PSO settings */
-int popSize = 100;
 //int maxIterations = 500; 
-
+int popSize = 100;
 /* Serial and parallel option */
 bool serial = true;
 //bool parallel = 0;
@@ -127,16 +126,121 @@ void print_elapsed_time(char* fn_name, clock_t start, clock_t finish) {
 	printf("%s: %fms \n", fn_name, elapsed_time(start,finish));
 }
 
-/*
-void options() {
-   
 
+//For each Cartesian coord
+void calculate_dims(int nproc, int* dims){
+	int root = (int)sqrt(nproc);
+	while(nproc % root != 0)
+		root--;
+	dims[0] = nproc/root;
+	dims[1] = root;
+}
+
+//1d decomposition of n into size procs
+int decomp1d(int n, int size, int rank, int *s, int *e){
+	int nlocal, deficit;
+	nlocal  = n / size;
+	*s  = rank * nlocal + 1;
+	deficit = n % size;
+	*s  = *s + ((rank < deficit) ? rank : deficit);
+	if (rank < deficit) nlocal++;
+		*e = *s + nlocal - 1;
+
+	if (*e > n || rank == size-1) *e = n;
+		
+	return MPI_SUCCESS;
+}
+
+// 2d decomposition of array into xprocs x yprocs 
+int decomp2d(int nx, int ny, int xproc, int yproc, int* coords, int *xs, int *xe, int *ys, int *ye){
+
+	decomp1d(nx, xproc, coords[0], xs, xe);
+	decomp1d(ny, yproc, coords[1], ys, ye);
+	return MPI_SUCCESS;
 }
 
 
-void print_usage() {
-return;
-
+// intialises array ptr
+void init_arr(int n, int m, double *x, double **x_ptr){
+	int i;
+	for(i=0;i<n;i++){
+		x_ptr[i] = &x[i*m];
+	}
 }
-*/
+
+//Clear the array
+void clear_arr(int n, int m, double **x){
+    	int i, j;
+    	for(i=0;i<n;i++){
+        	for(j=0;j<m;j++){
+           		x[i][j] = 0.0;
+		}
+	}
+}
+
+//Initialise the mesh with boundary conditions
+void init_range(double **unew, double **uold, double **f, int xs, int xe, int ys, int ye, int nx, int ny,
+	double (*lbound)(int, int, int, int),
+	double (*rbound)(int, int, int, int),
+	double (*ubound)(int, int, int, int),
+	double (*bbound)(int, int, int, int))
+	{	
+	int i;
+
+	//lower boundary
+	if (ys == 1){
+		for (i=(xs-1);i<=(xe+1);i++){
+			uold[i][0] = bbound(i,0,nx,ny);
+	 		unew[i][0] = bbound(i,0,nx,ny);
+	 	}
+	}
+
+	//Upper boundary
+	if (ye == ny){
+		for (i=(xs-1);i<=(xe+1);i++){
+			uold[i][ny+1] = ubound(i,ny+1,nx,ny);
+			unew[i][ny+1] = ubound(i,ny+1,nx,ny);
+		}
+	}
+
+	//Left boundary
+	if (xs == 1){
+		for(i=ys;i<=ye;i++){
+			uold[0][i] = lbound(0,i,nx,ny);
+			unew[0][i] = lbound(0,i,nx,ny);
+		}
+	}
+
+	//Right boundary
+	if (xe == nx){
+		for(i=ys;i<=ye;i++){
+			uold[nx+1][i] = rbound(nx+1,i,nx,ny);
+			unew[nx+1][i] = rbound(nx+1,i,nx,ny);
+		}
+	}
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

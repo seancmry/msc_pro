@@ -90,14 +90,14 @@ void inform_global(int *comm, double **pos_nb,
 		   pso_settings_t *settings)
 {
 	//SERIAL
-	/*
+
   	int i;
   	// all particles have the same attractor (gbest)
   	// copy the contents of gbest to pos_nb
   	for (i=0; i<settings->size; i++)
     		memmove((void *)pos_nb[i], (void *)gbest,
             		sizeof(double) * settings->dim);
-	*/
+	
 
 	
 }
@@ -136,7 +136,7 @@ void inform(int *comm, double **pos_nb, double **pos_b, double *fit_b,
 
 
 // exchanges row/column with 4 neighbours
-void MPI_inform(double **x, int xs, int xe, int ys, int ye, MPI_Comm comm, int nbrleft, int nbrright, int nbrup, int nbrdown, MPI_Datatype coltype, MPI_Status stat){
+void MPI_exchange(double **x, int xs, int xe, int ys, int ye, MPI_Comm comm, int nbrleft, int nbrright, int nbrup, int nbrdown, MPI_Datatype coltype, MPI_Status stat){
 	
 	MPI_Sendrecv(&x[xe][ys], (ye-ys+1), MPI_DOUBLE, nbrright, 0, 
 			&x[xs-1][ys], (ye-ys+1), MPI_DOUBLE, nbrleft, 0, comm, &stat);
@@ -317,15 +317,6 @@ void MPI_pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *so
     		free_rng = 1;
   	}
 
-  	// SELECT NHOOD UPDATE FUNCTION
-  	switch (settings->nhood_strategy) {
-		case PSO_NHOOD_MPI:
-			inform_fun = inform_mpi; //test
-    		default:
-      			//use global as default
-      			inform_fun = inform_global;
-      			break;
-    	}
 
   	// SELECT APPROPRIATE INERTIA WEIGHT UPDATE FUNCTION
   	switch (settings->w_strategy) {

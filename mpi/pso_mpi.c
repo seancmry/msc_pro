@@ -16,6 +16,13 @@
 //function type for the different inertia calculation functions
 typedef double (*inertia_fun_t)(int step, pso_settings_t *settings);
 
+// function type for the different inform functions
+typedef void (*inform_fun_t)(int *comm, double **pos_nb,
+                             double **pos_b, double *fit_b,
+                             double *gbest, int improved,
+                             pso_settings_t *settings);
+
+
 //==============================================================
 // calulate swarm size based on dimensionality
 int pso_calc_swarm_size(int dim) {
@@ -28,7 +35,19 @@ int pso_calc_swarm_size(int dim) {
 //==============================================================
 //          INERTIA WEIGHT UPDATE STRATEGIES
 //==============================================================
+// calculate linearly decreasing inertia weight
+double calc_inertia_lin_dec(int step, pso_settings_t *settings) {
 
+  int dec_stage = 3 * settings->steps / 4;
+  if (step <= dec_stage)
+    return settings->w_min + (settings->w_max - settings->w_min) *	\
+      (dec_stage - step) / dec_stage;
+  else
+    return settings->w_min;
+}
+
+
+/*
 // calculate linearly decreasing inertia weight
 double MPI_calc_inertia_lin_dec(int step, pso_settings_t *settings) {
 
@@ -37,14 +56,14 @@ double MPI_calc_inertia_lin_dec(int step, pso_settings_t *settings) {
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 	MPI_Comm_size(MPI_COMM_WORLD, &size);	
 	
-	/*
-	We determine the decreased weight based on the row and split the communicator on that basis.
-	We then use the original rank for ordering.
-	What happens then is that the value gets stored in val[i] and distributed 
-	among all procs (as defined above = 4) through MPI_Scatter. As it ran with MPI_Alltoall, the programme
-	accounted for a total of w*4 weights for a program run across 4 procs in parallel. This 
-	will need to be adjusted so that the program is only run once across 4 procs and MPI_Scatter should do this.
-	*/
+	
+	//We determine the decreased weight based on the row and split the communicator on that basis.
+	//We then use the original rank for ordering.
+	//What happens then is that the value gets stored in val[i] and distributed 
+	//among all procs (as defined above = 4) through MPI_Scatter. As it ran with MPI_Alltoall, the programme
+	//accounted for a total of w*4 weights for a program run across 4 procs in parallel. This 
+	//will need to be adjusted so that the program is only run once across 4 procs and MPI_Scatter should do this.
+	
 	
 	int dec_stage = 3 * settings->steps / 4;
 
@@ -77,7 +96,7 @@ double MPI_calc_inertia_lin_dec(int step, pso_settings_t *settings) {
 	}
 	return recv_buf[i];
 }
-
+*/
 
 //FIXME
 //==============================================================
@@ -109,7 +128,7 @@ void inform_global(int *comm, double **pos_nb,
 // general inform function :: according to the connectivity
 // matrix COMM, it copies the best position (from pos_b) of the
 // informers of each particle to the pos_nb matrix
-/*
+
 void inform(int *comm, double **pos_nb, double **pos_b, double *fit_b,
 	    int improved, pso_settings_t * settings)
 {
@@ -131,7 +150,6 @@ void inform(int *comm, double **pos_nb, double **pos_b, double *fit_b,
             sizeof(double) * settings->dim);
   }
 }
-*/
 
 
 
@@ -281,7 +299,7 @@ void pso_matrix_free(double **m, int size){
 //                     PSO ALGORITHM
 //==============================================================
 //FIXME
-void MPI_pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *solution, pso_settings_t *settings)
+void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *solution, pso_settings_t *settings)
 {
 
 	int free_rng = 0;
@@ -317,11 +335,20 @@ void MPI_pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *so
     		free_rng = 1;
   	}
 
+	//SELECT APPROPRIATE NHOOD UPDATE FUNCTION
+	switch (settings->nhood_strategy){
+		case PSO_NHOOD_GLOBAL:
+			inform_fun = inform_global;
+			break;
+		default:
+			inform_fun = inform_global;
+			break;
+	}
 
   	// SELECT APPROPRIATE INERTIA WEIGHT UPDATE FUNCTION
   	switch (settings->w_strategy) {
       	/* case PSO_W_CONST : */
-      	/*     calc_inertia_fun = calc_inertia_const; */
+     	/*     calc_inertia_fun = calc_inertia_const; */
       	/*     break; */
     		case PSO_W_LIN_DEC :
 	 		//This is where the MPI calculation is done for the w_strategy.		
@@ -426,11 +453,12 @@ void MPI_pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *so
           				rho2 * (pos_nb[i][d] - pos[i][d]);
         		// update position
         			pos[i][d] += vel[i][d];
-				
+			
+				/*
 				if (settings->numset == INTEGER){
 					pos[i][d] = roundNum(pos[i][d]);
 				}
-				
+				*/
 				//if(demo){
         				// clamp position within bounds?
         				if (settings->clamp_pos) {

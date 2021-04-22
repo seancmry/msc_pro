@@ -2,6 +2,9 @@
 #include <getopt.h>
 #include <stdbool.h>
 #include <time.h>
+#include <math.h>
+
+#include "mpi.h"
 #include "utils.h"
 
 /*Initial PSO settings */

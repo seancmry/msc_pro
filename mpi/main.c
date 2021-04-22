@@ -14,6 +14,7 @@
 
 #include "utils.h"
 #include "pso.h"
+#include "defs.h"
 //#include "path.h"
 
 //==============================================================
@@ -83,7 +84,42 @@ double pso_griewank(double *vec, int dim, void *params) {
 
 
 int main(int argc, char **argv) {
-	
+
+
+	int rank, size;
+	MPI_Init(&argc, &argv);
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+	MPI_Comm_size(MPI_COMM_WORLD, &size);
+		
+	//if(parallel) {
+		
+		//Initialise PSO settings
+		pso_settings_t *settings = NULL; 
+		
+		//Initialise timer
+		struct timing_report* stats = malloc(sizeof(double));
+			
+		//Begin timer
+		start_timer(&(stats->parallel_time));
+		
+		//Execute
+		pso_parallel(settings,argc,argv);
+
+		//Stop timer
+		end_timer(&(stats->parallel_time));
+
+		//Print timing
+		print_elapsed_time((char*) "PARALLEL ", stats->parallel_time.start, stats->parallel_time.finish);
+
+		//Free timer
+		free(stats);
+		
+	//}
+
+	MPI_Finalize();
+	return 0;
+
+	/*
   	double **g1, **g2;
 	int dims[2] = {N,N};
 	int period[] = {1, 0}; //Left to right and back around again (periodic boundary conditions)
@@ -151,10 +187,10 @@ int main(int argc, char **argv) {
 		}
 		//intialise dirichlet
 		initialize(g1,rank,chunk_rows+2,chunk_cols+2,&xs,&xe,&ys,&ye);
-		/*if(rank==0){
-			print_grid(g1,rank,chunk_rows,chunk_cols);
-			printf("%i, %i, %i, %i\n",xs,xe,ys,ye);
-		}*/
+		//if(rank==0){
+		//	print_grid(g1,rank,chunk_rows,chunk_cols);
+		//	printf("%i, %i, %i, %i\n",xs,xe,ys,ye);
+		//}
 		initialize(g2,rank,chunk_rows+2,chunk_cols+2,&xs,&xe,&ys,&ye);	
 
 //FIXME - taken from pso_mpi.c. Should set up a switch operation for selecting the type of topology here in main only.
@@ -213,27 +249,27 @@ void MPI_init_comm_ring(MPI_Comm ring_comm, pso_settings_t){
 		free(stats);
 
 		//Free data
-		MPI_Type_free(&coltype);
-		MPI_Type_free(&rowtype);
-		MPI_Comm_free(&cart_comm);
+		//MPI_Type_free(&coltype);
+		//MPI_Type_free(&rowtype);
+		//MPI_Comm_free(&cart_comm);
 		MPI_Finalize();	
 
-		free(g1[0]);
-		free(g1);
-		free(g2[0]);
-		free(g2);
+		//free(g1[0]);
+		//free(g1);
+		//free(g2[0]);
+		//free(g2);
 
-		return 0;
+*/
 }
 
 
-void pso_demo(pso_settings_t *settings, int argc, char **argv) {
+void pso_parallel(pso_settings_t *settings, int argc, char **argv) {
 	
 		//Initialise function settings
 		pso_obj_fun_t obj_fun = NULL;
 
     		// parse command line argument (function name) - NOTE: Booleans should dictate the use of both serial and demo functions, so argc == 3
-    		if (argc == 3) {
+    		if (argc == 2) {
         		if (strcmp(argv[1], "ackley") == 0) {
 				obj_fun = pso_ackley;
 				settings = pso_settings_new(100, -32.8, 32.8);

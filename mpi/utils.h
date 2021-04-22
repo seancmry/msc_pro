@@ -8,9 +8,9 @@ extern int popSize;
 extern int maxIterations; 
 
 /* Serial and parallel option */
-extern bool demo; //for benchmark functions
-extern bool serial; //for serial path example
-//extern int timing;
+//extern bool demo; //for benchmark functions
+//extern bool serial; //for serial path example
+extern int timing;
 /* Path options */
 extern int inUavID;
 extern double inStartX, inStartY, inEndX, inEndY;
@@ -49,15 +49,15 @@ double elapsed_time(clock_t start, clock_t finish);
 void print_elapsed_time(char* fn_name, clock_t start, clock_t finish);
 
 //CARTESIAN
-void calculate_dims(int nproc, int* dims);
-int decomp1d( int n, int size, int rank, int *s, int *e );
-int decomp2d(int nx, int ny, int xprocs, int yprocs, int* coord, int *xs, int *xe, int *ys, int *ye);
-void init_arr(int n, int m, double *x, double **x_ptr);
-void clear_arr(int n, int m, double **x);
-void init_range(double **unew, double **uold, double **f, int xs, int xe, int ys, int ye, int nx, int ny,
-	double (*lbound)(int, int, int, int), 
-    	double (*rbound)(int, int, int, int),
-	double (*ubound)(int, int, int, int),
-	double (*bbound)(int, int, int, int));
+//void calculate_dims(int nproc, int* dims);
+//int decomp1d( int n, int size, int rank, int *s, int *e );
+//int decomp2d(int nx, int ny, int xprocs, int yprocs, int* coord, int *xs, int *xe, int *ys, int *ye);
+//void init_arr(int n, int m, double *x, double **x_ptr);
+//void clear_arr(int n, int m, double **x);
+//void init_range(double **unew, double **uold, double **f, int xs, int xe, int ys, int ye, int nx, int ny,
+	//double (*lbound)(int, int, int, int), 
+    	//double (*rbound)(int, int, int, int),
+	//double (*ubound)(int, int, int, int),
+	//double (*bbound)(int, int, int, int));
 
 #endif

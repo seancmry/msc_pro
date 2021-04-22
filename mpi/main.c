@@ -10,7 +10,7 @@
 #include <unistd.h>
 #include <ctype.h>
 
-#include "mpi.h"
+//#include "mpi.h"
 
 #include "utils.h"
 #include "pso.h"
@@ -86,10 +86,10 @@ double pso_griewank(double *vec, int dim, void *params) {
 int main(int argc, char **argv) {
 
 
-	int rank, size;
-	MPI_Init(&argc, &argv);
-	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-	MPI_Comm_size(MPI_COMM_WORLD, &size);
+	//int rank, size;
+	//MPI_Init(&argc, &argv);
+	//MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+	//MPI_Comm_size(MPI_COMM_WORLD, &size);
 		
 	//if(parallel) {
 		
@@ -97,26 +97,26 @@ int main(int argc, char **argv) {
 		pso_settings_t *settings = NULL; 
 		
 		//Initialise timer
-		struct timing_report* stats = malloc(sizeof(double));
+		//struct timing_report* stats = malloc(sizeof(double));
 			
 		//Begin timer
-		start_timer(&(stats->parallel_time));
+		//start_timer(&(stats->parallel_time));
 		
 		//Execute
 		pso_parallel(settings,argc,argv);
 
 		//Stop timer
-		end_timer(&(stats->parallel_time));
+		//end_timer(&(stats->parallel_time));
 
 		//Print timing
-		print_elapsed_time((char*) "PARALLEL ", stats->parallel_time.start, stats->parallel_time.finish);
+		//print_elapsed_time((char*) "PARALLEL ", stats->parallel_time.start, stats->parallel_time.finish);
 
 		//Free timer
-		free(stats);
+		//free(stats);
 		
 	//}
 
-	MPI_Finalize();
+	//MPI_Finalize();
 	return 0;
 
 	/*

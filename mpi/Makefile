@@ -1,7 +1,8 @@
 
-MPICC = mpicc
+#MPICC = mpicc
+CC = gcc
 
-MPICCFLAGS = -Wall -g -fopenmp
+#MPICCFLAGS = -Wall -g
 #PREP = scorep
 #PREP_CFLAGS = -L/home/support/apps/cports/rhel-6.x86_64/gnu/papi/5.6.0/lib
 LDFLAGS = -lm -lgsl -lgslcblas
@@ -17,7 +18,8 @@ OBJECTS = main.o utils.o pso_mpi.o
 TARGET = prog
 
 all: $(OBJECTS)
-	$(MPICC) $(CFLAGS) $(MPICCFLAGS) -o $(TARGET) $^ $(LDFLAGS)
+	$(CC) $(CFLAGS) -o $(TARGET) $^ $(LDFLAGS)
+	#$(MPICC) $(CFLAGS) $(MPICCFLAGS) -o $(TARGET) $^ $(LDFLAGS)
 	#$(MPICC) $(CFLAGS) $(MPICCFLAGS) -o $(TARGET) $^		
 #Parallel profiling (Score-P, Vampir)
 #all: $(OBJECTS)

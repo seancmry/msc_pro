@@ -5,7 +5,7 @@
 #include <float.h> // for DBL_MAX
 #include <string.h> // for mem*
 #include <gsl/gsl_rng.h>
-#include <mpi.h>
+//#include <mpi.h>
 //#include <omp.h>
 
 #include "utils.h"
@@ -13,14 +13,37 @@
 
 #define N 4
 
-//function type for the different inertia calculation functions
-typedef double (*inertia_fun_t)(int step, pso_settings_t *settings);
-
 // function type for the different inform functions
 typedef void (*inform_fun_t)(int *comm, double **pos_nb,
                              double **pos_b, double *fit_b,
                              double *gbest, int improved,
                              pso_settings_t *settings);
+
+
+//function type for the different inertia calculation functions
+typedef double (*inertia_fun_t)(int step, pso_settings_t *settings);
+
+
+
+double roundNum (double d) {
+  double g = 0.0, e = 0.0, f = 0.0;
+  g = floor (d);
+  e = d - g;
+  if (d > 0){
+    if (e > 0.5){
+      f = g + 1;
+    } else {
+      f = g;
+    }
+  } else {
+      if (e > 0.5) {
+          f = g - 1;
+      } else {
+          f = g;
+      }
+  }
+  return f;
+}
 
 
 //==============================================================
@@ -109,7 +132,6 @@ void inform_global(int *comm, double **pos_nb,
 		   pso_settings_t *settings)
 {
 	//SERIAL
-
   	int i;
   	// all particles have the same attractor (gbest)
   	// copy the contents of gbest to pos_nb
@@ -130,7 +152,7 @@ void inform_global(int *comm, double **pos_nb,
 // informers of each particle to the pos_nb matrix
 
 void inform(int *comm, double **pos_nb, double **pos_b, double *fit_b,
-	    int improved, pso_settings_t * settings)
+	    int improved, pso_settings_t *settings)
 {
   int i, j;
   int b_n; // best neighbor in terms of fitness
@@ -152,7 +174,7 @@ void inform(int *comm, double **pos_nb, double **pos_b, double *fit_b,
 }
 
 
-
+/*
 // exchanges row/column with 4 neighbours
 void MPI_exchange(double **x, int xs, int xe, int ys, int ye, MPI_Comm comm, int nbrleft, int nbrright, int nbrup, int nbrdown, MPI_Datatype coltype, MPI_Status stat){
 	
@@ -168,7 +190,7 @@ void MPI_exchange(double **x, int xs, int xe, int ys, int ye, MPI_Comm comm, int
 	MPI_Sendrecv(&x[xs][ys], 1, coltype, nbrdown, 0, 
 			&x[xs][ye+1], 1, coltype, nbrup, 0, comm, &stat);
 }
-
+*/
 
 //==============================================================
 //                     PSO SETTINGS
@@ -206,8 +228,8 @@ pso_settings_t *pso_settings_new(int dim, double r_lo, double r_hi) {
 	if (settings == NULL) {return NULL;}
 	
   	// set some default values
-  	//settings->dim = dim;
-  	//settings->goal = 1e-5;
+  	settings->dim = dim;
+  	settings->goal = 1e-5;
 			
 
 	settings->r_lo = (double *)malloc(settings->dim * sizeof(double));
@@ -454,11 +476,11 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
         		// update position
         			pos[i][d] += vel[i][d];
 			
-				/*
+				
 				if (settings->numset == INTEGER){
 					pos[i][d] = roundNum(pos[i][d]);
 				}
-				*/
+				
 				//if(demo){
         				// clamp position within bounds?
         				if (settings->clamp_pos) {

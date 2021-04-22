@@ -4,15 +4,15 @@
 #include <time.h>
 #include <math.h>
 
-#include "mpi.h"
+//#include "mpi.h"
 #include "utils.h"
 
 /*Initial PSO settings */
 //int maxIterations = 500; 
 int popSize = 100;
 /* Serial and parallel option */
-bool serial = true;
-//bool parallel = 0;
+//bool serial = true;
+//bool parallel = true;
 //bool demo = true; //for benchmark functions
 //int timing = 0;
 
@@ -129,6 +129,7 @@ void print_elapsed_time(char* fn_name, clock_t start, clock_t finish) {
 	printf("%s: %fms \n", fn_name, elapsed_time(start,finish));
 }
 
+/*
 
 //For each Cartesian coord
 void calculate_dims(int nproc, int* dims){
@@ -223,25 +224,7 @@ void init_range(double **unew, double **uold, double **f, int xs, int xe, int ys
 	}
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+*/
 
 
 

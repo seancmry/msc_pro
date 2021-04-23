@@ -4,7 +4,7 @@
 #include <time.h>
 #include <math.h>
 
-//#include "mpi.h"
+#include "mpi.h"
 #include "utils.h"
 
 #define GRID_SIZE 9;
@@ -136,15 +136,14 @@ void print_elapsed_time(char* fn_name, clock_t start, clock_t finish) {
 	printf("%s: %fms \n", fn_name, elapsed_time(start,finish));
 }
 
-/*
 
 //For each Cartesian coord
-void calculate_dims(int nproc, int* dims){
+void calculate_dims(int nproc, pso_settings_t *settings){
 	int root = (int)sqrt(nproc);
 	while(nproc % root != 0)
 		root--;
-	dims[0] = nproc/root;
-	dims[1] = root;
+	settings->dim[0] = nproc/root;
+	settings->dim[1] = root;
 }
 
 //1d decomposition of n into size procs
@@ -230,10 +229,6 @@ void init_range(double **unew, double **uold, double **f, int xs, int xe, int ys
 		}
 	}
 }
-
-*/
-
-
 
 
 

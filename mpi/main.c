@@ -126,20 +126,20 @@ int main(int argc, char **argv) {
 	init_arr(nx+2, ny+2, f_val, f);
 
 	//Get dimensions of the Cartesian grid and set up the communicator
-	calc_dims(nprocs, settings->dims);
-	MPI_Cart_create(MPI_COMM_WORLD, settings->dims, ndims, periods, 0, &cart_comm);
+	calc_dims(nprocs, settings->dim);
+	MPI_Cart_create(MPI_COMM_WORLD, settings->dim, ndims, periods, 0, &cart_comm);
 
 	MPI_Cart_coords(cart_comm, myid, 2, coords);
 	decomp2d(nx, ny, ndims[0], ndims[1], coords, &xs, &xe, &ys, &ye); 
 
 	//Test for periodicity
 	if (myid == 0){
-		printf("==========================================================="\n);
+		printf("===========================================================\n");
 		printf("Initial grid with periodic boundary conditions: \n\n");
 	}
 
 	init_range(unew, uold, f, xs, xe, ys, ye, nx, ny, &fone, &fone, &fone, &fone);
-	print_grid(unew, nx, ny, xs, xe, ys, ye, coords, dims, cart_comm);
+	print_grid(unew, nx, ny, xs, xe, ys, ye, coords, settings->dim, cart_comm);
 
 	//Get neighbours through the shift
 	MPI_Cart_shift(cart_comm, 0, 1, &nbrleft, &nbrright);

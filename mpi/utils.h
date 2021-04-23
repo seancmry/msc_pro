@@ -6,6 +6,7 @@
 /*Initial PSO settings */
 extern int popSize; 
 extern int maxIterations; 
+extern int nx;
 
 /* Serial and parallel option */
 //extern bool demo; //for benchmark functions

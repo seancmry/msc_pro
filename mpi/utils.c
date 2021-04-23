@@ -7,6 +7,8 @@
 //#include "mpi.h"
 #include "utils.h"
 
+#define GRID_SIZE 9;
+
 /*Initial PSO settings */
 //int maxIterations = 500; 
 int popSize = 100;
@@ -15,6 +17,7 @@ int popSize = 100;
 //bool parallel = true;
 //bool demo = true; //for benchmark functions
 //int timing = 0;
+int nx = GRID_SIZE;
 
 /* Path options */
 int inUavID = 0;
@@ -49,7 +52,7 @@ char *inFileHandlePtr = NULL;
 int parse_arguments(int argc, char **argv) {
     int c;
     
-    while ((c = getopt (argc, argv, "a:b:c:d:e:f:n:m:p:q:r:s:t:w:x:v:z")) != -1)
+    while ((c = getopt (argc, argv, "a:b:c:d:e:f:g:n:m:p:q:r:s:t:w:x:v:z")) != -1)
         switch (c) {
             case 'v':
   		verbose = 1;
@@ -72,6 +75,10 @@ int parse_arguments(int argc, char **argv) {
             case 'f':
                 sscanf(optarg, "%lf", &inEndY);
                 break;
+	    case 'g':
+		nx = atoi(optarg);
+		printf("\Grid set to %d+2\n",nx);
+		break;
             case 'n':
                 sscanf(optarg, "%d", &waypoints);
                 break;

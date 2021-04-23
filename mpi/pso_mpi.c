@@ -357,6 +357,7 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
     		free_rng = 1;
   	}
 
+	/*
 	//SELECT APPROPRIATE NHOOD UPDATE FUNCTION
 	switch (settings->nhood_strategy){
 		case PSO_NHOOD_GLOBAL:
@@ -366,6 +367,8 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
 			inform_fun = inform_global;
 			break;
 	}
+	*/
+
 
   	// SELECT APPROPRIATE INERTIA WEIGHT UPDATE FUNCTION
   	switch (settings->w_strategy) {
@@ -382,7 +385,13 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
   	// INITIALIZE SOLUTION
   	solution->error = DBL_MAX;
 
+
+
 	/* START */
+
+
+
+
 	//FIXME
   	// SWARM INITIALIZATION
   	// for each particle
@@ -414,10 +423,20 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
       			// initialize velocity
       			vel[i][d] = (a-b) / 2.;
     		}
-    		// update particle fitness
+    		
+		
+			
+
+	
+	
+		// update particle fitness
     		fit[i] = obj_fun(pos[i], settings->dim, obj_fun_params);
    		fit_b[i] = fit[i]; // this is also the personal best
     
+
+
+
+
 		// update gbest??
     		if (fit[i] < solution->error) {
 			// update best fitness
@@ -428,11 +447,17 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
 				sizeof(double) * settings->dim);
 		}
     	}
+
 	
 	/*END*/
+
+
 	
 	// initialize omega using standard value
 	w = PSO_INERTIA;
+
+
+
 	
 	// RUN ALGORITHM
   	for (step=0; step<settings->steps; step++) {
@@ -444,8 +469,10 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
       			w = calc_inertia_fun(step, settings);
 		}
 
-    		// check optimization goal
 
+
+
+    		// check optimization goal
     		if (solution->error <= settings->goal) {
      	 		// SOLVED!!
       			if (settings->print_every){
@@ -454,11 +481,22 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
      			break;
     		}	
 
+
+
+
+
     		// update pos_nb matrix (find best of neighborhood for all particles)
     		inform_fun(comm, (double **)pos_nb, (double **)pos_b, fit_b, solution->gbest,
                		improved, settings);
+
+
+
+
     		// the value of improved was just used; reset it
     		improved = 0;
+
+
+
 
     		// update all particles
     		for (i=0; i<settings->size; i++) {
@@ -469,10 +507,14 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
         		// calculate stochastic coefficients
         			rho1 = settings->c1 * gsl_rng_uniform(settings->rng);
         			rho2 = settings->c2 * gsl_rng_uniform(settings->rng);
+
+
 			// update velocity
         			vel[i][d] = w * vel[i][d] +	\
           				rho1 * (pos_b[i][d] - pos[i][d]) +	\
           				rho2 * (pos_nb[i][d] - pos[i][d]);
+
+
         		// update position
         			pos[i][d] += vel[i][d];
 			
@@ -481,6 +523,9 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
 					pos[i][d] = roundNum(pos[i][d]);
 				}
 				
+
+
+
 				//if(demo){
         				// clamp position within bounds?
         				if (settings->clamp_pos) {
@@ -529,16 +574,30 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
 				//}
 				*/	
 			}
+
+
+
+
                 	// update particle fitness
                 	fit[i] = obj_fun(pos[i], settings->dim, obj_fun_params);
+
+
+
+
                 	// update personal best position?
                 	//#pragma omp for reduction(min:solution->error)
       	        	if (fit[i] < fit_b[i]) {
         			fit_b[i] = fit[i];
+
+
         		// copy contents of pos[i] to pos_b[i]
         		memmove((void *)pos_b[i], (void *)pos[i],
                 		sizeof(double) * settings->dim);
       			}
+
+
+
+
       			// update gbest??
       			//#pragma omp for
       			if (fit[i] < solution->error) {
@@ -549,6 +608,8 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
         			memmove((void *)solution->gbest, (void *)pos[i],
                 			sizeof(double) * settings->dim);
       			}
+
+
     	
 		}
     		if (settings->print_every && (step % settings->print_every == 0)) 

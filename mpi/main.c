@@ -85,8 +85,8 @@ double pso_griewank(double *vec, int dim, void *params) {
 
 int main(int argc, char **argv) {
 
-	double *old_val, *new_val, *f_val;
-	double **old, **new, **f;
+	//double *old_val, *new_val, *f_val;
+	//double **old, **new, **f;
 	int myid, nprocs;
 	int dims = 2, ndims[2];
 	int periods[2] = {1,0};
@@ -114,12 +114,12 @@ int main(int argc, char **argv) {
 	ny = nx;
 
 	//Allocate arrays to store grids
-	old_val = (double*)calloc((nx+2)*(ny+2),sizeof(double));
-	new_val = (double*)calloc((nx+2)*(ny+2),sizeof(double));
-	f_val = (double*)calloc((nx+2)*(ny+2),sizeof(double));
-	old = (double**)malloc((nx+2)*sizeof(double*));
-	new = (double**)malloc((nx+2)*sizeof(double*));
-	f = (double**)malloc((nx+2)*sizeof(double*));
+	//old_val = (double*)calloc((nx+2)*(ny+2),sizeof(double));
+	//new_val = (double*)calloc((nx+2)*(ny+2),sizeof(double));
+	//f_val = (double*)calloc((nx+2)*(ny+2),sizeof(double));
+	//old = (double**)malloc((nx+2)*sizeof(double*));
+	//new = (double**)malloc((nx+2)*sizeof(double*));
+	//f = (double**)malloc((nx+2)*sizeof(double*));
 
 	//init_arr(nx+2, ny+2, old_val, uold);
 	//init_arr(nx+2, ny+2, new_val, unew);
@@ -170,12 +170,12 @@ int main(int argc, char **argv) {
 	free(stats);
 		
 	//Free values
-	free(f_val);
-	free(new_val);
-	free(old_val);
-	free(f);
-	free(new);
-	free(old);
+	//free(f_val);
+	//free(new_val);
+	//free(old_val);
+	//free(f);
+	//free(new);
+	//free(old);
 
 	MPI_Finalize();
 	return 0;    

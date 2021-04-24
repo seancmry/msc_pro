@@ -344,6 +344,9 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
   	double w = PSO_INERTIA; // current omega
   	inform_fun_t inform_fun = NULL; // neighborhood update function
   	inertia_fun_t calc_inertia_fun = NULL; // inertia weight update function
+	int myrank;
+	int *recvbuf = (int *)malloc((settings->dim + 1) * sizeof(int));
+	int *sendbuf = (int *)malloc((settings->dim + 1) * sizeof(int));
 	
   	// CHECK RANDOM NUMBER GENERATOR
   	if (!settings->rng) {
@@ -384,8 +387,11 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
 
   	// INITIALIZE SOLUTION
   	solution->error = DBL_MAX;
-
-
+	//FIXME - copied from example and adapted	
+	if(myrank == 0){
+		settings->size = settings->size/size;
+	}		
+	MPI_Bcast(settings->size, 1, MPI_DOUBLE,0,MPI_COMM_WORLD);
 
 	/* START */
 

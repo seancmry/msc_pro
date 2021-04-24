@@ -76,8 +76,8 @@ int parse_arguments(int argc, char **argv) {
                 sscanf(optarg, "%lf", &inEndY);
                 break;
 	    case 'g':
-		nx = atoi(optarg);
-		printf("\Grid set to %d+2\n",nx);
+		sscanf(optarg, "%lf", &nx);
+		printf("\nGrid set to %lf+2\n",nx);
 		break;
             case 'n':
                 sscanf(optarg, "%d", &waypoints);
@@ -138,12 +138,12 @@ void print_elapsed_time(char* fn_name, clock_t start, clock_t finish) {
 
 
 //For each Cartesian coord
-void calculate_dims(int nproc, pso_settings_t *settings){
+void calculate_dims(int nproc, int *ndims, pso_settings_t *settings){
 	int root = (int)sqrt(nproc);
 	while(nproc % root != 0)
 		root--;
-	settings->dim[0] = nproc/root;
-	settings->dim[1] = root;
+	settings->dim = ndims[0] = nproc/root;
+	settings->dim = ndims[1] = root;
 }
 
 //1d decomposition of n into size procs

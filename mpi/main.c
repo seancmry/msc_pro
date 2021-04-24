@@ -86,9 +86,9 @@ double pso_griewank(double *vec, int dim, void *params) {
 int main(int argc, char **argv) {
 
 	double *old_val, *new_val, *f_val;
-	double **uold, **unew, **f;
+	double **old, **new, **f;
 	int myid, nprocs;
-	int ndims[2];
+	int dims = 2, ndims[2];
 	int periods[2] = {1,0};
 	int ys, ye, xs, xe;
 	int nbrup, nbrdown, nbrleft, nbrright;
@@ -117,17 +117,17 @@ int main(int argc, char **argv) {
 	old_val = (double*)calloc((nx+2)*(ny+2),sizeof(double));
 	new_val = (double*)calloc((nx+2)*(ny+2),sizeof(double));
 	f_val = (double*)calloc((nx+2)*(ny+2),sizeof(double));
-	uold = (double**)malloc((nx+2)*sizeof(double*));
-	unew = (double**)malloc((nx+2)*sizeof(double*));
+	old = (double**)malloc((nx+2)*sizeof(double*));
+	new = (double**)malloc((nx+2)*sizeof(double*));
 	f = (double**)malloc((nx+2)*sizeof(double*));
 
-	init_arr(nx+2, ny+2, old_val, uold);
-	init_arr(nx+2, ny+2, new_val, unew);
-	init_arr(nx+2, ny+2, f_val, f);
+	//init_arr(nx+2, ny+2, old_val, uold);
+	//init_arr(nx+2, ny+2, new_val, unew);
+	//init_arr(nx+2, ny+2, f_val, f);
 
 	//Get dimensions of the Cartesian grid and set up the communicator
-	calc_dims(nprocs, settings->dim);
-	MPI_Cart_create(MPI_COMM_WORLD, settings->dim, ndims, periods, 0, &cart_comm);
+	calculate_dims(nprocs, ndims, settings);
+	MPI_Cart_create(MPI_COMM_WORLD, dims, ndims, periods, 0, &cart_comm);
 
 	MPI_Cart_coords(cart_comm, myid, 2, coords);
 	decomp2d(nx, ny, ndims[0], ndims[1], coords, &xs, &xe, &ys, &ye); 
@@ -138,8 +138,8 @@ int main(int argc, char **argv) {
 		printf("Initial grid with periodic boundary conditions: \n\n");
 	}
 
-	init_range(unew, uold, f, xs, xe, ys, ye, nx, ny, &fone, &fone, &fone, &fone);
-	print_grid(unew, nx, ny, xs, xe, ys, ye, coords, settings->dim, cart_comm);
+	//init_range(unew, uold, f, xs, xe, ys, ye, nx, ny, &fone, &fone, &fone, &fone);
+	//print_grid(unew, nx, ny, xs, xe, ys, ye, coords, settings->dim, cart_comm);
 
 	//Get neighbours through the shift
 	MPI_Cart_shift(cart_comm, 0, 1, &nbrleft, &nbrright);
@@ -174,8 +174,8 @@ int main(int argc, char **argv) {
 	free(new_val);
 	free(old_val);
 	free(f);
-	free(unew);
-	free(uold);
+	free(new);
+	free(old);
 
 	MPI_Finalize();
 	return 0;    

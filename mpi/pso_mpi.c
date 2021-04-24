@@ -5,7 +5,7 @@
 #include <float.h> // for DBL_MAX
 #include <string.h> // for mem*
 #include <gsl/gsl_rng.h>
-//#include <mpi.h>
+#include <mpi.h>
 //#include <omp.h>
 
 #include "utils.h"
@@ -174,7 +174,6 @@ void inform(int *comm, double **pos_nb, double **pos_b, double *fit_b,
 }
 
 
-/*
 // exchanges row/column with 4 neighbours
 void MPI_exchange(double **x, int xs, int xe, int ys, int ye, MPI_Comm comm, int nbrleft, int nbrright, int nbrup, int nbrdown, MPI_Datatype coltype, MPI_Status stat){
 	
@@ -190,7 +189,8 @@ void MPI_exchange(double **x, int xs, int xe, int ys, int ye, MPI_Comm comm, int
 	MPI_Sendrecv(&x[xs][ys], 1, coltype, nbrdown, 0, 
 			&x[xs][ye+1], 1, coltype, nbrup, 0, comm, &stat);
 }
-*/
+
+
 
 //==============================================================
 //                     PSO SETTINGS
@@ -585,11 +585,8 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
 
 
                 	// update personal best position?
-                	//#pragma omp for reduction(min:solution->error)
       	        	if (fit[i] < fit_b[i]) {
         			fit_b[i] = fit[i];
-
-
         		// copy contents of pos[i] to pos_b[i]
         		memmove((void *)pos_b[i], (void *)pos[i],
                 		sizeof(double) * settings->dim);

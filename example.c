@@ -11,12 +11,7 @@
 
 #define PI 3.14159265358979323846
 
-struct timeval TimeValue_Start;
-struct timezone TimeZone_Start;
-struct timeval TimeValue_Final;
-struct timezone TimeZone_Final;
-long time_start, time_end;
-double time_overhead;
+
 double nDimensions, mVelocity, nIterations, seed;
 double x_lo = -32.768;
 double x_hi = 32.768;
@@ -41,7 +36,9 @@ int main(int argc, char *argv[]) {
     
 	int i,j;
 	double nParticles;
-	gettimeofday(&TimeValue_Start, &TimeZone_Start);    
+
+
+
 	int size,myrank,distributed_particles;
 	MPI_Init(&argc,&argv);
 	MPI_Comm_size(MPI_COMM_WORLD,&size);
@@ -55,10 +52,14 @@ int main(int argc, char *argv[]) {
     	w = 0.7298;
     	int recievingdata[((int)nDimensions+1)*size];
     	int sendingdata[(int)nDimensions+1];
+
+
     	//Random number generator initialization
     	gsl_rng_env_setup();
     	gsl_rng * r = gsl_rng_alloc(gsl_rng_default);
     	gsl_rng_set(r, time(0));
+
+
 
     	double positions[(int)distributed_particles][(int)nDimensions];
     	double velocities[(int)distributed_particles][(int)nDimensions];
@@ -94,6 +95,8 @@ int main(int argc, char *argv[]) {
     	if (seed == 0)
         	seed = 1;
 
+
+
 		
 	if(myrank==0) {
     		distributed_particles=(int)nParticles/size;
@@ -107,12 +110,10 @@ int main(int argc, char *argv[]) {
 	}	
 	
 	//particle initialization
-    	#pragma omp parallel for private(a,b)  reduction(min:gBestFitness)
     	for (i=0; i<distributed_particles; i++) {
-        // #pragma omp parallel for private(a,b)
-        for (j=0; j<(int)nDimensions; j++) {
-        	a = x_min + (x_max - x_min) *  gsl_rng_uniform(r);
-            	b = x_min + (x_max - x_min) *  gsl_rng_uniform(r);
+        	for (j=0; j<(int)nDimensions; j++) {
+        		a = x_min + (x_max - x_min) *  gsl_rng_uniform(r);
+            		b = x_min + (x_max - x_min) *  gsl_rng_uniform(r);
             		positions[i][j] = a;
             		pBestPositions[i][j] = a;
             		velocities[i][j] = (a-b) / 2.;
@@ -127,12 +128,8 @@ int main(int argc, char *argv[]) {
 
     	//actual calculation
     	for (step=0; step<nIterations; step++) {
-        	#pragma omp parallel num_threads(4) shared(min)
         	{
-
-            	#pragma omp for private(a,b) 
             	for (i=0; i<distributed_particles; i++) {
-                 
                     	for (j=0; j<nDimensions; j++) {
                         	// calculate stochastic coefficients
                         	rho1 = c1 * gsl_rng_uniform(r);
@@ -166,8 +163,6 @@ int main(int argc, char *argv[]) {
                 	// update gbest??
                
                 	}
-
-                	#pragma omp for reduction(min:gBestFitness)
                 	for(i=0;i<(int)distributed_particles;i++)
                 	if (pBestFitness[i] < gBestFitness) {
                             	// update best fitness
@@ -175,7 +170,7 @@ int main(int argc, char *argv[]) {
                             	// copy particle pos to gbest vector
                             	}
                 
-                	#pragma omp  for  
+               
                  	for(i=0;i<(int)distributed_particles;i++) {
 				if (gBestFitness==pBestFitness[i])
                     			min=i;  

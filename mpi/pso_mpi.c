@@ -338,7 +338,7 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
                                             // rows : those who inform
                                             // cols : those who are informed
   	int improved = 0; // whether solution->error was improved during the last iteration
-  	int i, d, step;
+  	int i, d, step, k;
   	double a, b; // for matrix initialization
   	double rho1, rho2; // random numbers (coefficients)
   	double w = PSO_INERTIA; // current omega
@@ -622,9 +622,30 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
 
     	
 		}
-    		if (settings->print_every && (step % settings->print_every == 0)) 
+		//MPI Gather and MPI Bcast routines
+    		for(k = 0; k<settings->dim; k++){
+			sendbuf[k] = solution->gbest[k];
+		}
+		MPI_Gather(&sendbuf, settings->dim+1, MPI_DOUBLE, &recvbuf, settings->dim+1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+		if (myrank == 0){
+			double min = fit_b;
+			double p = -1.0;
+			for (k = 0; k<size; k++){
+				if(min >= recvbuf[k*((double)settings->dim+1)+(settings->dim)]){
+					min = recvbuf[k*((double)settings->dim+1)+(settings->dim)];
+					p = k*((double)settings->dim+1);
+				}
+			}
+			solution->gbest = min;
+			for(k = p; k<settings->dim+p;k++){
+				gbest[k-p] = recvbuf[k];
+			}
+		}
+		MPI_Bcast(&gbest, settings->dim, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+
+		if (settings->print_every && (step % settings->print_every == 0)) 
       			printf("Step %d,    w=%.2f,    min_err=,    %.5e\n", step, w, solution->error);
-		
+			
 	}
  
 	//free resources

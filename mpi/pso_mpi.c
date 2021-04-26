@@ -344,8 +344,8 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
   	double w = PSO_INERTIA; // current omega
   	inform_fun_t inform_fun = NULL; // neighborhood update function
   	inertia_fun_t calc_inertia_fun = NULL; // inertia weight update function
-	int myrank;
-	int *recvbuf = (int *)malloc((settings->dim + 1) * sizeof(int));
+	int myrank, size, nparticles;
+	int *recvbuf = (int *)malloc((settings->dim * size + 1) * sizeof(int));
 	int *sendbuf = (int *)malloc((settings->dim + 1) * sizeof(int));
 	
   	// CHECK RANDOM NUMBER GENERATOR
@@ -387,22 +387,29 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
 
   	// INITIALIZE SOLUTION
   	solution->error = DBL_MAX;
-	//FIXME - copied from example and adapted	
+
+	// Split the number of particles across processes	
 	if(myrank == 0){
-		settings->size = settings->size/size;
+		nparticles = (double)settings->size/size;
 	}		
-	MPI_Bcast(settings->size, 1, MPI_DOUBLE,0,MPI_COMM_WORLD);
+	MPI_Bcast(&nparticles, 1, MPI_DOUBLE,0,MPI_COMM_WORLD);
+
+	if(myrank == 0){
+		nparticles += settings->size%size;
+	}
+	
+
 
 	/* START */
 
 
 
 
-	//FIXME
+
   	// SWARM INITIALIZATION
   	// for each particle
   	//#pragma omp parallel for private(a,b) reduction(min:solution->gbest)
-  	for (i=0; i<settings->size; i++) {
+  	for (i=0; i<nparticles; i++) {
     		// for each dimension
     		for (d=0; d<settings->dim; d++) {
 			// generate two numbers within the specified range
@@ -505,7 +512,7 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
 
 
     		// update all particles
-    		for (i=0; i<settings->size; i++) {
+    		for (i=0; i<nparticles; i++) {
 			//#pragma omp parallel num_threads(4) shared(min)
       			// for each dimension
       			for (d=0; d<settings->dim; d++) {

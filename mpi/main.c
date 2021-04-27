@@ -17,6 +17,7 @@
 #include "defs.h"
 //#include "path.h"
 
+
 //==============================================================
 //                  BENCHMARK FUNCTIONS
 //==============================================================
@@ -104,10 +105,10 @@ int main(int argc, char **argv) {
 	pso_settings_t *settings = NULL; 
 			
 	//Set up MPI environment
-	int rank, size;
+	int nproc, rank;
 	MPI_Init(&argc, &argv);
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-	MPI_Comm_size(MPI_COMM_WORLD, &size);
+	MPI_Comm_size(MPI_COMM_WORLD, &nproc);
 	
 	//Set grid dimensions
 	//MPI_Bcast(&nx, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);

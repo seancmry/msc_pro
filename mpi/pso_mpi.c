@@ -626,22 +626,24 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
     		for(k = 0; k<settings->dim; k++){
 			sendbuf[k] = solution->gbest[k];
 		}
+
 		MPI_Gather(&sendbuf, settings->dim+1, MPI_DOUBLE, &recvbuf, settings->dim+1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
 		if (myrank == 0){
-			double min = fit_b;
-			double p = -1.0;
+			double min = 0;
+			fit_b[i] = min;
+			int p = -1;
 			for (k = 0; k<size; k++){
-				if(min >= recvbuf[k*((double)settings->dim+1)+(settings->dim)]){
-					min = recvbuf[k*((double)settings->dim+1)+(settings->dim)];
-					p = k*((double)settings->dim+1);
+				if(min >= recvbuf[k*(settings->dim+1)+(settings->dim)]){
+					min = recvbuf[k*(settings->dim+1)+(settings->dim)];
+					p = k*(settings->dim+1);
 				}
 			}
-			solution->gbest = min;
+			solution->gbest[k] = min;
 			for(k = p; k<settings->dim+p;k++){
-				gbest[k-p] = recvbuf[k];
+				solution->gbest[k-p] = recvbuf[k];
 			}
 		}
-		MPI_Bcast(&gbest, settings->dim, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+		MPI_Bcast(&solution->gbest, settings->dim, MPI_DOUBLE, 0, MPI_COMM_WORLD);
 
 		if (settings->print_every && (step % settings->print_every == 0)) 
       			printf("Step %d,    w=%.2f,    min_err=,    %.5e\n", step, w, solution->error);

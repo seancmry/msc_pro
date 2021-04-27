@@ -87,15 +87,15 @@ int main(int argc, char **argv) {
 
 	//double *old_val, *new_val, *f_val;
 	//double **old, **new, **f;
-	int myid, nprocs;
-	int dims = 2, ndims[2];
-	int periods[2] = {1,0};
-	int ys, ye, xs, xe;
-	int nbrup, nbrdown, nbrleft, nbrright;
-	int coords[2];
-	int nx, ny;
-    	MPI_Comm cart_comm;
-	MPI_Datatype coltype;
+	//int myid, nprocs;
+	//int dims = 2, ndims[2];
+	//int periods[2] = {1,0};
+	//int ys, ye, xs, xe;
+	//int nbrup, nbrdown, nbrleft, nbrright;
+	//int coords[2];
+	//int nx, ny;
+    	//MPI_Comm cart_comm;
+	//MPI_Datatype coltype;
 	
 	//Parse arguments and print options
 	parse_arguments(argc,argv);	
@@ -110,8 +110,8 @@ int main(int argc, char **argv) {
 	MPI_Comm_size(MPI_COMM_WORLD, &size);
 	
 	//Set grid dimensions
-	MPI_Bcast(&nx, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
-	ny = nx;
+	//MPI_Bcast(&nx, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+	//ny = nx;
 
 	//Allocate arrays to store grids
 	//old_val = (double*)calloc((nx+2)*(ny+2),sizeof(double));
@@ -126,28 +126,28 @@ int main(int argc, char **argv) {
 	//init_arr(nx+2, ny+2, f_val, f);
 
 	//Get dimensions of the Cartesian grid and set up the communicator
-	calculate_dims(nprocs, ndims, settings);
-	MPI_Cart_create(MPI_COMM_WORLD, dims, ndims, periods, 0, &cart_comm);
+	//calculate_dims(nprocs, ndims, settings);
+	//MPI_Cart_create(MPI_COMM_WORLD, dims, ndims, periods, 0, &cart_comm);
 
-	MPI_Cart_coords(cart_comm, myid, 2, coords);
-	decomp2d(nx, ny, ndims[0], ndims[1], coords, &xs, &xe, &ys, &ye); 
+	//MPI_Cart_coords(cart_comm, myid, 2, coords);
+	//decomp2d(nx, ny, ndims[0], ndims[1], coords, &xs, &xe, &ys, &ye); 
 
 	//Test for periodicity
-	if (myid == 0){
-		printf("===========================================================\n");
-		printf("Initial grid with periodic boundary conditions: \n\n");
-	}
+	//if (myid == 0){
+	//	printf("===========================================================\n");
+	//	printf("Initial grid with periodic boundary conditions: \n\n");
+	//}
 
 	//init_range(unew, uold, f, xs, xe, ys, ye, nx, ny, &fone, &fone, &fone, &fone);
 	//print_grid(unew, nx, ny, xs, xe, ys, ye, coords, settings->dim, cart_comm);
 
 	//Get neighbours through the shift
-	MPI_Cart_shift(cart_comm, 0, 1, &nbrleft, &nbrright);
-	MPI_Cart_shift(cart_comm, 1, 1, &nbrdown, &nbrup);
+	//MPI_Cart_shift(cart_comm, 0, 1, &nbrleft, &nbrright);
+	//MPI_Cart_shift(cart_comm, 1, 1, &nbrdown, &nbrup);
 		
 	//Committing vector datatype to send columns
-	MPI_Type_vector((xe-xs+1), 1, ny+2, MPI_DOUBLE, &coltype);
-	MPI_Type_commit(&coltype);
+	//MPI_Type_vector((xe-xs+1), 1, ny+2, MPI_DOUBLE, &coltype);
+	//MPI_Type_commit(&coltype);
 		
 	//Initialise timer
 	struct timing_report* stats = malloc(sizeof(double));
@@ -161,7 +161,7 @@ int main(int argc, char **argv) {
 	//Stop timer
 	end_timer(&(stats->parallel_time));
 
-	MPI_Barrier(MPI_COMM_WORLD);
+	//MPI_Barrier(MPI_COMM_WORLD);
 
 	//Print timing
 	print_elapsed_time((char*) "PARALLEL ", stats->parallel_time.start, stats->parallel_time.finish);

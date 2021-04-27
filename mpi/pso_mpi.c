@@ -360,7 +360,7 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
     		free_rng = 1;
   	}
 
-	/*
+	
 	//SELECT APPROPRIATE NHOOD UPDATE FUNCTION
 	switch (settings->nhood_strategy){
 		case PSO_NHOOD_GLOBAL:
@@ -370,7 +370,7 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
 			inform_fun = inform_global;
 			break;
 	}
-	*/
+	
 
 
   	// SELECT APPROPRIATE INERTIA WEIGHT UPDATE FUNCTION
@@ -387,7 +387,7 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
 
   	// INITIALIZE SOLUTION
   	solution->error = DBL_MAX;
-
+	
 	// Split the number of particles across processes	
 	if(myrank == 0){
 		nparticles = (double)settings->size/size;
@@ -622,6 +622,7 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
 
     	
 		}
+		/*
 		//MPI Gather and MPI Bcast routines
     		for(k = 0; k<settings->dim; k++){
 			sendbuf[k] = solution->gbest[k];
@@ -644,7 +645,7 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
 			}
 		}
 		MPI_Bcast(&solution->gbest, settings->dim, MPI_DOUBLE, 0, MPI_COMM_WORLD);
-
+		*/
 		if (settings->print_every && (step % settings->print_every == 0)) 
       			printf("Step %d,    w=%.2f,    min_err=,    %.5e\n", step, w, solution->error);
 			

@@ -355,7 +355,7 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
 	int k;
 	int recvbuf[DIMS+1 * nproc];
 	int sendbuf[DIMS+1];
-	double globest[DIMS];
+	
 	//int *recvbuf = (int *)malloc((settings->dim * nproc + 1) * sizeof(int));
 	//int *sendbuf = (int *)malloc((settings->dim + 1) * sizeof(int));
 	//int *ndims = (int *)malloc((settings->dim + 1) * sizeof(int));
@@ -634,38 +634,33 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
       			}
 		}
 		
-
-		/*	
-		//Store global best position for each process
-		for (d=0; d<settings->dim; d++){
-			globest[d] = (double)solution->gbest;
-			printf("Globest: \n", globest[d]);
-			sendbuf[d] = globest[d];
-			printf("Sendbuf: \n", sendbuf[d]);
-		}
 			
+		//Store global best position in the send buffer
+		for (d=0; d<(settings->dim); d++){
+			sendbuf[d] = (int)solution->gbest[d];
+		}
+		sendbuf[DIMS+1] = solution->error;
 		//Gather data	
-		MPI_Gather(&sendbuf, ndims[i]+1, MPI_INT, &recvbuf, ndims[i]+1, MPI_INT, 0, MPI_COMM_WORLD);
-		
+		MPI_Gather(&sendbuf, DIMS+1, MPI_INT, &recvbuf, DIMS+1, MPI_INT, 0, MPI_COMM_WORLD);
+		/*	
 		//Find best position	
 		if (rank == 0){
-			int min = 0;
-			min = fit_b[i];
+			int min = solution->error;
 			int p = -1; //denote position
 			for (i = 0; i<nproc; i++){
-				if(min >= recvbuf[i*((int)ndims[i]+1)+((int)ndims[i])]){
-					min = recvbuf[i*((int)ndims[i]+1)+((int)ndims[i])];
-					p = i*((int)ndims[i]+1);
+				if(min >= recvbuf[i*(DIMS+1)+DIMS]){
+					min = recvbuf[i*(DIMS+1)+DIMS];
+					p = i*(DIMS+1);
 				}
 			}
-			globest[i] = min;
-			for(i = p; i<ndims[i]+p;k++){
-				globest[i-p] = recvbuf[i];
+			solution->error = min;
+			for(i = p; i<DIMS+p;k++){
+				solution->gbest[i-p] = recvbuf[i];
 			}
 		}
 		//Broadcast best position
-		MPI_Bcast(&globest, ndims[i], MPI_INT, 0, MPI_COMM_WORLD);
-		*/
+		MPI_Bcast(&solution->gbest, DIMS, MPI_INT, 0, MPI_COMM_WORLD);
+		*/	
 		//Print each step
 		if (settings->print_every && (step % settings->print_every == 0)) 
       			printf("Step %d,    w=%.2f,    min_err=,    %.5e\n", step, w, solution->error);

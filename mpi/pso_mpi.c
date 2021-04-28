@@ -353,10 +353,13 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
 	int nproc;
 	int nparticles;
 	int k;
-	int *recvbuf = (int *)malloc((settings->dim * nproc + 1) * sizeof(int));
-	int *sendbuf = (int *)malloc((settings->dim + 1) * sizeof(int));
-	int *ndims = (int *)malloc((settings->dim + 1) * sizeof(int));
-	int *globest = (int *)malloc(sizeof(int));
+	int recvbuf[DIMS+1 * nproc];
+	int sendbuf[DIMS+1];
+	double globest[DIMS];
+	//int *recvbuf = (int *)malloc((settings->dim * nproc + 1) * sizeof(int));
+	//int *sendbuf = (int *)malloc((settings->dim + 1) * sizeof(int));
+	//int *ndims = (int *)malloc((settings->dim + 1) * sizeof(int));
+	//int *globest = (int *)malloc((settings->dim + 1) * sizeof(int));
 		
   	// CHECK RANDOM NUMBER GENERATOR
   	if (!settings->rng) {
@@ -399,7 +402,7 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
   	solution->error = DBL_MAX;
 	
 	//Set dimensions for the purpose of running algorithm
-	ndims[i] = DIMS;
+	settings->dim = DIMS;
 
 	// Split the number of particles across processes	
 	if(rank == 0){
@@ -422,7 +425,7 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
   	//#pragma omp parallel for private(a,b) reduction(min:solution->gbest)
   	for (i=0; i<nparticles; i++) {
     		// for each dimension
-    		for (d=0; d<DIMS; d++) {
+    		for (d=0; d<settings->dim; d++) {
 			// generate two numbers within the specified range
 			//if (demo){
 				a = settings->r_lo[d] + (settings->r_hi[d] - settings->r_lo[d])  *   \
@@ -454,7 +457,7 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
 	
 	
 		// update particle fitness
-    		fit[i] = obj_fun(pos[i], ndims[i], obj_fun_params);
+    		fit[i] = obj_fun(pos[i], settings->dim, obj_fun_params);
    		fit_b[i] = fit[i]; // this is also the personal best
     
 
@@ -468,7 +471,7 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
       	
 			// copy particle pos to gbest vector
   			memmove((void *)solution->gbest, (void *)pos[i],
-				sizeof(double) * ndims[i]);
+				sizeof(double) * settings->dim);
 		}
     	}
 
@@ -526,7 +529,7 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
     		for (i=0; i<nparticles; i++) {
 			//#pragma omp parallel num_threads(4) shared(min)
       			// for each dimension
-      			for (d=0; d<DIMS; d++) {
+      			for (d=0; d<settings->dim; d++) {
 			//#pragma omp for private(a,b)
         		// calculate stochastic coefficients
         			rho1 = settings->c1 * gsl_rng_uniform(settings->rng);
@@ -603,7 +606,7 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
 
 
                 	// update particle fitness
-                	fit[i] = obj_fun(pos[i], ndims[i], obj_fun_params);
+                	fit[i] = obj_fun(pos[i], settings->dim, obj_fun_params);
 
 
 
@@ -613,7 +616,7 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
         			fit_b[i] = fit[i];
         		// copy contents of pos[i] to pos_b[i]
         		memmove((void *)pos_b[i], (void *)pos[i],
-                		sizeof(double) * ndims[i]);
+                		sizeof(double) * settings->dim);
       			}
 
 
@@ -627,20 +630,20 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
         			solution->error = fit[i];
         			// copy particle pos to gbest vector
         			memmove((void *)solution->gbest, (void *)pos[i],
-                			sizeof(double) * ndims[i]);
+                			sizeof(double) * settings->dim);
       			}
 		}
 		
 
-		/*
+		/*	
 		//Store global best position for each process
-		for (d=0; d<(DIMS); d++){
-			globest[d] = (intptr_t)solution->gbest;
+		for (d=0; d<settings->dim; d++){
+			globest[d] = (double)solution->gbest;
 			printf("Globest: \n", globest[d]);
 			sendbuf[d] = globest[d];
 			printf("Sendbuf: \n", sendbuf[d]);
 		}
-
+			
 		//Gather data	
 		MPI_Gather(&sendbuf, ndims[i]+1, MPI_INT, &recvbuf, ndims[i]+1, MPI_INT, 0, MPI_COMM_WORLD);
 		
@@ -662,7 +665,7 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
 		}
 		//Broadcast best position
 		MPI_Bcast(&globest, ndims[i], MPI_INT, 0, MPI_COMM_WORLD);
-		*/	
+		*/
 		//Print each step
 		if (settings->print_every && (step % settings->print_every == 0)) 
       			printf("Step %d,    w=%.2f,    min_err=,    %.5e\n", step, w, solution->error);
@@ -678,9 +681,7 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
 		free(comm);
 		free(fit);
 		free(fit_b);
-		free(recvbuf);
-		free(sendbuf);
-		free(globest);
+		//free(ndims);
 	//}
 	
 	if (free_rng)

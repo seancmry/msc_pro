@@ -12,5 +12,21 @@ module load gcc/9.3.0
 module load gsl/2.5
 module load openmpi/3.1.6
 ```
+For the compilation, run
+```
+make
+```
+and for the execution of the demo functions
 
+```
+mpirun -n 4 ./prog [function name]
+```
+The list of available functions is given below
+
+```
+ackley
+griewank
+rosenbrock
+sphere
+```
 

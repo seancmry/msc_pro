@@ -37,7 +37,7 @@
 typedef struct{
 
 	double error;
-	double *gbest; // should contain DIM elements!!
+	double *gbest; // should contain dim elements
 
 }pso_result_t;
 

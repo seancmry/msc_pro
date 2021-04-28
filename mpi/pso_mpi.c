@@ -4,6 +4,7 @@
 #include <math.h> // for cos(), pow(), sqrt() etc.
 #include <float.h> // for DBL_MAX
 #include <string.h> // for mem*
+#include <stdint.h> //for uintptr_t
 #include <gsl/gsl_rng.h>
 #include <mpi.h>
 //#include <omp.h>
@@ -12,6 +13,7 @@
 #include "pso.h"
 
 #define N 4
+#define DIMS 100
 
 // function type for the different inform functions
 typedef void (*inform_fun_t)(int *comm, double **pos_nb,
@@ -348,10 +350,14 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
 	//MPI settings
 
 	int rank = 0; 
-	int nproc, nparticles, k;
+	int nproc;
+	int nparticles;
+	int k;
 	int *recvbuf = (int *)malloc((settings->dim * nproc + 1) * sizeof(int));
 	int *sendbuf = (int *)malloc((settings->dim + 1) * sizeof(int));
-	
+	int *ndims = (int *)malloc((settings->dim + 1) * sizeof(int));
+	int *globest = (int *)malloc(sizeof(int));
+		
   	// CHECK RANDOM NUMBER GENERATOR
   	if (!settings->rng) {
     		// initialize random number generator
@@ -391,21 +397,23 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
 
   	// INITIALIZE SOLUTION
   	solution->error = DBL_MAX;
+	
+	//Set dimensions for the purpose of running algorithm
+	ndims[i] = DIMS;
 
 	// Split the number of particles across processes	
 	if(rank == 0){
 		nparticles = (int)settings->size / nproc;
-		printf("Number of particles is %d\n", nparticles);
+		//printf("Number of particles is %d\n", nparticles);
 	}		
 	MPI_Bcast(&nparticles, 1, MPI_INT, 0, MPI_COMM_WORLD);
 
 	if(rank == 0){
 		nparticles += (int)settings->size % nproc;
+		printf("Number of particles is %d\n", nparticles);
 	}
 		
 	/* START */
-
-
 
 
 
@@ -414,7 +422,7 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
   	//#pragma omp parallel for private(a,b) reduction(min:solution->gbest)
   	for (i=0; i<nparticles; i++) {
     		// for each dimension
-    		for (d=0; d<settings->dim; d++) {
+    		for (d=0; d<DIMS; d++) {
 			// generate two numbers within the specified range
 			//if (demo){
 				a = settings->r_lo[d] + (settings->r_hi[d] - settings->r_lo[d])  *   \
@@ -446,7 +454,7 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
 	
 	
 		// update particle fitness
-    		fit[i] = obj_fun(pos[i], settings->dim, obj_fun_params);
+    		fit[i] = obj_fun(pos[i], ndims[i], obj_fun_params);
    		fit_b[i] = fit[i]; // this is also the personal best
     
 
@@ -460,7 +468,7 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
       	
 			// copy particle pos to gbest vector
   			memmove((void *)solution->gbest, (void *)pos[i],
-				sizeof(double) * settings->dim);
+				sizeof(double) * ndims[i]);
 		}
     	}
 
@@ -518,7 +526,7 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
     		for (i=0; i<nparticles; i++) {
 			//#pragma omp parallel num_threads(4) shared(min)
       			// for each dimension
-      			for (d=0; d<settings->dim; d++) {
+      			for (d=0; d<DIMS; d++) {
 			//#pragma omp for private(a,b)
         		// calculate stochastic coefficients
         			rho1 = settings->c1 * gsl_rng_uniform(settings->rng);
@@ -595,7 +603,7 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
 
 
                 	// update particle fitness
-                	fit[i] = obj_fun(pos[i], settings->dim, obj_fun_params);
+                	fit[i] = obj_fun(pos[i], ndims[i], obj_fun_params);
 
 
 
@@ -605,7 +613,7 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
         			fit_b[i] = fit[i];
         		// copy contents of pos[i] to pos_b[i]
         		memmove((void *)pos_b[i], (void *)pos[i],
-                		sizeof(double) * settings->dim);
+                		sizeof(double) * ndims[i]);
       			}
 
 
@@ -619,36 +627,43 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
         			solution->error = fit[i];
         			// copy particle pos to gbest vector
         			memmove((void *)solution->gbest, (void *)pos[i],
-                			sizeof(double) * settings->dim);
+                			sizeof(double) * ndims[i]);
       			}
-
-
-    	
 		}
 		
-		//MPI Gather and MPI Bcast routines
-    		for(k = 0; k<settings->dim; k++){
-			sendbuf[k] = solution->gbest[k];
+
+		/*
+		//Store global best position for each process
+		for (d=0; d<(DIMS); d++){
+			globest[d] = (intptr_t)solution->gbest;
+			printf("Globest: \n", globest[d]);
+			sendbuf[d] = globest[d];
+			printf("Sendbuf: \n", sendbuf[d]);
 		}
 
-		MPI_Gather(&sendbuf, settings->dim+1, MPI_INT, &recvbuf, settings->dim+1, MPI_INT, 0, MPI_COMM_WORLD);
+		//Gather data	
+		MPI_Gather(&sendbuf, ndims[i]+1, MPI_INT, &recvbuf, ndims[i]+1, MPI_INT, 0, MPI_COMM_WORLD);
+		
+		//Find best position	
 		if (rank == 0){
 			int min = 0;
-			fit_b[i] = min;
-			int p = -1;
-			for (k = 0; k<nproc; k++){
-				if(min >= recvbuf[k*(settings->dim+1)+(settings->dim)]){
-					min = recvbuf[k*(settings->dim+1)+(settings->dim)];
-					p = k*(settings->dim+1);
+			min = fit_b[i];
+			int p = -1; //denote position
+			for (i = 0; i<nproc; i++){
+				if(min >= recvbuf[i*((int)ndims[i]+1)+((int)ndims[i])]){
+					min = recvbuf[i*((int)ndims[i]+1)+((int)ndims[i])];
+					p = i*((int)ndims[i]+1);
 				}
 			}
-			solution->gbest[k] = min;
-			for(k = p; k<settings->dim+p;k++){
-				solution->gbest[k-p] = recvbuf[k];
+			globest[i] = min;
+			for(i = p; i<ndims[i]+p;k++){
+				globest[i-p] = recvbuf[i];
 			}
 		}
-		MPI_Bcast(&solution->gbest, settings->dim, MPI_INT, 0, MPI_COMM_WORLD);
-		
+		//Broadcast best position
+		MPI_Bcast(&globest, ndims[i], MPI_INT, 0, MPI_COMM_WORLD);
+		*/	
+		//Print each step
 		if (settings->print_every && (step % settings->print_every == 0)) 
       			printf("Step %d,    w=%.2f,    min_err=,    %.5e\n", step, w, solution->error);
 			
@@ -663,6 +678,9 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
 		free(comm);
 		free(fit);
 		free(fit_b);
+		free(recvbuf);
+		free(sendbuf);
+		free(globest);
 	//}
 	
 	if (free_rng)

@@ -18,8 +18,6 @@
 //#include "path.h"
 
 
-#define DIMS 100
-
 //==============================================================
 //                  BENCHMARK FUNCTIONS
 //==============================================================
@@ -194,22 +192,22 @@ void pso_parallel(pso_settings_t *settings, int argc, char **argv) {
     		if (argc == 2) {
         		if (strcmp(argv[1], "ackley") == 0) {
 				obj_fun = pso_ackley;
-				settings = pso_settings_new(DIMS, -32.8, 32.8);
+				settings = pso_settings_new(100, -32.8, 32.8);
 				printf("Optimising function: ackley (dim=%d, swarm size=%d)\n",
 					settings->dim, settings->size);
 			} else if (strcmp(argv[1], "rosenbrock") == 0) {
             			obj_fun = pso_rosenbrock;
-            			settings = pso_settings_new(DIMS, -2.048, 2.048);
+            			settings = pso_settings_new(100, -2.048, 2.048);
             			printf("Optimizing function: rosenbrock (dim=%d, swarm size=%d)\n",
                    			settings->dim, settings->size);
         		} else if (strcmp(argv[1], "griewank") == 0) {
             			obj_fun = pso_griewank;
-            			settings = pso_settings_new(DIMS, -600, 600);
+            			settings = pso_settings_new(100, -600, 600);
             			printf("Optimizing function: griewank (dim=%d, swarm size=%d)\n",
                    			settings->dim, settings->size);
         		} else if (strcmp(argv[1], "sphere") == 0) {
             			obj_fun = pso_sphere;
-            			settings = pso_settings_new(DIMS, -100, 100);
+            			settings = pso_settings_new(100, -100, 100);
             			printf("Optimizing function: sphere (dim=%d, swarm size=%d)\n",
                    			settings->dim, settings->size);
         		} else {

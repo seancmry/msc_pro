@@ -12,8 +12,8 @@
 #include "utils.h"
 #include "pso.h"
 
-#define N 4
-#define DIMS 100
+#define DIMS 100 
+#define MAXN 2000
 
 // function type for the different inform functions
 typedef void (*inform_fun_t)(int *comm, double **pos_nb,
@@ -349,17 +349,15 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
 	
 	//MPI settings
 
-	int rank = 0; 
+	double N = DIMS;
+	int rank = 0;
+	int *recvbuf, *sendbuf; 
 	int nproc;
 	int nparticles;
-	int k;
-	int recvbuf[DIMS+1 * nproc];
-	int sendbuf[DIMS+1];
-	
-	//int *recvbuf = (int *)malloc((settings->dim * nproc + 1) * sizeof(int));
-	//int *sendbuf = (int *)malloc((settings->dim + 1) * sizeof(int));
-	//int *ndims = (int *)malloc((settings->dim + 1) * sizeof(int));
-	//int *globest = (int *)malloc((settings->dim + 1) * sizeof(int));
+	for(i=0;i<N;i++){
+		recvbuf = (int *)malloc(((N)+1) * nproc * sizeof(int));
+		sendbuf = (int *)malloc(((N)+1) * sizeof(int));
+	}
 		
   	// CHECK RANDOM NUMBER GENERATOR
   	if (!settings->rng) {
@@ -401,8 +399,8 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
   	// INITIALIZE SOLUTION
   	solution->error = DBL_MAX;
 	
-	//Set dimensions for the purpose of running algorithm
-	settings->dim = DIMS;
+	//Set dimensions for the purpose of running algorithm in parallel
+	settings->dim = N;
 
 	// Split the number of particles across processes	
 	if(rank == 0){
@@ -498,7 +496,7 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
 
 
 
-
+		/*
     		// check optimization goal
     		if (solution->error <= settings->goal) {
      	 		// SOLVED!!
@@ -507,8 +505,7 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
 			}
      			break;
     		}	
-
-
+		*/
 
 
 
@@ -636,31 +633,36 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
 		
 			
 		//Store global best position in the send buffer
-		for (d=0; d<(settings->dim); d++){
+		for (d=0; d<N; d++){
 			sendbuf[d] = (int)solution->gbest[d];
 		}
-		sendbuf[DIMS+1] = solution->error;
+		sendbuf[(int)N] = solution->error;
+		
 		//Gather data	
-		MPI_Gather(&sendbuf, DIMS+1, MPI_INT, &recvbuf, DIMS+1, MPI_INT, 0, MPI_COMM_WORLD);
-		/*	
-		//Find best position	
+		MPI_Gather(&sendbuf, N+1, MPI_INT, recvbuf, N+1, MPI_INT, 0, MPI_COMM_WORLD);
+	        
+		int min = solution->error;
+		int p = -1; //denote position
+		int k; 
+			
+		//Pass best position to recvbuf
 		if (rank == 0){
-			int min = solution->error;
-			int p = -1; //denote position
-			for (i = 0; i<nproc; i++){
-				if(min >= recvbuf[i*(DIMS+1)+DIMS]){
-					min = recvbuf[i*(DIMS+1)+DIMS];
-					p = i*(DIMS+1);
+			for (k = 0; k<nproc; k++){	
+				if(min >= recvbuf[k*((int)N+1)+((int)N)])
+				{
+					min = recvbuf[k*((int)N+1)+((int)N)];
+					p = (k*((int)N+1));
 				}
 			}
 			solution->error = min;
-			for(i = p; i<DIMS+p;k++){
-				solution->gbest[i-p] = recvbuf[i];
-			}
+			//for(k = p; k<N+p;k++){
+				//printf("loop works\n");
+				//solution->gbest[k-p] = recvbuf[k];
+			//}
 		}
 		//Broadcast best position
-		MPI_Bcast(&solution->gbest, DIMS, MPI_INT, 0, MPI_COMM_WORLD);
-		*/	
+		//MPI_Bcast(&solution->gbest, N, MPI_INT, 0, MPI_COMM_WORLD);
+		
 		//Print each step
 		if (settings->print_every && (step % settings->print_every == 0)) 
       			printf("Step %d,    w=%.2f,    min_err=,    %.5e\n", step, w, solution->error);
@@ -676,7 +678,8 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
 		free(comm);
 		free(fit);
 		free(fit_b);
-		//free(ndims);
+		free(recvbuf);
+		free(sendbuf);
 	//}
 	
 	if (free_rng)

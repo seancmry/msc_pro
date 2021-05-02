@@ -16,10 +16,7 @@
 #define MAXN 2000
 
 // function type for the different inform functions
-typedef void (*inform_fun_t)(int *comm, double **pos_nb,
-                             double **pos_b, double *fit_b,
-                             double *gbest, int improved,
-                             pso_settings_t *settings);
+typedef void (*inform_fun_t)(int *comm, double **pos_nb, double **pos_b, double *fit_b, double *gbest, int improved, pso_settings_t *settings);
 
 
 //function type for the different inertia calculation functions
@@ -127,34 +124,29 @@ double MPI_calc_inertia_lin_dec(int step, pso_settings_t *settings) {
 //==============================================================
 //          NEIGHBORHOOD (COMM) MATRIX STRATEGIES
 //==============================================================
-//global inform
+
+// global neighborhood
 void inform_global(int *comm, double **pos_nb,
 		   double **pos_b, double *fit_b,
 		   double *gbest, int improved,
 		   pso_settings_t *settings)
 {
-	//SERIAL
-  	int i;
-  	// all particles have the same attractor (gbest)
-  	// copy the contents of gbest to pos_nb
-  	for (i=0; i<settings->size; i++)
-    		memmove((void *)pos_nb[i], (void *)gbest,
-            		sizeof(double) * settings->dim);
-	
 
-	
+  int i;
+  // all particles have the same attractor (gbest)
+  // copy the contents of gbest to pos_nb
+  for (i=0; i<settings->size; i++)
+    	memmove((void *)pos_nb[i], (void *)gbest,
+            	sizeof(double) * settings->dim);
 }
 
 
-
-//FIXME
 // ===============================================================
 // general inform function :: according to the connectivity
 // matrix COMM, it copies the best position (from pos_b) of the
 // informers of each particle to the pos_nb matrix
-
 void inform(int *comm, double **pos_nb, double **pos_b, double *fit_b,
-	    int improved, pso_settings_t *settings)
+	    int improved, pso_settings_t * settings)
 {
   int i, j;
   int b_n; // best neighbor in terms of fitness
@@ -176,21 +168,8 @@ void inform(int *comm, double **pos_nb, double **pos_b, double *fit_b,
 }
 
 
-// exchanges row/column with 4 neighbours
-void MPI_exchange(double **x, int xs, int xe, int ys, int ye, MPI_Comm comm, int nbrleft, int nbrright, int nbrup, int nbrdown, MPI_Datatype coltype, MPI_Status stat){
-	
-	MPI_Sendrecv(&x[xe][ys], (ye-ys+1), MPI_DOUBLE, nbrright, 0, 
-			&x[xs-1][ys], (ye-ys+1), MPI_DOUBLE, nbrleft, 0, comm, &stat);
-	
-	MPI_Sendrecv(&x[xs][ys], (ye-ys+1), MPI_DOUBLE, nbrleft, 0, 
-			&x[xe+1][ys], (ye-ys+1), MPI_DOUBLE, nbrright, 0, comm, &stat);
-	
-	MPI_Sendrecv(&x[xs][ye], 1, coltype, nbrup, 0, 
-			&x[xs][ys-1], 1, coltype, nbrdown, 0, comm, &stat);
-	
-	MPI_Sendrecv(&x[xs][ys], 1, coltype, nbrdown, 0, 
-			&x[xs][ye+1], 1, coltype, nbrup, 0, comm, &stat);
-}
+
+
 
 
 
@@ -348,7 +327,6 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
   	inertia_fun_t calc_inertia_fun = NULL; // inertia weight update function
 	
 	//MPI settings
-
 	double N = DIMS;
 	int rank = 0;
 	int *recvbuf, *sendbuf; 
@@ -413,7 +391,8 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
 		nparticles += (int)settings->size % nproc;
 		printf("Number of particles is %d\n", nparticles);
 	}
-		
+	
+	
 	/* START */
 
 
@@ -640,10 +619,10 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
 		
 		//Gather data	
 		MPI_Gather(&sendbuf, N+1, MPI_INT, recvbuf, N+1, MPI_INT, 0, MPI_COMM_WORLD);
-	        
+	        /*
 		int min = solution->error;
 		int p = -1; //denote position
-		int k; 
+		int k;
 			
 		//Pass best position to recvbuf
 		if (rank == 0){
@@ -661,8 +640,8 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
 			//}
 		}
 		//Broadcast best position
-		//MPI_Bcast(&solution->gbest, N, MPI_INT, 0, MPI_COMM_WORLD);
-		
+		MPI_Bcast(&solution->gbest, N, MPI_INT, 0, MPI_COMM_WORLD);
+		*/
 		//Print each step
 		if (settings->print_every && (step % settings->print_every == 0)) 
       			printf("Step %d,    w=%.2f,    min_err=,    %.5e\n", step, w, solution->error);

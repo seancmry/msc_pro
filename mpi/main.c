@@ -86,52 +86,77 @@ double pso_griewank(double *vec, int dim, void *params) {
 
 int main(int argc, char **argv) {
 
-	//double *old_val, *new_val, *f_val;
-	//double **old, **new, **f;
-	//int myid, nprocs;
-	//int dims = 2, ndims[2];
-	//int periods[2] = {1,0};
-	//int ys, ye, xs, xe;
-	//int nbrup, nbrdown, nbrleft, nbrright;
-	//int coords[2];
-	//int nx, ny;
-    	//MPI_Comm cart_comm;
-	//MPI_Datatype coltype;
-	
-	//Parse arguments and print options
-	parse_arguments(argc,argv);	
-	
-	//Initialise PSO settings
-	pso_settings_t *settings = NULL; 
-			
+	double **g1, **g2;
+	int ndims[2] = {0,0};
+	int pbc[2] = {0,0};
+	int ys, ye, xs, xe;
+	int up, down, left, right;
+	int coords[2];
+	int chunk_rows, chunk_cols;
+	int nrows, ncols;
+	int i;
+    	MPI_Comm cart_comm;
+	MPI_Datatype coltype, rowtype;
+		
 	//Set up MPI environment
 	int nproc, rank;
 	MPI_Init(&argc, &argv);
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 	MPI_Comm_size(MPI_COMM_WORLD, &nproc);
 	
+	//Create dims
+	MPI_Dims_create(nproc, 2, ndims);
+
+	//Parse arguments and print options
+	parse_arguments(argc,argv);	
+			
+	//Initialise PSO settings
+	pso_settings_t *settings = NULL; 
+			
 	//Set grid dimensions
-	//MPI_Bcast(&nx, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
-	//ny = nx;
+	//MPI_Bcast(&nrows, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+	nrows = ncols;
 
-	//Allocate arrays to store grids
-	//old_val = (double*)calloc((nx+2)*(ny+2),sizeof(double));
-	//new_val = (double*)calloc((nx+2)*(ny+2),sizeof(double));
-	//f_val = (double*)calloc((nx+2)*(ny+2),sizeof(double));
-	//old = (double**)malloc((nx+2)*sizeof(double*));
-	//new = (double**)malloc((nx+2)*sizeof(double*));
-	//f = (double**)malloc((nx+2)*sizeof(double*));
+	if(nrows != ncols){
+		printf("ERROR: Not possible with given nrows/ncols\n");
+		MPI_Finalize();
+		return -1;
+	} else {
+		chunk_rows = nrows;
+		chunk_cols = ncols;
+	}
+	
+	MPI_Bcast(&chunk_rows, 1, MPI_INT, 0, MPI_COMM_WORLD);
+	MPI_Bcast(&chunk_cols, 1, MPI_INT, 0, MPI_COMM_WORLD);
+	
+	g1 = malloc((chunk_rows+2) * sizeof(double * ));
+	g1[0] = malloc((chunk_rows+2) * (chunk_cols+2) * sizeof(double));
+	for(i=0;i<(chunk_rows+2);i++){
+		g1[i] = g1[0] + 1 * (chunk_cols+2);
+	}
 
-	//init_arr(nx+2, ny+2, old_val, uold);
-	//init_arr(nx+2, ny+2, new_val, unew);
-	//init_arr(nx+2, ny+2, f_val, f);
+	g2 = malloc((chunk_rows+2) * sizeof(double * ));
+	g2[0] = malloc((chunk_rows+2) * (chunk_cols+2) * sizeof(double));
+	for(i=0;i<(chunk_rows+2);i++){
+		g2[i] = g2[0] + 1 * (chunk_cols+2);
+	}	
+	
 
-	//Get dimensions of the Cartesian grid and set up the communicator
-	//calculate_dims(nprocs, ndims, settings);
-	//MPI_Cart_create(MPI_COMM_WORLD, dims, ndims, periods, 0, &cart_comm);
-
-	//MPI_Cart_coords(cart_comm, myid, 2, coords);
-	//decomp2d(nx, ny, ndims[0], ndims[1], coords, &xs, &xe, &ys, &ye); 
+	//INITIALIZE DIRICHLET BOUNDARY CONDITIONS
+	//init_range(g1,rank,chunk_rows+2,chunk_cols+2,&xe,&xs,&ye,&ys);
+	//init_range(g2,rank,chunk_rows+2,chunk_cols+2,&xe,&xs,&ye,&ys);
+			
+	//Create Cartesian communicator
+	MPI_Cart_create(MPI_COMM_WORLD, 2, ndims, pbc, 0, &cart_comm);
+	MPI_Cart_coords(cart_comm, rank, 2, coords);
+	//get neighbours
+	MPI_Cart_shift(cart_comm,0,1,&up,&down);
+	MPI_Cart_shift(cart_comm,1,1,&left,&right);
+	//vector datatype
+	MPI_Type_vector(1,chunk_cols,chunk_cols+2,MPI_DOUBLE,&rowtype);
+	MPI_Type_vector(chunk_rows,1,chunk_cols+2,MPI_DOUBLE,&coltype);
+	MPI_Type_commit(&rowtype);
+	MPI_Type_commit(&coltype);
 
 	//Test for periodicity
 	//if (myid == 0){
@@ -141,15 +166,7 @@ int main(int argc, char **argv) {
 
 	//init_range(unew, uold, f, xs, xe, ys, ye, nx, ny, &fone, &fone, &fone, &fone);
 	//print_grid(unew, nx, ny, xs, xe, ys, ye, coords, settings->dim, cart_comm);
-
-	//Get neighbours through the shift
-	//MPI_Cart_shift(cart_comm, 0, 1, &nbrleft, &nbrright);
-	//MPI_Cart_shift(cart_comm, 1, 1, &nbrdown, &nbrup);
-		
-	//Committing vector datatype to send columns
-	//MPI_Type_vector((xe-xs+1), 1, ny+2, MPI_DOUBLE, &coltype);
-	//MPI_Type_commit(&coltype);
-		
+	
 	//Initialise timer
 	struct timing_report* stats = malloc(sizeof(double));
 			
@@ -157,7 +174,8 @@ int main(int argc, char **argv) {
 	start_timer(&(stats->parallel_time));
 		
 	//Execute
-	pso_parallel(settings,argc,argv);
+	if(rank == 0)
+		pso_parallel(settings,argc,argv);
 
 	//Stop timer
 	end_timer(&(stats->parallel_time));
@@ -169,16 +187,17 @@ int main(int argc, char **argv) {
 
 	//Free timer
 	free(stats);
-		
-	//Free values
-	//free(f_val);
-	//free(new_val);
-	//free(old_val);
-	//free(f);
-	//free(new);
-	//free(old);
-
+	
+	MPI_Type_free(&coltype);
+	MPI_Type_free(&rowtype);
+	MPI_Comm_free(&cart_comm);
 	MPI_Finalize();
+
+	free(g1[0]);
+	free(g1);
+	free(g2[0]);
+	free(g2);
+
 	return 0;    
 }
 

@@ -137,14 +137,6 @@ void print_elapsed_time(char* fn_name, clock_t start, clock_t finish) {
 }
 
 
-//For each Cartesian coord
-void calculate_dims(int nproc, int *ndims, pso_settings_t *settings){
-	int root = (int)sqrt(nproc);
-	while(nproc % root != 0)
-		root--;
-	settings->dim = ndims[0] = nproc/root;
-	settings->dim = ndims[1] = root;
-}
 
 //1d decomposition of n into size procs
 int decomp1d(int n, int size, int rank, int *s, int *e){
@@ -161,74 +153,49 @@ int decomp1d(int n, int size, int rank, int *s, int *e){
 	return MPI_SUCCESS;
 }
 
-// 2d decomposition of array into xprocs x yprocs 
-int decomp2d(int nx, int ny, int xproc, int yproc, int* coords, int *xs, int *xe, int *ys, int *ye){
-
-	decomp1d(nx, xproc, coords[0], xs, xe);
-	decomp1d(ny, yproc, coords[1], ys, ye);
-	return MPI_SUCCESS;
+// exchanges row/column with 4 neighbours
+void exchange(double **x, int xs, int xe, int ys, int ye, MPI_Comm cart_comm, int *coords, int left, int right, int up, int down, int chunk_rows, int chunk_cols, MPI_Datatype rowtype, MPI_Datatype coltype, MPI_Status stat){
+	
+	MPI_Sendrecv(&x[1][chunk_cols], 1, coltype, right, 0, 
+			&x[1][0], 1, coltype, left, 0, cart_comm, &stat);
+	
+	MPI_Sendrecv(&x[1][1], 1, coltype, left, 1, 
+			&x[1][chunk_cols+1], 1, coltype, right, 1, cart_comm, &stat);
+	
+	MPI_Sendrecv(&x[1][1], 1, rowtype, up, 0, 
+			&x[chunk_rows+1][1], 1, rowtype, down, 0, cart_comm, &stat);
+	
+	MPI_Sendrecv(&x[chunk_rows][1], 1, rowtype, down, 1, 
+			&x[0][1], 1, rowtype, up, 1, cart_comm, &stat);
 }
 
 
-// intialises array ptr
-void init_arr(int n, int m, double *x, double **x_ptr){
-	int i;
-	for(i=0;i<n;i++){
-		x_ptr[i] = &x[i*m];
-	}
-}
-
-//Clear the array
-void clear_arr(int n, int m, double **x){
-    	int i, j;
-    	for(i=0;i<n;i++){
-        	for(j=0;j<m;j++){
-           		x[i][j] = 0.0;
-		}
-	}
-}
 
 //Initialise the mesh with boundary conditions
-void init_range(double **unew, double **uold, double **f, int xs, int xe, int ys, int ye, int nx, int ny,
-	double (*lbound)(int, int, int, int),
-	double (*rbound)(int, int, int, int),
-	double (*ubound)(int, int, int, int),
-	double (*bbound)(int, int, int, int))
-	{	
-	int i;
+void init_range(double **grid, int rank, int nrows, int ncols, int *xe, int *xs, int *ye, int *ys){
+	int i, j;
 
-	//lower boundary
-	if (ys == 1){
-		for (i=(xs-1);i<=(xe+1);i++){
-			uold[i][0] = bbound(i,0,nx,ny);
-	 		unew[i][0] = bbound(i,0,nx,ny);
-	 	}
-	}
-
-	//Upper boundary
-	if (ye == ny){
-		for (i=(xs-1);i<=(xe+1);i++){
-			uold[i][ny+1] = ubound(i,ny+1,nx,ny);
-			unew[i][ny+1] = ubound(i,ny+1,nx,ny);
+	//everything to 0.0
+	for(i=0;i<nrows;i++){
+		for(j=0;j<ncols;j++){
+			grid[i][j] = 0.0;
 		}
 	}
+	//standard vals
+	*xs = 1;
+	*xe = ncols-2;
+	*ys = 1;
+	*ye = nrows-2;
 
-	//Left boundary
-	if (xs == 1){
-		for(i=ys;i<=ye;i++){
-			uold[0][i] = lbound(0,i,nx,ny);
-			unew[0][i] = lbound(0,i,nx,ny);
-		}
-	}
-
-	//Right boundary
-	if (xe == nx){
-		for(i=ys;i<=ye;i++){
-			uold[nx+1][i] = rbound(nx+1,i,nx,ny);
-			unew[nx+1][i] = rbound(nx+1,i,nx,ny);
-		}
-	}
 }
+
+
+
+
+
+
+
+
 
 
 

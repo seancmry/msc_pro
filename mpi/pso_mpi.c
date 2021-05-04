@@ -590,7 +590,8 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
                 	// update personal best position?
       	        	if (fit[i] < fit_b[i]) {
         			fit_b[i] = fit[i];
-        		// copy contents of pos[i] to pos_b[i]
+        		
+			// copy contents of pos[i] to pos_b[i]
         		memmove((void *)pos_b[i], (void *)pos[i],
                 		sizeof(double) * settings->dim);
       			}
@@ -619,6 +620,7 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
 		
 		//Gather data	
 		MPI_Gather(&sendbuf, N+1, MPI_INT, recvbuf, N+1, MPI_INT, 0, MPI_COMM_WORLD);
+		MPI_Barrier(MPI_COMM_WORLD);
 	        /*
 		int min = solution->error;
 		int p = -1; //denote position

@@ -8,7 +8,6 @@
 #include "mpi.h"
 #include "funcs.h"
 
-
 //Allocate matrices
 double **matrix_new(int size, int dim){
 	int i;
@@ -70,23 +69,36 @@ void list(list_a_t *first, list_b_t *second){
 
 void list_mpi(list_a_t *first, list_b_t *second){
 	int i, j;
+	int nproc, rank;
+	MPI_Status stat;
+	int *recvbuf, *sendbuf;
 	double **b = matrix_new(first->size, first->dim);
-	int rank;
+	int peer = (rank == 0) ? 1 : 0;
+
+	sendbuf = malloc(first->size * sizeof(int) + 1);
+	recvbuf = malloc(first->size * sizeof(int) + 1);
+
+	for(i=0;i<nproc;i++){
+		sendbuf[i] = 0;
+		recvbuf[i] = (int)second->solution[i];
+	}
 
 	srand(time(NULL));
 	second->error = DBL_MAX;
 
-	//Parallel
-	if (rank == 0){
-		//Parallel	
-		for (i=0;i<first->size;i++){
-			for(j=0;j<first->dim;j++){
-				b[i][j] = rand() % 20;
-			}
+	//Parallel	
+	for (i=0;i<first->size;i++){
+		for(j=0;j<first->dim;j++){
+			b[i][j] = rand() % 20;
 		}
-		//DO move in parallel here somewhere with an exchange func
-	}				
+		sendbuf[i] = (int)b[i]; 
+		MPI_Sendrecv(&sendbuf[i], 1, MPI_INT, peer, MPI_ANY_TAG, recvbuf, 1, MPI_INT, peer, MPI_ANY_TAG, MPI_COMM_WORLD, &stat);
+		printf("recvbuf: %f\n", second->solution[i]);				
+	}
+
 	matrix_free(b, first->size);
+	free(recvbuf);
+	free(sendbuf);
 }
 
 

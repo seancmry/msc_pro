@@ -5,7 +5,7 @@
 #include <float.h>
 #include <time.h>
 
-//#include "mpi.h"
+#include "mpi.h"
 #include "funcs.h"
 
 
@@ -37,7 +37,7 @@ list_a_t *list_new(int dim) {
 	
   	// set some default values
   	first->dim = dim;
-	first->size = 30;
+	first->size = 20;
 	return first;
 }	
 
@@ -52,18 +52,45 @@ void list(list_a_t *first, list_b_t *second){
 	srand(time(NULL));
 
 	second->error = DBL_MAX;
-	
+
+	//Serial	
 	for (i=0;i<first->size;i++){
 		for(j=0;j<first->dim;j++){
-			a[i][j] = rand();
+			a[i][j] = rand() % 20;
 		}
 	
 		//Ordinary memmove - from b to solution vector, the space for which is allocated in main:
 		memmove((void *)second->solution, (void *)a[i], sizeof(double) * first->dim);
-		printf("Solution: %d\n", second->solution);	
+		printf("Solution: %f\n", second->solution[i]);	
 	}
 	
 	matrix_free(a, first->size);
 }
+
+
+void list_mpi(list_a_t *first, list_b_t *second){
+	int i, j;
+	double **b = matrix_new(first->size, first->dim);
+	int rank;
+
+	srand(time(NULL));
+	second->error = DBL_MAX;
+
+	//Parallel
+	if (rank == 0){
+		//Parallel	
+		for (i=0;i<first->size;i++){
+			for(j=0;j<first->dim;j++){
+				b[i][j] = rand() % 20;
+			}
+		}
+		//DO move in parallel here somewhere with an exchange func
+	}				
+	matrix_free(b, first->size);
+}
+
+
+
+
 
 

@@ -18,5 +18,6 @@ typedef struct{
 
 list_a_t *list_new(int dim);
 void list(list_a_t *first, list_b_t *second);
+void list_mpi(list_a_t *first, list_b_t *second);
 
 #endif

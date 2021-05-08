@@ -8,6 +8,7 @@
 #include "mpi.h"
 #include "funcs.h"
 
+
 //Allocate matrices
 double **matrix_new(int size, int dim){
 	int i;
@@ -59,7 +60,8 @@ void list(list_a_t *first, list_b_t *second){
 		}
 	
 		//Ordinary memmove - from b to solution vector, the space for which is allocated in main:
-		memmove((void *)second->solution, (void *)a[i], sizeof(double) * first->dim);
+		//memmove((void *)second->solution, (void *)a[i], sizeof(double) * first->dim);
+		memmove_mpi((void *)second->solution, (void *)a[i], sizeof(double) * first->dim);
 		printf("Solution: %f\n", second->solution[i]);	
 	}
 	
@@ -67,22 +69,49 @@ void list(list_a_t *first, list_b_t *second){
 }
 
 
-void list_mpi(list_a_t *first, list_b_t *second){
-	int i, j;
-	int nproc, rank;
+void *memmove_mpi(void* dest, const void* src, unsigned int n){	
+	
 	MPI_Status stat;
-	int *recvbuf, *sendbuf;
-	double **b = matrix_new(first->size, first->dim);
+	int sendbuf, recvbuf;
+	int rank = 0;
 	int peer = (rank == 0) ? 1 : 0;
+	char *pDest = (char *)dest;
+	const char *pSrc =( const char*)src;
+	unsigned char flag = 0; //Flag for copy requirement if overlap
 
-	sendbuf = malloc(first->size * sizeof(int) + 1);
-	recvbuf = malloc(first->size * sizeof(int) + 1);
-
-	for(i=0;i<nproc;i++){
-		sendbuf[i] = 0;
-		recvbuf[i] = (int)second->solution[i];
+	//Allocate memory for temp array
+	char *tmp = (char *)malloc(sizeof(char) * n);
+	if ((pSrc == NULL) && (pDest == NULL) && (NULL == tmp)){
+		return NULL;
 	}
+	if((pSrc < pDest) && (pDest < pSrc + n)){
+		for( pDest += n, pSrc += n; n--;){
+			*--pDest = *--pSrc;
+		}
+	}
+	else {
+		while (n--){
+			unsigned int a = 0;
+			//copy src to tmp array
+			for(a = 0;a < n; ++a){
+				*(tmp + a) = *(pSrc+a);
+				sendbuf = *(tmp + a);					
+				//copy tmp to pDest using MPI_Sendrecv
+				MPI_Sendrecv(&sendbuf, 0, MPI_INT, peer, MPI_ANY_TAG, &recvbuf, 1, MPI_INT, peer, MPI_ANY_TAG, MPI_COMM_WORLD, &stat);
+				printf("MPI process %d RECEIVED value %d from MPI process %d \n", rank, recvbuf, peer);	
+				(pDest + a) = (char)&recvbuf;
+			}
+			free(tmp); //Free allocated memory
+		}
+	}
+	return dest;
+}
 
+
+void list_mpi(list_a_t *first, list_b_t *second){
+	
+	int i, j;
+	double **b = matrix_new(first->size, first->dim);
 	srand(time(NULL));
 	second->error = DBL_MAX;
 
@@ -91,18 +120,10 @@ void list_mpi(list_a_t *first, list_b_t *second){
 		for(j=0;j<first->dim;j++){
 			b[i][j] = rand() % 20;
 		}
-		sendbuf[i] = (int)b[i]; 
-		MPI_Sendrecv(&sendbuf[i], 1, MPI_INT, peer, MPI_ANY_TAG, recvbuf, 1, MPI_INT, peer, MPI_ANY_TAG, MPI_COMM_WORLD, &stat);
-		printf("recvbuf: %f\n", second->solution[i]);				
+		 
+		//printf("recvbuf: %f\n", second->solution[i]);				
 	}
-
 	matrix_free(b, first->size);
-	free(recvbuf);
-	free(sendbuf);
 }
-
-
-
-
 
 

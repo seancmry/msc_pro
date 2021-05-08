@@ -63,11 +63,11 @@ int main(int argc, char **argv){
 	//RUN ALGS
 	printf("This is the result of a standard memmove: \n");
 	list(first, &second);	
-
+	
 	printf("This is the result of the MPI version: \n");
-	if(rank == 0){
-		list_mpi(first, &second);	
-	}
+	//if(rank == 0){
+	//	list_mpi(first, &second);	
+	//}
 	free(second.solution);
 	
 	//Free first struct	

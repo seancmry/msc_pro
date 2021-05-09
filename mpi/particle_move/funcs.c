@@ -72,13 +72,11 @@ void list(list_a_t *first, list_b_t *second){
 void *memmove_mpi(void* dest, const void* src, unsigned int n){	
 	
 	MPI_Status stat;
-	int sendbuf, recvbuf;
-	int rank = 0;
-	int peer = (rank == 0) ? 1 : 0;
+	const char *sendbuf, *recvbuf;
+	int nproc, rank = 0;
 	char *pDest = (char *)dest;
-	const char *pSrc =( const char*)src;
-	unsigned char flag = 0; //Flag for copy requirement if overlap
-
+	const char *pSrc =(const char *)src;
+	
 	//Allocate memory for temp array
 	char *tmp = (char *)malloc(sizeof(char) * n);
 	if ((pSrc == NULL) && (pDest == NULL) && (NULL == tmp)){
@@ -95,11 +93,18 @@ void *memmove_mpi(void* dest, const void* src, unsigned int n){
 			//copy src to tmp array
 			for(a = 0;a < n; ++a){
 				*(tmp + a) = *(pSrc+a);
-				sendbuf = *(tmp + a);					
-				//copy tmp to pDest using MPI_Sendrecv
-				MPI_Sendrecv(&sendbuf, 0, MPI_INT, peer, MPI_ANY_TAG, &recvbuf, 1, MPI_INT, peer, MPI_ANY_TAG, MPI_COMM_WORLD, &stat);
-				printf("MPI process %d RECEIVED value %d from MPI process %d \n", rank, recvbuf, peer);	
-				(pDest + a) = (char)&recvbuf;
+				sendbuf = *(tmp + a);
+				printf("sendbuf: %c\n", sendbuf);					
+				//copy tmp to pDest using MPI_Send and MPI_Recv
+				if (rank != 0){
+					recvbuf = 0;
+					MPI_Send(&(tmp+a), strlen(sendbuf)+1,MPI_CHAR,recvbuf,MPI_ANY_TAG,MPI_COMM_WORLD);
+				} else {
+					for(sendbuf = 1; sendbuf < nproc; sendbuf++){
+						MPI_Recv(&(tmp+a), strlen(pDest + a),MPI_CHAR,sendbuf,MPI_ANY_TAG,MPI_COMM_WORLD,&stat);
+					}
+					
+				}
 			}
 			free(tmp); //Free allocated memory
 		}

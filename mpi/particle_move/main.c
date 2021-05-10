@@ -4,6 +4,7 @@
 #include <time.h>
 #include <math.h>
 #include <getopt.h>
+#include <stddef.h>
 
 #include "funcs.h"
 #include "mpi.h"
@@ -26,6 +27,11 @@ int main(int argc, char **argv){
 	MPI_Init(&argc, &argv);
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 	MPI_Comm_size(MPI_COMM_WORLD, &nproc);
+
+    	if (nproc < 2) {
+        	fprintf(stderr,"Requires at least two processes.\n");
+        	exit(-1);
+    	}
 
 	//Allocate buffer space for second receiver list
 	list_a_t *first = NULL;
@@ -65,9 +71,9 @@ int main(int argc, char **argv){
 	list(first, &second);	
 	
 	printf("This is the result of the MPI version: \n");
-	//if(rank == 0){
-	//	list_mpi(first, &second);	
-	//}
+	list_b_t send;
+	list_mpi(first, send);
+		
 	free(second.solution);
 	
 	//Free first struct	

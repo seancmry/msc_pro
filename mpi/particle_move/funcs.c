@@ -66,15 +66,17 @@ void list(list_a_t *first, list_b_t *second){
 */
 
 
-void list_mpi(list_a_t *first, list_b_t send, list_b_t recv){
+void list_mpi(list_a_t *first, list_b_t send){
 	
 	int i, j;
 	double **b = matrix_new(first->size, first->dim);
 	srand(time(NULL));
 	send.error = DBL_MAX;
     	int rank = 0;
-	MPI_Status stat;
-    
+	const int tag = 5;
+	const int dest = 0, src =1 ;
+	MPI_Request req;   
+
 	/* create a type for struct car */
     	const int nitems=1;
     	int blocklengths[2] = {1,1};
@@ -88,25 +90,26 @@ void list_mpi(list_a_t *first, list_b_t send, list_b_t recv){
     	MPI_Type_commit(&mpi_move_type);
 
 	//Parallel	
-	for (i=0;i<first->size;i++){
-		send.solution[i] = 0.0;
-		for(j=0;j<first->dim;j++){
-			b[i][j] = rand() % 20;
-		}
-		if(rank == 0){
+	if (rank != 0){
+		for (i=0;i<first->size;i++){
+			send.solution[i] = 0.0;
+			for(j=0;j<first->dim;j++){
+				b[i][j] = rand() % 20;
+			}
 			send.solution = b[i];
-			//printf("Send.solution: %f\n", send.solution[i]);
-			MPI_Send(&send, 1, mpi_move_type, 1, 0, MPI_COMM_WORLD);
-			printf("Rank %d: send sendbuf\n", rank);
+			printf("Send.solution: %f\n", send.solution[i]);
+			MPI_Isend(&send, sizeof(list_b_t), mpi_move_type, dest, tag, MPI_COMM_WORLD, &req);
+			//printf("Rank %d: send sendbuf\n", rank);
 		}
-		else if(rank == 1) {
-			//recv.solution[i] = 0.0;
-			//list_b_t recv;
-			MPI_Recv(&recv, 1, mpi_move_type, 0, 0, MPI_COMM_WORLD, &stat);
-			printf("Rank %d: recvbuf: b[i] = %f\n", rank, recv.solution[i]);
-		}
+	} else if(rank == dest){
+			MPI_Recv(&send, sizeof(list_b_t), mpi_move_type, src, tag, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+			for (i=0;i<dest;i++){
+				printf("Rank %d: recvbuf: b[i] = %f\n", rank, send.solution[i]);
+			}
 	}
-   
+
+	//MPI_Wait(&req, MPI_STATUS_IGNORE);   
+
 	MPI_Type_free(&mpi_move_type);
 	matrix_free(b,first->size);
 }

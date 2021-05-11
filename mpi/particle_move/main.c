@@ -35,7 +35,7 @@ int main(int argc, char **argv){
 
 	//Allocate buffer space for second receiver list
 	list_a_t *first = NULL;
-	list_b_t send, recv;
+	list_b_t send;
 
 	first = list_new(30);	
 
@@ -71,7 +71,7 @@ int main(int argc, char **argv){
 	//list(first, &second);	
 	
 	printf("This is the result of the MPI version: \n");
-	list_mpi(first,send,recv);
+	list_mpi(first,send);
 		
 	free(send.solution);
 	

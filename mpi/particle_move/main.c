@@ -35,7 +35,7 @@ int main(int argc, char **argv){
 
 	//Allocate buffer space for second receiver list
 	list_a_t *first = NULL;
-	list_b_t second;
+	list_b_t send, recv;
 
 	first = list_new(30);	
 
@@ -64,17 +64,16 @@ int main(int argc, char **argv){
 	*/
 
 	//Space for solution buffer
-	second.solution = (double *)malloc(first->dim * sizeof(double));
+	send.solution = (double *)malloc(first->dim * sizeof(double));
 
 	//RUN ALGS
-	printf("This is the result of a standard memmove: \n");
-	list(first, &second);	
+	//printf("This is the result of a standard memmove: \n");
+	//list(first, &second);	
 	
 	printf("This is the result of the MPI version: \n");
-	list_b_t send;
-	list_mpi(first, send);
+	list_mpi(first,send,recv);
 		
-	free(second.solution);
+	free(send.solution);
 	
 	//Free first struct	
 	free(first);

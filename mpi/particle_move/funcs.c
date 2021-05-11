@@ -8,20 +8,17 @@
 #include "mpi.h"
 #include "funcs.h"
 
-
 //Allocate matrices
 double **matrix_new(int size, int dim){
-	int i;
 	double **m = (double **)malloc(size *sizeof(double *));
-	for (i = 0; i<size; i++) {
+	for (int i = 0; i<size; i++) {
 		m[i] = (double *)malloc(dim * sizeof(double));
 	}
 	return m;
 }
 
 void matrix_free(double **m, int size){ 
-	int i;
-	for(i=0; i<size; i++) {
+	for(int i=0; i<size; i++) {
 		free(m[i]);
 	}
 	free(m);
@@ -42,8 +39,7 @@ list_a_t *list_new(int dim) {
 }	
 
 
-
-
+/*
 void list(list_a_t *first, list_b_t *second){
 
 	int i,j;
@@ -67,17 +63,15 @@ void list(list_a_t *first, list_b_t *second){
 	
 	matrix_free(a, first->size);
 }
+*/
 
 
-
-void list_mpi(list_a_t *first, list_b_t send){
+void list_mpi(list_a_t *first, list_b_t send, list_b_t recv){
 	
 	int i, j;
 	double **b = matrix_new(first->size, first->dim);
 	srand(time(NULL));
 	send.error = DBL_MAX;
-    	const int tag = 13;
-	const int dest = 1, src = 0;
     	int rank = 0;
 	MPI_Status stat;
     
@@ -93,23 +87,27 @@ void list_mpi(list_a_t *first, list_b_t send){
     	MPI_Type_create_struct(nitems, blocklengths, offsets, types, &mpi_move_type);
     	MPI_Type_commit(&mpi_move_type);
 
-	if (rank == 0){	
-		//Parallel	
-		for (i=0;i<first->size;i++){
-			for(j=0;j<first->dim;j++){
-				b[i][j] = rand() % 20;
-			}
+	//Parallel	
+	for (i=0;i<first->size;i++){
+		send.solution[i] = 0.0;
+		for(j=0;j<first->dim;j++){
+			b[i][j] = rand() % 20;
+		}
+		if(rank == 0){
 			send.solution = b[i];
-			MPI_Send(&send, 1, mpi_move_type, dest, tag, MPI_COMM_WORLD);
+			//printf("Send.solution: %f\n", send.solution[i]);
+			MPI_Send(&send, 1, mpi_move_type, 1, 0, MPI_COMM_WORLD);
 			printf("Rank %d: send sendbuf\n", rank);
 		}
+		else if(rank == 1) {
+			//recv.solution[i] = 0.0;
+			//list_b_t recv;
+			MPI_Recv(&recv, 1, mpi_move_type, 0, 0, MPI_COMM_WORLD, &stat);
+			printf("Rank %d: recvbuf: b[i] = %f\n", rank, recv.solution[i]);
+		}
 	}
-	if (rank == 1) {
-		list_b_t recv;
-		MPI_Recv(&recv, 1, mpi_move_type, src, tag, MPI_COMM_WORLD, &stat);
-		printf("Rank %d: recvbuf: b[i] = %f\n", rank, recv.solution);
-	}
-	matrix_free(b, first->size);
-   	MPI_Type_free(&mpi_move_type);
+   
+	MPI_Type_free(&mpi_move_type);
+	matrix_free(b,first->size);
 }
 

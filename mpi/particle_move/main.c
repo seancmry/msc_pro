@@ -5,6 +5,7 @@
 #include <math.h>
 #include <getopt.h>
 #include <stddef.h>
+//#include <stdbool.h>
 
 #include "funcs.h"
 #include "mpi.h"
@@ -18,14 +19,16 @@
 
 int main(int argc, char **argv){
 
-	int nproc, rank;
+	int nproc;
+	//bool serial, mpi;
+	//int rank;
 	//int ndims[2] = {N,M};
 	//int pbc[2] = {0,0};
 	//int coords[2], nbr[4];
 	//int nrows, ncols;
 	//MPI_Comm cart_comm; 
 	MPI_Init(&argc, &argv);
-	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+	//MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 	MPI_Comm_size(MPI_COMM_WORLD, &nproc);
 
     	if (nproc < 2) {
@@ -35,7 +38,7 @@ int main(int argc, char **argv){
 
 	//Allocate buffer space for second receiver list
 	list_a_t *first = NULL;
-	list_b_t send;
+	//list_b_t send, recv;
 
 	first = list_new(30);	
 
@@ -63,18 +66,25 @@ int main(int argc, char **argv){
 	}
 	*/
 
-	//Space for solution buffer
-	send.solution = (double *)malloc(first->dim * sizeof(double));
-
 	//RUN ALGS
-	//printf("This is the result of a standard memmove: \n");
-	//list(first, &second);	
-	
-	printf("This is the result of the MPI version: \n");
-	list_mpi(first,send);
+	/*
+	if (serial){
+		list_b_t second;
+		// allocate memory for the best position buffer
+    		second.solution = (double *)malloc(settings->dim * sizeof(double));
+		//Run alg
+		printf("This is the result of a standard memmove: \n");
+		list(first, &second);
 		
-	free(send.solution);
-	
+		//Free buffer
+		free(second.solution);	
+	}
+	*/
+	//if (mpi) {
+		printf("This is the result of the MPI version: \n");
+		list_mpi(first);
+	//}
+		
 	//Free first struct	
 	free(first);
 

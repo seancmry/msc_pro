@@ -19,6 +19,6 @@ typedef struct{
 list_a_t *list_new(int dim);
 void list(list_a_t *first, list_b_t *second);
 void *memmove_mpi(void* dest, const void* src, unsigned int n);
-void list_mpi(list_a_t *first, list_b_t send);
+void list_mpi(list_a_t *first);
 
 #endif

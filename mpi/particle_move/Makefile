@@ -11,8 +11,9 @@ TARGET = prog
 all: $(OBJECTS)
 	$(CC) $(CFLAGS) -o $(TARGET) $^ $(LDFLAGS)
 
+# Tests MPI only!
 test: all
-	./test.sh
+	mpirun -n 2 ./prog -b 1
 
 # .PHONY: test clean
 

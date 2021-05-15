@@ -39,7 +39,7 @@ list_a_t *list_new(int dim) {
 }	
 
 
-/*
+
 void list(list_a_t *first, list_b_t *second){
 
 	int i,j;
@@ -56,17 +56,16 @@ void list(list_a_t *first, list_b_t *second){
 		}
 	
 		//Ordinary memmove - from b to solution vector, the space for which is allocated in main:
-		//memmove((void *)second->solution, (void *)a[i], sizeof(double) * first->dim);
-		memmove_mpi((void *)second->solution, (void *)a[i], sizeof(double) * first->dim);
+		memmove((void *)second->solution, (void *)a[i], sizeof(double) * first->dim);
 		printf("Solution: %f\n", second->solution[i]);	
 	}
 	
 	matrix_free(a, first->size);
 }
-*/
 
 
-void list_mpi(list_a_t *first){
+
+void list_mpi(list_a_t *first, list_b_t *second){
 	
 	int i, j;
 	double **b = matrix_new(first->size, first->dim);
@@ -75,52 +74,44 @@ void list_mpi(list_a_t *first){
 	const int tag = 13;
 	const int dest = 1, src = 0;
 	MPI_Status stat;
-	MPI_Request req;
-
-	//Create type for struct 
-	const int items = 2;
-	int bloclen[2] = {1,1};
-	MPI_Datatype types[2] = {MPI_DOUBLE,MPI_DOUBLE};
-	MPI_Datatype mpi_move_type;
-	MPI_Aint offsets[1];
-
-	offsets[0] = offsetof(list_b_t, solution);
-	offsets[1] = offsetof(list_b_t, error);
-
-	MPI_Type_create_struct(items, bloclen, offsets, types, &mpi_move_type);
-	MPI_Type_commit(&mpi_move_type);   
-
+	double x = DBL_MAX;
+		
 	//Parallel	
-	for (i=0;i<first->size;i++){
-		for(j=0;j<first->dim;j++){
-			b[i][j] = rand() % 20;
-		}
-		MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-		if (rank == src){
-			list_b_t send;
-			send.solution = malloc(first->dim * sizeof(double));
-			send.error = DBL_MAX;
-			send.solution = b[i];
-			printf("Send.solution: %f\n", send.solution[i]);
-			MPI_Send(&send, 2, MPI_DOUBLE, dest, tag, MPI_COMM_WORLD);
-			//printf("Rank %d: send sendbuf\n", rank);
-			free(send.solution);
-		}
-		else if (rank == dest) {
-			list_b_t recv;
-			recv.solution = malloc(first->dim * sizeof(double));
-			recv.error = DBL_MAX;
-			recv.solution = b[i]; 
-			MPI_Recv(&recv, 2, MPI_DOUBLE, src, tag, MPI_COMM_WORLD, &stat);
-			for (i=0;i<first->dim;i++){
-				printf("Rank %d: recvbuf: b[i] = %f\n", rank, recv.solution[i]);
-			}
-			//free(recv.solution);	
-		}
-	}	
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
-	MPI_Wait(&req, &stat); 
-	MPI_Type_free(&mpi_move_type);  
+	if (rank == src){
+
+		list_b_t *second = malloc(sizeof(list_b_t));
+		// allocate memory for the best position buffer
+    		second->solution = (double *)malloc(first->dim * sizeof(double));
+		second->error = x;
+		MPI_Bcast(&second->error,1,MPI_DOUBLE,0,MPI_COMM_WORLD);		
+
+		for(i=0;i<first->size;i++){
+			for(j=0;j<first->dim;j++){
+				b[i][j] = rand() % 20;
+			}
+			memmove((void *)second->solution, (void *)b[i], sizeof(double) * first->dim);
+		}
+		MPI_Send(second->solution,first->dim,MPI_DOUBLE,dest,tag,MPI_COMM_WORLD);
+		//MPI_Send(&second->error, first->dim, MPI_DOUBLE,dest,tag,MPI_COMM_WORLD);
+		
+		free(second->solution);
+		free(second);
+	}
+	else if (rank == dest) {
+		list_b_t *second = malloc(sizeof(list_b_t));
+		second->error = x;
+		MPI_Bcast(&second->error,1,MPI_DOUBLE,0,MPI_COMM_WORLD);		
+
+		second->solution = (double *)malloc(first->dim * sizeof(double));
+		MPI_Recv(second->solution,first->dim,MPI_DOUBLE,src,tag,MPI_COMM_WORLD, &stat);
+		//MPI_Recv(&second->error,first->dim,MPI_DOUBLE,src,tag,MPI_COMM_WORLD, &stat);
+		
+		for (i=0;i<first->dim;++i){
+			printf("Received solution %f from rank %d\n",second->solution[i],rank);
+		} 	
+	}	
 
 	matrix_free(b,first->size);
 }

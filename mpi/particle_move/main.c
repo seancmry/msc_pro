@@ -5,32 +5,36 @@
 #include <math.h>
 #include <getopt.h>
 #include <stddef.h>
-//#include <stdbool.h>
+#include <stdbool.h>
 
 #include "funcs.h"
 #include "mpi.h"
 
-#define N 1
-#define M 1
-#define UP 0
-#define DOWN 1
-#define LEFT 2
-#define RIGHT 3
 
 int main(int argc, char **argv){
 
 	int nproc;
-	//bool serial, mpi;
-	//int rank;
-	//int ndims[2] = {N,M};
-	//int pbc[2] = {0,0};
-	//int coords[2], nbr[4];
-	//int nrows, ncols;
-	//MPI_Comm cart_comm; 
+	int c;
+	bool serial = false;
+	bool mpi = false;
 	MPI_Init(&argc, &argv);
-	//MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 	MPI_Comm_size(MPI_COMM_WORLD, &nproc);
-
+	
+	//Handle arguments
+	while((c = getopt(argc,argv, "a:b")) != -1){
+		switch(c){
+			case 'a':
+				serial = true;
+				break;
+			case 'b':
+				mpi = true;
+				break;
+			default:
+				fprintf(stderr, "Invalid option given\n");
+				return -1;
+			}
+	}
+	
     	if (nproc < 2) {
         	fprintf(stderr,"Requires at least two processes.\n");
         	exit(-1);
@@ -38,40 +42,14 @@ int main(int argc, char **argv){
 
 	//Allocate buffer space for second receiver list
 	list_a_t *first = NULL;
-	//list_b_t send, recv;
+	list_b_t second;
 
 	first = list_new(30);	
 
-	/*
-	if (nproc == N){	
-		nrows = ncols;
-		//Set grid dimensions
-		if(nrows != ncols){
-			printf("ERROR: Not possible with given nrows/ncols\n");
-			MPI_Finalize();
-			return -1;
-		}
-		
-		//Create dims
-		MPI_Dims_create(nproc, 2, ndims);
-
-		//Create Cartesian communicator
-		MPI_Cart_create(MPI_COMM_WORLD, 2, ndims, pbc, 0, &cart_comm);
-		MPI_Cart_coords(cart_comm, rank, 2, coords);
-		//get neighbours
-		MPI_Cart_shift(cart_comm,0,1,&nbr[UP],&nbr[DOWN]);
-		MPI_Cart_shift(cart_comm,1,1,&nbr[LEFT],&nbr[RIGHT]);
-
-		printf("%d, RpC: %d, CpC: %d\n", rank, nrows, ncols);
-	}
-	*/
-
 	//RUN ALGS
-	/*
-	if (serial){
-		list_b_t second;
+	if (serial == true){
 		// allocate memory for the best position buffer
-    		second.solution = (double *)malloc(settings->dim * sizeof(double));
+    		second.solution = (double *)malloc(first->dim * sizeof(double));
 		//Run alg
 		printf("This is the result of a standard memmove: \n");
 		list(first, &second);
@@ -79,17 +57,16 @@ int main(int argc, char **argv){
 		//Free buffer
 		free(second.solution);	
 	}
-	*/
-	//if (mpi) {
+	
+
+	if (mpi == true){
 		printf("This is the result of the MPI version: \n");
-		list_mpi(first);
-	//}
+		list_mpi(first,&second);
+	}
 		
 	//Free first struct	
 	free(first);
 
-	//Free resources
-	//MPI_Comm_free(&cart_comm);
 	MPI_Finalize();
 
 	return 0;

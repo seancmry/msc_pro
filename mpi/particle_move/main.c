@@ -80,7 +80,7 @@ int main(int argc, char **argv){
 	list_a_t *first = NULL;
 	list_b_t second;
 
-	first = list_new(30);	
+	first = list_new(10);	
 
 	//RUN ALGS
 	if (serial == true){

@@ -84,6 +84,7 @@ void list_mpi(list_a_t *first, list_b_t *second, MPI_Comm cart_comm){
 	MPI_Datatype strip;
 	int strip_size;
 	double **strip_m, *stripdata;
+	double sum = 0.0, *sum_buf = NULL;
 
 	//Parallel setup	
 	MPI_Comm_rank(cart_comm, &rank);
@@ -138,7 +139,12 @@ void list_mpi(list_a_t *first, list_b_t *second, MPI_Comm cart_comm){
 		printf("\n");
 	}
 	
+	//Do send and recv
 	if (rank == src){
+
+		//Initialise sum buffer
+		sum_buf = (double *)malloc(sizeof(double) * nproc);
+	
 		//Init second list
 		list_b_t *second = malloc(sizeof(list_b_t));
 		// allocate memory for the best position buffer
@@ -152,11 +158,18 @@ void list_mpi(list_a_t *first, list_b_t *second, MPI_Comm cart_comm){
 			//Send
 			MPI_Send(second->solution,first->dim,MPI_DOUBLE,dest,tag,cart_comm);
 			//MPI_Send(&second->error, first->dim, MPI_DOUBLE,dest,tag,MPI_COMM_WORLD);
-		}
+			
+			//Sum for Gather
+			sum += second->solution[i];
+		}	
 		free(second->solution);
 		free(second);
 	}
 	else if (rank == dest) {
+
+		//Initialise sum buffer stuff
+		sum_buf = (double *)malloc(sizeof(double) * nproc);
+	
 		list_b_t *second = malloc(sizeof(list_b_t));
 		second->error = x;
 		MPI_Bcast(&second->error,1,MPI_DOUBLE,0,cart_comm);		
@@ -167,10 +180,21 @@ void list_mpi(list_a_t *first, list_b_t *second, MPI_Comm cart_comm){
 		
 		for (i=0;i<first->dim;++i){
 			printf("Received solution %f from rank %d\n",second->solution[i],rank);
-		}	
+		}
+
+		//Sum what is received
+		for(i=0;i<first->size;i++){
+			sum += second->solution[i];
+		}		
 	}
-	
-	if (rank == src){
+	//Gather sum
+	MPI_Allgather(&sum, 1, MPI_DOUBLE, sum_buf, 1, MPI_DOUBLE,cart_comm);	
+	if(rank == src || rank == dest){
+		for(i=0;i<N;i++) printf("This should print two sums: %f\n",sum_buf[i]);
+	}
+
+	if(rank == src){
+		free(sum_buf);
 		MPI_Type_free(&strip);
 		free(strip_m);
 		free(stripdata);	

@@ -8,10 +8,13 @@
 #include "mpi.h"
 #include "funcs.h"
 
+
 #define N 2
+
 
 //Allocate matrices
 double **matrix_new(int size, int dim){
+
 	double **m = (double **)malloc(size *sizeof(double *));
 	for (int i = 0; i<size; i++) {
 		m[i] = (double *)malloc(dim * sizeof(double));
@@ -26,7 +29,6 @@ void matrix_free(double **m, int size){
 	}
 	free(m);
 }
-
 
 
 
@@ -71,56 +73,83 @@ void list(list_a_t *first, list_b_t *second){
 void list_mpi(list_a_t *first, list_b_t *second, MPI_Comm cart_comm){
 	
 	int i, j;
-	double **b = matrix_new(first->size, first->dim);
 	srand(time(NULL));
-    	int rank, nproc = N;
+	double **b, *b_dat;
+    	int rank;
+	int nproc = N;
 	const int tag = 13;
 	const int dest = 1, src = 0;
 	MPI_Status stat;
-	MPI_Datatype strip;
 	double x = DBL_MAX;
+	MPI_Datatype strip;
 	int strip_size;
-	double *stripdata, **strip_m;
-
+	double **strip_m, *stripdata;
 
 	//Parallel setup	
 	MPI_Comm_rank(cart_comm, &rank);
 	
-	if (rank == src){
+	if (rank == src){	
 		
 		//Calculate strip size
-		strip_size = first->dim / nproc;
+		strip_size = first->dim / nproc;	
 		
-		//Bcast row and column size as well as strip size
-		MPI_Bcast(&first->size,1,MPI_INT,0,cart_comm);
-		MPI_Bcast(&first->dim,1,MPI_INT,0,cart_comm);
-		MPI_Bcast(&strip_size,1,MPI_INT,0,cart_comm);	
-
-		//define datatype for submatrix
-		MPI_Type_vector(strip_size,first->size,first->dim,MPI_DOUBLE,&strip);
-		MPI_Type_commit(&strip);
-	
-		stripdata = (double *)malloc(sizeof(double)*strip_size*first->size);
-		strip_m = (double **)malloc(sizeof(double*)*strip_size);	
-		for (i=0;i<strip_size;i++){
-			strip_m[i] = &(stripdata[i*first->size]);
+		//Init matrix
+		b_dat = (double *)malloc(sizeof(double)*first->size*first->dim);
+		b = (double **)malloc(first->size *sizeof(double *));
+		for (int i = 0; i<first->size; i++) {
+			b[i] = &(b_dat[i*first->dim]);
 		}
 
-		//Init second list
-		list_b_t *second = malloc(sizeof(list_b_t));
-		// allocate memory for the best position buffer
-    		second->solution = (double *)malloc(first->dim * sizeof(double));
-		second->error = x;
-		MPI_Bcast(&second->error,1,MPI_DOUBLE,0,cart_comm);		
 
 		for(i=0;i<first->size;i++){
 			for(j=0;j<first->dim;j++){
 				b[i][j] = rand() % 20;
-				printf("%f ", b[i][j]);
+				//printf("%f ", b[i][j]);
 			}
-			printf("\n");
-			memmove((void *)second->solution, (void *)b[i], sizeof(double) * first->dim);
-		
+		}
+	}
+         	
+	//TEST: Split the calculation into submatrices
+	//Bcast row and column size as well as strip size
+	MPI_Bcast(&first->size,1,MPI_INT,0,cart_comm);
+	MPI_Bcast(&first->dim,1,MPI_INT,0,cart_comm);
+	MPI_Bcast(&strip_size,1,MPI_INT,0,cart_comm);	
+
+	//define datatype for submatrix
+	MPI_Type_vector(strip_size,first->size,first->dim,MPI_DOUBLE,&strip);
+	MPI_Type_commit(&strip);
+	
+	stripdata = (double *)malloc(sizeof(double)*strip_size*first->size);
+	strip_m = (double **)malloc(sizeof(double*)*strip_size);	
+	for (i=0;i<strip_size;i++){
+		strip_m[i] = &(stripdata[i*first->size]);
+	}
+
+	//Scatter to all procs
+	MPI_Scatter(b_dat,1,strip, &(strip_m[0][0]),1,strip,0,cart_comm);
+
+	for (i=0;i<strip_size;i++){
+		if(i == 0){
+			printf("rank = %d\n",rank);
+		}
+		for(j=0;j<first->dim;j++){
+			printf(" %lf  ",strip_m[i][j]);
+		}
+		printf("\n");
+	}
+	
+	if (rank == src){
+		//Init second list
+		list_b_t *second = malloc(sizeof(list_b_t));
+		// allocate memory for the best position buffer
+   		second->solution = (double *)malloc(first->dim * sizeof(double));
+		second->error = x;
+		MPI_Bcast(&second->error,1,MPI_DOUBLE,0,cart_comm);	
+	
+		//Move data to buffer	
+		for(i=0;i<first->size;i++){
+	     		memmove((void *)second->solution, (void *)b_dat, sizeof(double) * first->dim);	
+			//Send
 			MPI_Send(second->solution,first->dim,MPI_DOUBLE,dest,tag,cart_comm);
 			//MPI_Send(&second->error, first->dim, MPI_DOUBLE,dest,tag,MPI_COMM_WORLD);
 		}
@@ -131,19 +160,22 @@ void list_mpi(list_a_t *first, list_b_t *second, MPI_Comm cart_comm){
 		list_b_t *second = malloc(sizeof(list_b_t));
 		second->error = x;
 		MPI_Bcast(&second->error,1,MPI_DOUBLE,0,cart_comm);		
-
+	
 		second->solution = (double *)malloc(first->dim * sizeof(double));
 		MPI_Recv(second->solution,first->dim,MPI_DOUBLE,src,tag,cart_comm, &stat);
 		//MPI_Recv(&second->error,first->dim,MPI_DOUBLE,src,tag,MPI_COMM_WORLD, &stat);
 		
 		for (i=0;i<first->dim;++i){
 			printf("Received solution %f from rank %d\n",second->solution[i],rank);
-		} 	
-	}	
+		}	
+	}
 	
-	MPI_Type_free(&strip);
-	free(strip_m);
-	free(stripdata);
-	matrix_free(b,first->size);
+	if (rank == src){
+		MPI_Type_free(&strip);
+		free(strip_m);
+		free(stripdata);	
+		free(b_dat);
+		free(b);
+	}
 }
 

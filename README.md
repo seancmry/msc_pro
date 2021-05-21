@@ -1,5 +1,5 @@
 # msc_pro
-M.Sc. Project
+M.Sc. Project - will add gif demonstration once complete
 
 Modules loaded for the running of the demo and serial path components prior to the cluster system updates in March 2021:
 ```

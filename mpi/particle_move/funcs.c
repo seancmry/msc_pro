@@ -8,8 +8,16 @@
 #include "mpi.h"
 #include "funcs.h"
 
+#define N 4
 
-#define N 2
+//Calculate dims
+void calc_dims(int nproc, int *ndims){
+	int root = (int)sqrt(nproc);
+	while(nproc % root != 0)
+		root--;
+	ndims[0] = nproc/root;
+	ndims[1] = root;
+}
 
 
 //Allocate matrices
@@ -75,10 +83,10 @@ void list_mpi(list_a_t *first, list_b_t *second, MPI_Comm cart_comm){
 	int i, j;
 	srand(time(NULL));
 	double **b, *b_dat;
+	int src = 0, dest = 1;
     	int rank;
 	int nproc = N;
 	const int tag = 13;
-	const int dest = 1, src = 0;
 	MPI_Status stat;
 	double x = DBL_MAX;
 	MPI_Datatype strip;
@@ -88,7 +96,7 @@ void list_mpi(list_a_t *first, list_b_t *second, MPI_Comm cart_comm){
 
 	//Parallel setup	
 	MPI_Comm_rank(cart_comm, &rank);
-	
+
 	if (rank == src){	
 		
 		//Calculate strip size
@@ -128,6 +136,7 @@ void list_mpi(list_a_t *first, list_b_t *second, MPI_Comm cart_comm){
 
 	//Scatter to all procs
 	MPI_Scatter(b_dat,1,strip, &(strip_m[0][0]),1,strip,0,cart_comm);
+	MPI_Barrier(cart_comm);
 
 	for (i=0;i<strip_size;i++){
 		if(i == 0){
@@ -188,9 +197,9 @@ void list_mpi(list_a_t *first, list_b_t *second, MPI_Comm cart_comm){
 		}		
 	}
 	//Gather sum
-	MPI_Allgather(&sum, 1, MPI_DOUBLE, sum_buf, 1, MPI_DOUBLE,cart_comm);	
+	//MPI_Allgather(&sum, 1, MPI_DOUBLE, sum_buf, 1, MPI_DOUBLE,cart_comm);	
 	if(rank == src || rank == dest){
-		for(i=0;i<N;i++) printf("This should print two sums: %f\n",sum_buf[i]);
+		for(i=0;i<nproc;i++) printf("This sum comes from rank %d : %f\n",rank,sum_buf[i]);
 	}
 
 	if(rank == src){

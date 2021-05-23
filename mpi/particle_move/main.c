@@ -10,19 +10,18 @@
 #include "funcs.h"
 #include "mpi.h"
 
-#define N 2
-
 
 int main(int argc, char **argv){
 
 	int nproc, rank;
-	int c, i;
+	int ndims[2], coords[2];
+	int c;
 	bool serial = false;
 	bool mpi = false;
-	int ndims[2] = {0, 0};
 	int periods[2] = {0, 0}; //Make both dims periodic
 	int reorder = true; //Let MPI assign arbitrary ranks if it deems it necessary	
-	
+	int nbrup, nbrdown, nbrleft, nbrright;
+
 	//Handle arguments
 	while((c = getopt(argc,argv, "a:b")) != -1){
 		switch(c){
@@ -58,55 +57,50 @@ int main(int argc, char **argv){
 	
 
 	if (mpi == true){
-
+		
+		MPI_Comm cart_comm;
 		MPI_Init(&argc, &argv);
 		MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 		MPI_Comm_size(MPI_COMM_WORLD, &nproc);
 	
-    		if (nproc < 2) {
-        		fprintf(stderr,"Requires at least two processes.\n");
+    		if (nproc != 4 && nproc != 8) {
+        		fprintf(stderr,"Requires at least four processes.\n");
         		exit(-1);
     		} 
-     
-		// Create a communicator given the 2D torus topology.
-		MPI_Dims_create(nproc, 2, ndims);
-		MPI_Comm cart_comm;
+
+		// Calculate dims and create a communicator given the 2D torus topology.
+		calc_dims(nproc,ndims);
+		
+		if (rank == 0){
+			printf("Process decomposition is %3d %3d\n", ndims[0], ndims[1]);
+		}
+
+		//Set periods for wraparound connection
+		periods[0] = periods[1] = 1;
+	
         	MPI_Cart_create(MPI_COMM_WORLD, 2, ndims, periods, reorder, &cart_comm); 
                           
-		//Declare neighbours
-		enum DIRECTIONS {DOWN,UP,LEFT,RIGHT};
-		char* neighbours_names[4] = {"down", "up", "left", "right"};
-		int neighbours_ranks[4];
+		//Find new ranks
+		MPI_Comm_rank(cart_comm, &rank);
     
-		//Let consider dims[0] = X, so the shift tells us our left and right neighbours
-		MPI_Cart_shift(cart_comm, 0, 1, &neighbours_ranks[LEFT], &neighbours_ranks[RIGHT]);
-	      
-		// Let consider dims[1] = Y, so the shift tells us our up and down neighbours
-		MPI_Cart_shift(cart_comm, 1, 1, &neighbours_ranks[DOWN], &neighbours_ranks[UP]);
-
-       		// My rank in the new communicator
-     	        MPI_Comm_rank(cart_comm, &rank);
-	
 		//Get my coords in the new communicator
-		int my_coords[2];
-    		MPI_Cart_coords(cart_comm, rank, 2, my_coords);
- 
-		for(i = 0; i < N; i++){
-       			if(neighbours_ranks[i] == MPI_PROC_NULL){
-	            		printf("[MPI process %d] I have no %s neighbour.\n", rank, neighbours_names[i]);
-	        	}else{
-	            		printf("[MPI process %d] I have a %s neighbour: process %d.\n", rank, neighbours_names[i], neighbours_ranks[i]);
-			}
-    		}
-			
+    		MPI_Cart_coords(cart_comm, rank, 2, coords);	
+
+		//Get ranks in neighbouring procs
+		MPI_Cart_shift(cart_comm, 0, 1, &nbrleft, &nbrright);
+		MPI_Cart_shift(cart_comm, 1, 1, &nbrdown, &nbrup);
 	
-    		// Print my location in the 2D torus.
-   		printf("[MPI process %d] I am located at (%d, %d).\n", rank, my_coords[0],my_coords[1]);
-		
+		//Determine dims of local matrix block
+		//
+	
+		// Print my location in the 2D torus.
+   		printf("[MPI process %d] I am located at (%d, %d).\n", rank, coords[0],coords[1]);
+
 		//Execute list_mpi
 		printf("This is the result of the MPI version: \n");
 		list_mpi(first,&second,cart_comm);
 		
+		MPI_Comm_free(&cart_comm);	
 		MPI_Finalize();
 	}	
 	

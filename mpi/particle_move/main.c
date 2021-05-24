@@ -58,6 +58,8 @@ int main(int argc, char **argv){
 
 	if (mpi == true){
 		
+		printf("This is the result of the MPI version: \n");
+		double t2, t1;	
 		MPI_Comm cart_comm;
 		MPI_Init(&argc, &argv);
 		MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -67,6 +69,7 @@ int main(int argc, char **argv){
         		fprintf(stderr,"Requires at least four processes.\n");
         		exit(-1);
     		} 
+
 
 		// Calculate dims and create a communicator given the 2D torus topology.
 		calc_dims(nproc,ndims);
@@ -95,11 +98,14 @@ int main(int argc, char **argv){
 	
 		// Print my location in the 2D torus.
    		printf("[MPI process %d] I am located at (%d, %d).\n", rank, coords[0],coords[1]);
-
-		//Execute list_mpi
-		printf("This is the result of the MPI version: \n");
-		list_mpi(first,&second,cart_comm);
 		
+		t1 = MPI_Wtime();
+		//Execute list_mpi
+		list_mpi(first,&second,cart_comm);
+		t2 = MPI_Wtime();
+		printf("Time taken: %2.2f\n",t2-t1);
+
+			
 		MPI_Comm_free(&cart_comm);	
 		MPI_Finalize();
 	}	

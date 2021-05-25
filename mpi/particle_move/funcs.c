@@ -8,7 +8,8 @@
 #include "mpi.h"
 #include "funcs.h"
 
-#define N 8
+#define NP 4
+#define GRID_SIZE 2
 
 //Calculate dims
 void calc_dims(int nproc, int *ndims){
@@ -80,96 +81,110 @@ void list(list_a_t *first, list_b_t *second){
 
 void list_mpi(list_a_t *first, list_b_t *second, MPI_Comm cart_comm){
 	
-	int i, j;
+	//int i, j;
 	srand(time(NULL));
-	double **global, **local;
+	double **global, *local, *local_array;
     	int rank;
-	int nproc = N;
-	const int gridsize = N;
-	const int procgridsize = 8;
 	//const int tag = 13;
-	//MPI_Status stat;
+	MPI_Status stat;
 	//double x = DBL_MAX;
+	int matsize[2], matsize_local;
+	int nrows, ncols;
+	int row, col;
+	int irow, icol;
+	int pproc, iproc, jproc, myid;
+	int nrows_local, ncols_local;
+	int global_row_id, global_col_id, local_id;	
+	int src, dest, recv_tag, send_tag;
+	MPI_Comm row_comm, col_comm;
 
 	//Parallel setup	
 	MPI_Comm_rank(cart_comm, &rank);
 
-	if (rank == 0){	
-	
-		//Init matrix
-		global = matrix_new(first->size, first->dim);
-		printf("Global matrix is: \n");
-		for(i=0;i<first->size;i++){
-			for(j=0;j<first->dim;j++){
-				global[i][j] = rand() % 20;
-				printf("%2f ", global[i][j]);
+	if(rank == 0){
+		//Set matrix size
+		matsize[0] = nrows = first->size;
+		matsize[1] = ncols = first->dim;
+
+		//Init global matrix
+		global = (double **)malloc (nrows * sizeof(double *));
+		for (irow=0; irow<nrows; irow++){
+			global[irow] = (double *)malloc(ncols * sizeof(double));
+			for(icol=0; icol<ncols; icol++){
+				global[irow][icol] = rand() % 20;
+				printf("%2f ", global[irow][icol]);
 			}
 			printf("\n");
 		}
 	}
+	MPI_Barrier(cart_comm);
 	
-	//create local matrix
-	local = matrix_new(first->size/procgridsize, first->dim/procgridsize);  
-	//Create datatype to describe the submatrices of the global matrix
-	int sizes[2] = {gridsize,gridsize};
-	int subsize[2] = {gridsize/procgridsize,gridsize/procgridsize};
-	int starts[2] = {0,0};
-	MPI_Datatype grid, subgrid;
-	MPI_Type_create_subarray(2, sizes, subsize, starts, MPI_ORDER_C, MPI_DOUBLE, &grid);
-	MPI_Type_create_resized(grid, 0, gridsize/procgridsize*sizeof(int), &subgrid);
-	MPI_Type_commit(&subgrid); 
- 
-	double *globalptr = NULL;
-	if (rank == 0){
-		globalptr = &(global[0][0]);
-	}
+	//Bcast matrix size to all procs
+	MPI_Bcast(matsize, 2, MPI_INT, 0, cart_comm);
+	nrows = matsize[0];
+	ncols = matsize[1];
 
-	//Scatter to all procs
-	int sendcount[procgridsize*procgridsize];
-	int disp[procgridsize*procgridsize];
-
-	if (rank == 0){
-		for(i=0;i<procgridsize*procgridsize; i++){
-			sendcount[i] = 1;
+	//Stopping condition for unequal proportions
+	if (nrows != ncols){
+		MPI_Finalize();
+		if (rank == 0){
+			printf("Matrix not proportional");
 		}
-		int d = 0;
-		for(i=0;i<procgridsize;i++){
-			for(j=0;j<procgridsize;j++){
-				disp[i*procgridsize+j] = d;
-				d += 1;
-			}
-			d += ((gridsize/procgridsize)-1)*procgridsize;
-		}
+		exit(-1);
 	}
 	
-	MPI_Scatterv(globalptr, sendcount, disp, subgrid, &(local[0][0]),
-			gridsize*gridsize/(procgridsize*procgridsize),MPI_DOUBLE,0,cart_comm);
+	nrows_local = nrows /pproc;
+	ncols_local = ncols /pproc;
 
-	//Procs print their local data
-	int p;
-	for (p=0;p<nproc;p++){     
-		if(rank == p){
-			printf("Local proc on rank %d is: \n", rank);
-			for (i=0;i<gridsize/procgridsize;i++){
-				putchar('|');
-				for (j=0;j<gridsize/procgridsize;j++){
-					printf("%10f ", local[i][j]);
+	matsize_local = nrows_local * ncols_local;
+	
+	//create local matrices
+	local = (double *)malloc(matsize_local * sizeof(double));
+	//Put data in 1 dim arrays prior to scatter
+	local_array = (double *)malloc(sizeof(double) * nrows * ncols);
+	//Rarrange them in the appropriate order
+	if (rank == 0){
+		for (iproc=0; iproc<pproc; iproc++){
+			for (jproc=0; jproc<pproc; jproc++){
+				myid = iproc * pproc + jproc;
+				 for (irow=0; irow<nrows_local; irow++){
+					global_row_id = iproc * nrows_local + irow;
+					for (icol=0; icol < ncols_local; icol++){
+						local_id = (myid * matsize_local) +
+							(irow * ncols_local) + icol;
+						global_col_id = jproc * ncols_local + icol;
+						local_array[local_id] = global[global_row_id][global_col_id];
+					}
 				}
-				printf("|\n");
 			}
 		}
-		MPI_Barrier(MPI_COMM_WORLD);
-	
- 
-		//Now process local grids before gathering back to 0
-		for (i=0;i<gridsize/procgridsize;i++){
-			for(j=0;j<gridsize/procgridsize;j++){
-				local[i][j] += 1;
-			}
-		}
+	}
+	MPI_Barrier(cart_comm);
+	//Scatter data to procs
+	MPI_Scatter(local_array, matsize_local, MPI_DOUBLE, local,
+		matsize_local,MPI_DOUBLE,0,cart_comm);
 
-		/*
-		//Do send and recv
+	//Arrange the cols and rows of the matrices using sendrecv_replace so that
+	//the data that is being send is replaced by the data received
+	if (row != 0){
+		src = (col + row) % pproc;
+		dest = (col + pproc - row) % pproc;
+		recv_tag = 0;
+		send_tag = 0;
+		MPI_Sendrecv_replace(local, matsize_local, MPI_DOUBLE, dest, send_tag, src, recv_tag, row_comm, &stat);
+	}	
+	if (col != 0){
+		src = (row + col) % pproc;
+		dest = (row + pproc - col) % pproc;
+		recv_tag = 0;
+		send_tag = 0;
+		MPI_Sendrecv_replace(local, matsize_local, MPI_DOUBLE, dest, send_tag, src, recv_tag, col_comm, &stat);
+	}
+	
+
+	//Allocate space for C - solution buffer
+
+	//Do send and recv
 		if (rank == p){
 	
 			//Init second list
@@ -202,23 +217,9 @@ void list_mpi(list_a_t *first, list_b_t *second, MPI_Comm cart_comm){
 				printf("Received solution %f from rank %d\n",second->solution[i],rank);
 			}	
 		}
-		*/
+		
 	}
 	MPI_Gatherv(&(local[0][0]), gridsize*gridsize/(procgridsize*procgridsize), MPI_DOUBLE, globalptr, sendcount, disp, subgrid, 0, cart_comm);
 	
-	//Free type resource
-	MPI_Type_free(&subgrid);
-	
-	//Display new grid
-	if(rank == 0){
-		for (i=0;i<gridsize;i++){
-			for(j=0;j<gridsize;j++){
-				printf("%2f ", global[i][j]);
-			}
-		printf("\n");
-		}		
-		matrix_free(local, first->size/procgridsize);
-		matrix_free(global, first->size);
-	}
 }
 

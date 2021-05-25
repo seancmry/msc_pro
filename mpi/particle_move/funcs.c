@@ -81,13 +81,12 @@ void list(list_a_t *first, list_b_t *second){
 
 void list_mpi(list_a_t *first, list_b_t *second, MPI_Comm cart_comm){
 	
-	//int i, j;
+	int i, iter;
 	srand(time(NULL));
-	double **global, *local, *local_array;
+	double **global, *local, *local_array, *solution_array;
     	int rank;
-	//const int tag = 13;
 	MPI_Status stat;
-	//double x = DBL_MAX;
+	double x = DBL_MAX;
 	int matsize[2], matsize_local;
 	int nrows, ncols;
 	int row, col;
@@ -147,15 +146,13 @@ void list_mpi(list_a_t *first, list_b_t *second, MPI_Comm cart_comm){
 		for (iproc=0; iproc<pproc; iproc++){
 			for (jproc=0; jproc<pproc; jproc++){
 				myid = iproc * pproc + jproc;
-				 for (irow=0; irow<nrows_local; irow++){
-					global_row_id = iproc * nrows_local + irow;
+					global_row_id = iproc * nrows_local * irow;
 					for (icol=0; icol < ncols_local; icol++){
 						local_id = (myid * matsize_local) +
 							(irow * ncols_local) + icol;
 						global_col_id = jproc * ncols_local + icol;
 						local_array[local_id] = global[global_row_id][global_col_id];
 					}
-				}
 			}
 		}
 	}
@@ -182,44 +179,86 @@ void list_mpi(list_a_t *first, list_b_t *second, MPI_Comm cart_comm){
 	}
 	
 
-	//Allocate space for C - solution buffer
-
-	//Do send and recv
-		if (rank == p){
-	
-			//Init second list
-			list_b_t *second = malloc(sizeof(list_b_t));
-			// allocate memory for the best position buffer
-   			second->solution = (double *)malloc(first->dim * sizeof(double));
-			second->error = x;
-			MPI_Bcast(&second->error,1,MPI_DOUBLE,0,cart_comm);	
-	
-			//Move data to buffer	
-			for(i=0;i<first->size;i++){
-	     			memmove((void *)second->solution, (void *)global[i], sizeof(double) * first->dim);	
-				//Send
-				MPI_Send(second->solution,first->dim,MPI_DOUBLE,1,tag,cart_comm);
-			}	
-			free(second->solution);
-			free(second);
-		}
-		else {
-	
-			list_b_t *second = malloc(sizeof(list_b_t));
-			second->error = x;
-			MPI_Bcast(&second->error,1,MPI_DOUBLE,0,cart_comm);		
-	
-			second->solution = (double *)malloc(first->dim * sizeof(double));
-			MPI_Recv(second->solution,first->dim,MPI_DOUBLE,0,tag,cart_comm, &stat);
-			//MPI_Recv(&second->error,first->dim,MPI_DOUBLE,src,tag,MPI_COMM_WORLD, &stat);
-		
-			for (i=0;i<first->dim;++i){
-				printf("Received solution %f from rank %d\n",second->solution[i],rank);
-			}	
-		}
-		
+	//Allocate space for solution buffer
+	//Init second list
+	//list_b_t second = malloc(sizeof(list_b_t));
+	// allocate memory for the best position buffer
+   	second->solution = (double *)malloc(nrows_local * sizeof(double));
+	for(i=0; i<nrows_local; i++){
+		second->solution[i] = 0;
 	}
-	MPI_Gatherv(&(local[0][0]), gridsize*gridsize/(procgridsize*procgridsize), MPI_DOUBLE, globalptr, sendcount, disp, subgrid, 0, cart_comm);
+	second->error = x;
+	MPI_Bcast(&second->error,1,MPI_DOUBLE,0,cart_comm);	
 	
+	//Main loop for sending data
+	send_tag = 0;
+	recv_tag = 0;
+	for(iter=0; iter<pproc; iter++){
+		i = 0;
+		for (irow=0; irow<nrows_local;irow++){
+			for(icol=0; icol<ncols_local; icol++){ 
+				//Move data to buffer	
+	     			//memmove((void *)second->solution, (void *)local[irow], sizeof(double) * ncols_local);	
+			}
+		}
+		//Send left
+		src = (col + 1) % pproc;
+		dest = (col + pproc - 1) % pproc;
+		MPI_Sendrecv_replace(local, matsize_local, MPI_DOUBLE, dest, send_tag, src, recv_tag, row_comm, &stat);
+	}	
+	//Memory for output global matrix in the form of array
+	if (rank == 0){
+		solution_array = (double *)malloc(sizeof(double) * nrows);
+	}
+	MPI_Barrier(cart_comm);
+
+	//Gather output blocks at process 0
+	MPI_Gather(local_array, nrows, MPI_DOUBLE, solution_array, nrows, MPI_DOUBLE, 0, cart_comm);
+
+	//Memory for output global array for solution after rearrangement
+	if (rank == 0){
+		second->solution = (double *)malloc(nrows * sizeof(double));
+	} 
+
+	//Arrange the output in order
+	if (rank == 0){
+		for (iproc=0; iproc<pproc; iproc++){
+			for (jproc=0; jproc<pproc; jproc++){
+				myid = iproc * pproc + jproc;
+				for (irow=0; irow<nrows_local; irow++){
+					global_row_id = iproc * nrows_local * irow;
+					for (icol=0; icol < ncols_local; icol++){
+						local_id = (myid * matsize_local) +
+							(irow * ncols_local) + icol;
+						global_col_id = jproc * ncols_local + icol;
+						//second->solution[global_row_id][global_col_id] = solution_array[local_id];
+					}
+				}
+			}
+		}
+		//Print results
+		printf("RESULTS: \n");
+		printf(" Process %d, Global matrix : dimension %d * %d : \n", rank, nrows, ncols);
+		for(irow = 0; irow < nrows; irow++){
+			for(icol=0; icol<ncols; icol++){
+				printf("%5f ", global[irow][icol]);
+				printf("\n");
+			}
+			printf("\n");
+		}
+		printf(" Process %d, Solution array : dimension %d * %d : \n", rank, nrows, ncols);
+		for(irow = 0; irow < nrows; irow++){
+			for(icol=0; icol<ncols; icol++){
+				//printf("%5f ", second->solution[irow][icol]);
+				printf("\n");
+			}
+			printf("\n");
+		}
+
+	}
+	//Free resources
+	free(second->solution);
+	free(second);
 }
+
 

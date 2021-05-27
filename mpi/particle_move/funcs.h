@@ -20,6 +20,6 @@ void calc_dims(int nproc, int *ndims);
 list_a_t *list_new(int dim);
 void list(list_a_t *first, list_b_t *second);
 void *memmove_mpi(void* dest, const void* src, unsigned int n);
-void list_mpi(list_a_t *first, list_b_t *second, MPI_Comm cart_comm);
+void list_mpi(list_a_t *first, list_b_t *second, int row, int col, MPI_Comm cart_comm, MPI_Comm row_comm, MPI_Comm col_comm);
 
 #endif

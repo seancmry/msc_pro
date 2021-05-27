@@ -88,10 +88,7 @@ int main(int argc, char **argv){
 		periods[0] = periods[1] = 1;
 	
         	MPI_Cart_create(MPI_COMM_WORLD, DIMS, ndims, periods, 1, &cart_comm); 
-                          
-		//Find new ranks
-		MPI_Comm_rank(cart_comm, &rank);
-    
+                           
 		//Get my coords in the new communicator
     		MPI_Cart_coords(cart_comm, rank, DIMS, coords);	
 
@@ -113,7 +110,7 @@ int main(int argc, char **argv){
 
 		t1 = MPI_Wtime();
 		//Execute list_mpi
-		list_mpi(first,&second,cart_comm);
+		list_mpi(first,&second,row,col,cart_comm,row_comm,col_comm);
 		t2 = MPI_Wtime();
 		printf("Time taken: %2.2f\n",t2-t1);
 

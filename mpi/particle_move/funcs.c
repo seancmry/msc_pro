@@ -79,9 +79,9 @@ void list(list_a_t *first, list_b_t *second){
 
 
 
-void list_mpi(list_a_t *first, list_b_t *second, MPI_Comm cart_comm){
+void list_mpi(list_a_t *first, list_b_t *second, int row, int col, MPI_Comm cart_comm, MPI_Comm row_comm, MPI_Comm col_comm){
 	
-	int i, iter;
+	int iter;
 	srand(time(NULL));
 	double **global, *local, *local_array, *solution_array;
     	int rank;
@@ -89,13 +89,12 @@ void list_mpi(list_a_t *first, list_b_t *second, MPI_Comm cart_comm){
 	double x = DBL_MAX;
 	int matsize[2], matsize_local;
 	int nrows, ncols;
-	int row, col;
 	int irow, icol;
-	int pproc, iproc, jproc, myid;
+	int pproc = 0;
+	int iproc, jproc, myid;
 	int nrows_local, ncols_local;
 	int global_row_id, global_col_id, local_id;	
 	int src, dest, recv_tag, send_tag;
-	MPI_Comm row_comm, col_comm;
 
 	//Parallel setup	
 	MPI_Comm_rank(cart_comm, &rank);
@@ -162,7 +161,7 @@ void list_mpi(list_a_t *first, list_b_t *second, MPI_Comm cart_comm){
 		matsize_local,MPI_DOUBLE,0,cart_comm);
 
 	//Arrange the cols and rows of the matrices using sendrecv_replace so that
-	//the data that is being send is replaced by the data received
+	//the data that is being sent and replaced in the same buffer
 	if (row != 0){
 		src = (col + row) % pproc;
 		dest = (col + pproc - row) % pproc;
@@ -184,8 +183,8 @@ void list_mpi(list_a_t *first, list_b_t *second, MPI_Comm cart_comm){
 	//list_b_t second = malloc(sizeof(list_b_t));
 	// allocate memory for the best position buffer
    	second->solution = (double *)malloc(nrows_local * sizeof(double));
-	for(i=0; i<nrows_local; i++){
-		second->solution[i] = 0;
+	for(irow=0; irow<nrows_local; irow++){
+		second->solution[irow] = 0;
 	}
 	second->error = x;
 	MPI_Bcast(&second->error,1,MPI_DOUBLE,0,cart_comm);	
@@ -194,17 +193,14 @@ void list_mpi(list_a_t *first, list_b_t *second, MPI_Comm cart_comm){
 	send_tag = 0;
 	recv_tag = 0;
 	for(iter=0; iter<pproc; iter++){
-		i = 0;
 		for (irow=0; irow<nrows_local;irow++){
-			for(icol=0; icol<ncols_local; icol++){ 
 				//Move data to buffer	
-	     			//memmove((void *)second->solution, (void *)local[irow], sizeof(double) * ncols_local);	
-			}
+	     			second->solution[irow] = local[irow];	
 		}
 		//Send left
 		src = (col + 1) % pproc;
 		dest = (col + pproc - 1) % pproc;
-		MPI_Sendrecv_replace(local, matsize_local, MPI_DOUBLE, dest, send_tag, src, recv_tag, row_comm, &stat);
+		MPI_Sendrecv_replace(&second->solution, 1, MPI_DOUBLE, dest, send_tag, src, recv_tag, row_comm, &stat);
 	}	
 	//Memory for output global matrix in the form of array
 	if (rank == 0){
@@ -230,8 +226,7 @@ void list_mpi(list_a_t *first, list_b_t *second, MPI_Comm cart_comm){
 					for (icol=0; icol < ncols_local; icol++){
 						local_id = (myid * matsize_local) +
 							(irow * ncols_local) + icol;
-						global_col_id = jproc * ncols_local + icol;
-						//second->solution[global_row_id][global_col_id] = solution_array[local_id];
+						second->solution[global_row_id] = solution_array[local_id];
 					}
 				}
 			}
@@ -248,14 +243,12 @@ void list_mpi(list_a_t *first, list_b_t *second, MPI_Comm cart_comm){
 		}
 		printf(" Process %d, Solution array : dimension %d * %d : \n", rank, nrows, ncols);
 		for(irow = 0; irow < nrows; irow++){
-			for(icol=0; icol<ncols; icol++){
-				//printf("%5f ", second->solution[irow][icol]);
-				printf("\n");
+				printf("%5f ", second->solution[irow]);
 			}
 			printf("\n");
 		}
 
-	}
+	
 	//Free resources
 	free(second->solution);
 	free(second);

@@ -15,7 +15,7 @@
 
 int main(int argc, char **argv){
 
-	int nproc, pproc, row, col, rank;
+	int nproc, row, col, rank;
 	int ndims[2], subdims[2], coords[2];
 	int c;
 	bool serial = false;
@@ -78,11 +78,6 @@ int main(int argc, char **argv){
 		if (rank == 0){
 			printf("Process decomposition is %3d %3d\n", ndims[0], ndims[1]);
 		}
-
-		pproc = (int)sqrt((double)nproc);
-
-		//Set dimensions in order for row/col
-		ndims[0] = ndims[1] = pproc;
 
 		//Set periods for wraparound connection
 		periods[0] = periods[1] = 1;

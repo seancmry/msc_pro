@@ -177,35 +177,46 @@ void list_mpi(list_a_t *first, list_b_t *second, int row, int col, MPI_Comm cart
 		MPI_Sendrecv_replace(local, matsize_local, MPI_DOUBLE, dest, send_tag, src, recv_tag, col_comm, &stat);
 	}
 	
-
-	//Allocate space for solution buffer
-	//Init second list
-	//list_b_t second = malloc(sizeof(list_b_t));
-	// allocate memory for the best position buffer
-   	second->solution = (double *)malloc(nrows_local * sizeof(double));
-	for(irow=0; irow<nrows_local; irow++){
-		second->solution[irow] = 0;
-	}
-	second->error = x;
-	MPI_Bcast(&second->error,1,MPI_DOUBLE,0,cart_comm);	
-	
-	//Main loop for sending data
-	send_tag = 0;
-	recv_tag = 0;
-	for(iter=0; iter<pproc; iter++){
-		for (irow=0; irow<nrows_local;irow++){
-				//Move data to buffer	
-	     			second->solution[irow] = local[irow];	
-		}
-		//Send left
-		src = (col + 1) % pproc;
-		dest = (col + pproc - 1) % pproc;
-		MPI_Sendrecv_replace(&second->solution, 1, MPI_DOUBLE, dest, send_tag, src, recv_tag, row_comm, &stat);
-	}	
-	//Memory for output global matrix in the form of array
+	//Main loop
 	if (rank == 0){
+		//Allocate space for solution buffer
+		//Init second list
+		//list_b_t second = malloc(sizeof(list_b_t));
+		// allocate memory for the best position buffer
+   		second->solution = (double *)malloc(nrows_local * sizeof(double));
+		//Memory for output global matrix in the form of array
 		solution_array = (double *)malloc(sizeof(double) * nrows);
+		second->error = x;
+		MPI_Bcast(&second->error,1,MPI_DOUBLE,0,cart_comm);	
+	
+		//Main loop for moving data
+		for(iter=0; iter<pproc; iter++){
+			for (irow=0; irow<nrows_local;irow++){
+					//Move data to buffer	
+	     				memmove(&solution_array[irow], &local_array[irow], sizeof(double) * nrows);
+				MPI_Send(&solution_array,nrows,MPI_DOUBLE,second->solution[irow],0,cart_comm);
+			}
+		}		
+		//Free resources
+		free(second->solution);
+		//free(second);
+	} else {
+		//Allocate space for solution buffer
+		//Init second list
+		//list_b_t second = malloc(sizeof(list_b_t));
+		// allocate memory for the best position buffer
+   		second->solution = (double *)malloc(nrows_local * sizeof(double));
+		//Memory for output global matrix in the form of array
+		solution_array = (double *)malloc(sizeof(double) * nrows);
+		second->error = x;
+		MPI_Bcast(&second->error,1,MPI_DOUBLE,0,cart_comm);	
+	
+		//Main loop for recv
+		for(iter=0; iter<pproc; iter++){
+			MPI_Recv(&second->solution,nrows,MPI_DOUBLE,solution_array[irow],0,cart_comm, &stat);
+		}		
 	}
+
 	MPI_Barrier(cart_comm);
 
 	//Gather output blocks at process 0
@@ -224,8 +235,6 @@ void list_mpi(list_a_t *first, list_b_t *second, int row, int col, MPI_Comm cart
 				for (irow=0; irow<nrows_local; irow++){
 					global_row_id = iproc * nrows_local * irow;
 					for (icol=0; icol < ncols_local; icol++){
-						local_id = (myid * matsize_local) +
-							(irow * ncols_local) + icol;
 						second->solution[global_row_id] = solution_array[local_id];
 					}
 				}
@@ -248,10 +257,6 @@ void list_mpi(list_a_t *first, list_b_t *second, int row, int col, MPI_Comm cart
 			printf("\n");
 		}
 
-	
-	//Free resources
-	free(second->solution);
-	free(second);
 }
 
 

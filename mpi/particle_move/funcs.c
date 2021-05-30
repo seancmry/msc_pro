@@ -9,7 +9,7 @@
 #include "funcs.h"
 
 #define NP 4
-#define GRID_SIZE 2
+#define GRID_SIZE 4
 
 //Calculate dims
 void calc_dims(int nproc, int *ndims){
@@ -88,16 +88,14 @@ void list_mpi(list_a_t *first, list_b_t *second, int row, int col, MPI_Comm cart
 	MPI_Status stat;
 	MPI_Request req;
 	double x = DBL_MAX;
-	int ndims[2];
 	int matsize[2], matsize_local;
 	int nrows, ncols;
 	int irow, icol;
-	int pproc; 
-	int nproc = NP;
+	int pproc = GRID_SIZE; 
 	int iproc, jproc, myid;
 	int nrows_local, ncols_local;
 	int global_row_id, global_col_id, local_id;	
-	int src, dest, recv_tag, send_tag;
+	
 
 	//Parallel setup	
 	MPI_Comm_rank(cart_comm, &rank);
@@ -115,9 +113,9 @@ void list_mpi(list_a_t *first, list_b_t *second, int row, int col, MPI_Comm cart
 			global[irow] = (double *)malloc(ncols * sizeof(double));
 			for(icol=0; icol<ncols; icol++){
 				global[irow][icol] = rand() % 20;
-				printf("%2f ", global[irow][icol]);
+				//printf("%2f ", global[irow][icol]);
 			}
-			printf("\n");
+			//printf("\n");
 		}
 	}
 	MPI_Barrier(cart_comm);
@@ -136,13 +134,8 @@ void list_mpi(list_a_t *first, list_b_t *second, int row, int col, MPI_Comm cart
 		exit(-1);
 	}
 
-	//Portion processes
-	pproc = (int)sqrt((double)nproc);
-	//Set dimensions in order for row/col
-	ndims[0] = ndims[1] = pproc;
-	
-	nrows_local = nrows /pproc;
-	ncols_local = ncols /pproc;
+	nrows_local = nrows/pproc;
+	ncols_local = ncols/pproc;
 	
 	matsize_local = nrows_local * ncols_local;
 
@@ -168,28 +161,14 @@ void list_mpi(list_a_t *first, list_b_t *second, int row, int col, MPI_Comm cart
 		}
 	}
 	MPI_Barrier(cart_comm);
-/*
+
 	//Scatter data to procs
 	MPI_Scatter(local_array, matsize_local, MPI_DOUBLE, local,
 		matsize_local,MPI_DOUBLE,0,cart_comm);
 
-	//Arrange the cols and rows of the matrices using sendrecv_replace so that
-	//the data that is being sent and replaced in the same buffer
-	if (row != 0){
-		src = (col + row) % pproc;
-		dest = (col + pproc - row) % pproc;
-		recv_tag = 0;
-		send_tag = 0;
-		MPI_Sendrecv_replace(local, matsize_local, MPI_DOUBLE, dest, send_tag, src, recv_tag, row_comm, &stat);
-	}	
-	if (col != 0){
-		src = (row + col) % pproc;
-		dest = (row + pproc - col) % pproc;
-		recv_tag = 0;
-		send_tag = 0;
-		MPI_Sendrecv_replace(local, matsize_local, MPI_DOUBLE, dest, send_tag, src, recv_tag, col_comm, &stat);
-	}
+
 	
+
 	//Main loop
 	if(rank == 0){
 		//Init solution buffer
@@ -201,8 +180,8 @@ void list_mpi(list_a_t *first, list_b_t *second, int row, int col, MPI_Comm cart
 	}
 		
 	//Create solution array to receive the local matrices outputs
-	solution_array = (double *)malloc(sizeof(double) * nrows_local);
-	for (index=0; index<nrows_local; index++){
+	solution_array = (double *)malloc(sizeof(double) * nrows);
+	for (index=0; index<nrows; index++){
 		solution_array[index] = 0;
 	}
 	second->error = x;
@@ -211,15 +190,15 @@ void list_mpi(list_a_t *first, list_b_t *second, int row, int col, MPI_Comm cart
 	//Main loop for moving data
 	for(iter=0; iter<pproc; iter++){
 		index = 0;
-		for (irow=0; irow<nrows_local;irow++){
+		for (irow=0; irow<nrows;irow++){
 			//Copy data
 			solution_array[index] += local[irow];
 			printf("solution_array: %f\n", solution_array[irow]);
 		}	
 		index++;
 		
-		MPI_Send(solution_array,1,MPI_DOUBLE,dest,0,cart_comm);
-		MPI_Irecv(solution_array,1,MPI_DOUBLE,src,0,cart_comm, &req);		
+		//MPI_Send(solution_array,1,MPI_DOUBLE,dest,0,cart_comm);
+		//MPI_Irecv(solution_array,1,MPI_DOUBLE,src,0,cart_comm, &req);	
 	}
 	MPI_Barrier(cart_comm);
 	
@@ -240,16 +219,17 @@ void list_mpi(list_a_t *first, list_b_t *second, int row, int col, MPI_Comm cart
 		}
 	}
 
+
 	//Print results
-	printf("RESULTS: \n");
 	printf(" Process %d, Global matrix : dimension %d * %d : \n", rank, nrows, ncols);
 	for(irow = 0; irow < nrows; irow++){
 		for(icol=0; icol<ncols; icol++){
 			printf("%5f ", global[irow][icol]);
-			printf("\n");
 		}
 		printf("\n");
 	}
+
+/*
 	printf(" Process %d, Solution array : dimension %d * %d : \n", rank, nrows, ncols);
 	for(irow = 0; irow < nrows; irow++){
 		printf("%5f ", second->solution[irow]);
@@ -263,7 +243,6 @@ void list_mpi(list_a_t *first, list_b_t *second, int row, int col, MPI_Comm cart
 		free(second->solution);
 	}
 */
-
 }
 
 

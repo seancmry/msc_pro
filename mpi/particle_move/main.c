@@ -13,15 +13,16 @@
 #define DIMS 2
 
 
+
 int main(int argc, char **argv){
 
-	int nproc, row, col, rank;
+	int nproc, pproc, row, col, rank;
 	int ndims[2], subdims[2], coords[2];
 	int c;
 	bool serial = false;
 	bool mpi = false;
 	int periods[2] = {0, 0}; //Make both dims periodic
-
+	//int nbr[4];
 
 	//Handle arguments
 	while((c = getopt(argc,argv, "a:b")) != -1){
@@ -71,7 +72,9 @@ int main(int argc, char **argv){
         		exit(-1);
     		} 
 
-
+		//Portion processes
+		pproc = (int)sqrt((double)nproc);
+		
 		// Calculate dims and create a communicator given the 2D torus topology.
 		calc_dims(nproc,ndims);
 		
@@ -81,11 +84,19 @@ int main(int argc, char **argv){
 
 		//Set periods for wraparound connection
 		periods[0] = periods[1] = 1;
+
+
+		//Set dimensions in order for row/col
+		ndims[0] = ndims[1] = pproc;
 	
         	MPI_Cart_create(MPI_COMM_WORLD, DIMS, ndims, periods, 1, &cart_comm); 
                            
 		//Get my coords in the new communicator
-    		MPI_Cart_coords(cart_comm, rank, DIMS, coords);	
+   		MPI_Cart_coords(cart_comm, rank, DIMS, coords);	
+
+		//Get neighbours
+		//MPI_Cart_shift(cart_comm, 0, 1, &nbr[UP], &nbr[DOWN]);
+		//MPI_Cart_shift(cart_comm, 1, 1, &nbr[LEFT], &nbr[RIGHT]);
 
 		//Create and set new row and column communicators
 		row = coords[0];

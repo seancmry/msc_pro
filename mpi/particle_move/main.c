@@ -16,8 +16,8 @@
 
 int main(int argc, char **argv){
 
-	int nproc, pproc, row, col, rank;
-	int ndims[2], subdims[2], coords[2];
+	int nproc, pproc, rank;
+	int ndims[2], coords[2];
 	int c;
 	bool serial = false;
 	bool mpi = false;
@@ -62,7 +62,7 @@ int main(int argc, char **argv){
 		
 		printf("This is the result of the MPI version: \n");
 		double t2, t1;	
-		MPI_Comm cart_comm, row_comm, col_comm;
+		MPI_Comm cart_comm;
 		MPI_Init(&argc, &argv);
 		MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 		MPI_Comm_size(MPI_COMM_WORLD, &nproc);
@@ -98,25 +98,10 @@ int main(int argc, char **argv){
 		//MPI_Cart_shift(cart_comm, 0, 1, &nbr[UP], &nbr[DOWN]);
 		//MPI_Cart_shift(cart_comm, 1, 1, &nbr[LEFT], &nbr[RIGHT]);
 
-		//Create and set new row and column communicators
-		row = coords[0];
-		col = coords[1];
-		subdims[0] = 0;
-		subdims[1] = 1;
 		
-		//Outputs column communicator containing processes
-		MPI_Cart_sub(cart_comm, subdims, &row_comm);
-		
-		subdims[0] = 1;
-		subdims[1] = 0;
-		
-		//Outputs row communicator
-		MPI_Cart_sub(cart_comm, subdims, &col_comm);
-
-
 		t1 = MPI_Wtime();
 		//Execute list_mpi
-		list_mpi(first,&second,row,col,cart_comm,row_comm,col_comm);
+		list_mpi(first,&second,cart_comm);
 		t2 = MPI_Wtime();
 		printf("Time taken: %2.2f\n",t2-t1);
 

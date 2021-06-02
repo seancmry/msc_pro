@@ -81,7 +81,7 @@ void list(list_a_t *first, list_b_t *second){
 
 void list_mpi(list_a_t *first, list_b_t *second, MPI_Comm cart_comm){
 	
-	int iter;
+	int iter, index;
 	srand(time(NULL));
 	double **global, *local, *local_array, *solution_array;
     	int rank;
@@ -166,38 +166,40 @@ void list_mpi(list_a_t *first, list_b_t *second, MPI_Comm cart_comm){
 		matsize_local,MPI_DOUBLE,0,cart_comm);
 
 
-
+	
 	//Main section
 	if(rank == 0){
 		//Init solution buffer
 		second->solution = (double *)malloc(sizeof(double *) * nrows);
-		for (irow=0;irow<nrows; irow++){
+		for(irow=0; irow<nrows; irow++){
 			second->solution[irow] = 0.0;
-			//printf(" %2f\n", second->solution[irow]);
 		}
 	}
 		
 	//Create solution array to receive the local matrices outputs
-	solution_array = (double *)malloc(sizeof(double) * nrows);
-	for (irow=0; irow<nrows_local; irow++){
-		solution_array[irow] = 0;
+	solution_array = (double *)malloc(sizeof(double) * nrows_local);
+	for (index=0; index<nrows_local; index++){
+		solution_array[index] = 0.0;
 	}
 	second->error = x;
 	MPI_Bcast(&second->error,1,MPI_DOUBLE,0,cart_comm);	
 
 	
-	//Gather output blocks at process 0
 	//for each pproc
-	for (iter=0;iter<pproc; iter++){
-		//for each row
-		for(irow=0; irow<nrows; irow++){
-			MPI_Gather(local_array, nrows, MPI_DOUBLE, solution_array, nrows, MPI_DOUBLE, 0, cart_comm);
+	for (iter=0; iter<pproc; iter++){
+		index = 0;
+		//for each row in each col
+		for(irow=0; irow<nrows_local; irow++){
+			solution_array[index] += local_array[irow*nrows_local];
 		}
-		//printf("solution_array: %f\n", solution_array[irow]); 
+		index++;
+		printf("solution_array: %f\n", solution_array[index]); 
 	}
 	MPI_Barrier(cart_comm);	
-
-
+	
+	//Gather solution arrays in second->solution at process 0
+	MPI_Gather(solution_array, nrows_local, MPI_DOUBLE, second->solution, nrows_local, MPI_DOUBLE, 0, cart_comm);
+	/*
 	//Arrange the output in order
 	if (rank == 0){
 		for (iproc=0; iproc<pproc; iproc++){
@@ -210,31 +212,34 @@ void list_mpi(list_a_t *first, list_b_t *second, MPI_Comm cart_comm){
 			}
 		}
 	}
-
-
+	
+	
 	//Print results
 	printf(" Process %d, Global matrix : dimension %d * %d : \n", rank, nrows, ncols);
-	for(irow = 0; irow < nrows; irow++){
-		for(icol=0; icol<ncols; icol++){
-			printf("%5f ", global[irow][icol]);
+	if (rank == 0){
+		for(irow = 0; irow < nrows; irow++){
+			for(icol=0; icol<ncols; icol++){
+				printf("%5f ", global[irow][icol]);
+			}
+			printf("\n");
+		}
+	}
+	
+	
+		printf(" Process %d, Solution array : dimension %d * 1 : \n", rank, nrows);
+		for(irow=0; irow < nrows; irow++){
+			printf("%5f ", second->solution[irow]);
 		}
 		printf("\n");
 	}
-
-
-	printf(" Process %d, Solution array : dimension %d * 1 : \n", rank, nrows);
-	for(irow=0; irow < nrows; irow++){
-		printf("%5f ", second->solution[irow]);
-	}
-	printf("\n");
-
+	*/	
 	if (rank == 0){
 		free(local);
 		free(local_array);
 		free(global);
 		free(second->solution);
 	}
-
+		
 }
 
 

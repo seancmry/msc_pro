@@ -13,7 +13,6 @@
 #define DIMS 2
 
 
-
 int main(int argc, char **argv){
 
 	int nproc, pproc, rank;
@@ -42,7 +41,7 @@ int main(int argc, char **argv){
 	list_a_t *first = NULL;
 	list_b_t second;
 
-	first = list_new(10);	
+	first = list_new(12);	
 
 	//RUN ALGS
 	if (serial == true){
@@ -93,7 +92,7 @@ int main(int argc, char **argv){
                            
 		//Get my coords in the new communicator
    		MPI_Cart_coords(cart_comm, rank, DIMS, coords);	
-
+	
 		//Get neighbours
 		//MPI_Cart_shift(cart_comm, 0, 1, &nbr[UP], &nbr[DOWN]);
 		//MPI_Cart_shift(cart_comm, 1, 1, &nbr[LEFT], &nbr[RIGHT]);

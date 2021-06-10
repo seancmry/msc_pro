@@ -83,7 +83,7 @@ void list_mpi(list_a_t *first, list_b_t *second, MPI_Comm cart_comm){
 	
 	int iter, index;
 	srand(time(NULL));
-	double **global, *local, *mat_array, *solution_array;
+	double **global, *local, *mat_array, *solution_bloc;
     	int rank;
 	double x = DBL_MAX;
 	int matsize[2], matsize_local;
@@ -180,10 +180,10 @@ void list_mpi(list_a_t *first, list_b_t *second, MPI_Comm cart_comm){
 	}
 			
 	//Create solution array to receive the local matrices outputs
-	solution_array = (double *)malloc(sizeof(double) * nrows_local);
+	solution_bloc = (double *)malloc(sizeof(double) * nrows_local);
 	for (index=0; index<nrows_local; index++){
-		solution_array[index] = 0.0;
-			//printf("solution_array: %f\n", solution_array[index]);
+		solution_bloc[index] = 0.0;
+			//printf("solution_bloc: %f\n", solution_array[index]);
 			//Prints 12 digits
 	}
 	second->error = x;
@@ -193,25 +193,24 @@ void list_mpi(list_a_t *first, list_b_t *second, MPI_Comm cart_comm){
 
 	/* REARRANGE */	
 	//for each pproc
-	for (iter=1; iter<pproc; iter++){
+	for (iter=NP; iter<pproc; iter++){
 		index = 0;
 		//for each row in each col
 		for(irow=0; irow<nrows_local; irow++){
-			//if(mat_array[irow+(icol-1)*ncols_local] != 0){
+			if(mat_array[irow+(icol-1)*ncols_local] != 0){
 				for(icol=0; icol<ncols_local; icol++){
-					memmove(&solution_array[index], &mat_array[irow + icol * ncols_local], sizeof(double) * ncols_local);
-					printf("solution_array: %f, rank: %d\n", solution_array[index], rank); 
+					memmove(&solution_bloc[index], &mat_array[irow + icol * ncols_local], sizeof(double) * ncols_local);
+					//printf("solution_array: %f, rank: %d\n", solution_bloc[index], rank); 
 				}
-			//}
+			}
 		}
-		//index++;
 	}
 	MPI_Barrier(cart_comm);	
 		
 	//Gather solution arrays in second->solution at process 0
-	MPI_Gather(solution_array, nrows_local, MPI_DOUBLE, second->solution, nrows_local, MPI_DOUBLE, 0, cart_comm);
+	MPI_Gather(solution_bloc, nrows_local, MPI_DOUBLE, second->solution, nrows_local, MPI_DOUBLE, 0, cart_comm);
 	
-	/*		
+			
 	//Arrange the output in order
 	if (rank == 0){
 		for (iproc=0; iproc<pproc; iproc++){
@@ -221,7 +220,7 @@ void list_mpi(list_a_t *first, list_b_t *second, MPI_Comm cart_comm){
 					global_row_id = iproc * nrows_local + irow;
 					for (icol=0; icol<ncols_local; icol++){
 						local_id = (myid * matsize_local) + (irow * ncols_local) + icol;
-						second->solution[global_row_id] = solution_array[local_id];
+						second->solution[global_row_id] = solution_bloc[local_id];
 					}
 				}
 			}
@@ -247,7 +246,7 @@ void list_mpi(list_a_t *first, list_b_t *second, MPI_Comm cart_comm){
 		printf("\n");
 		
 	}		
-	*/	
+		
 	
 	if (rank == 0){
 		free(local);

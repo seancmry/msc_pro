@@ -105,17 +105,17 @@ int main(int argc, char **argv) {
 	MPI_Comm_size(MPI_COMM_WORLD, &nproc);
 	
 	//Create dims
-	MPI_Dims_create(nproc, 2, ndims);
+	//MPI_Dims_create(nproc, 2, ndims);
 
 	//Parse arguments and print options
 	parse_arguments(argc,argv);	
 			
 	//Initialise PSO settings
 	pso_settings_t *settings = NULL; 
-			
+	/*		
 	//Set grid dimensions
 	//MPI_Bcast(&nrows, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
-	nrows = ncols;
+	//nrows = ncols;
 
 	if(nrows != ncols){
 		printf("ERROR: Not possible with given nrows/ncols\n");
@@ -166,16 +166,16 @@ int main(int argc, char **argv) {
 
 	//init_range(unew, uold, f, xs, xe, ys, ye, nx, ny, &fone, &fone, &fone, &fone);
 	//print_grid(unew, nx, ny, xs, xe, ys, ye, coords, settings->dim, cart_comm);
+	*/
 	
 	//Initialise timer
 	struct timing_report* stats = malloc(sizeof(double));
 			
 	//Begin timer
 	start_timer(&(stats->parallel_time));
-		
+	
 	//Execute
-	if(rank == 0)
-		pso_parallel(settings,argc,argv);
+	pso_parallel(settings,argc,argv);
 
 	//Stop timer
 	end_timer(&(stats->parallel_time));
@@ -188,15 +188,8 @@ int main(int argc, char **argv) {
 	//Free timer
 	free(stats);
 	
-	MPI_Type_free(&coltype);
-	MPI_Type_free(&rowtype);
-	MPI_Comm_free(&cart_comm);
+	//MPI_Comm_free(&cart_comm);
 	MPI_Finalize();
-
-	free(g1[0]);
-	free(g1);
-	free(g2[0]);
-	free(g2);
 
 	return 0;    
 }
@@ -211,22 +204,22 @@ void pso_parallel(pso_settings_t *settings, int argc, char **argv) {
     		if (argc == 2) {
         		if (strcmp(argv[1], "ackley") == 0) {
 				obj_fun = pso_ackley;
-				settings = pso_settings_new(100, -32.8, 32.8);
+				settings = pso_settings_new(50, -32.8, 32.8);
 				printf("Optimising function: ackley (dim=%d, swarm size=%d)\n",
 					settings->dim, settings->size);
 			} else if (strcmp(argv[1], "rosenbrock") == 0) {
             			obj_fun = pso_rosenbrock;
-            			settings = pso_settings_new(100, -2.048, 2.048);
+            			settings = pso_settings_new(50, -2.048, 2.048);
             			printf("Optimizing function: rosenbrock (dim=%d, swarm size=%d)\n",
                    			settings->dim, settings->size);
         		} else if (strcmp(argv[1], "griewank") == 0) {
             			obj_fun = pso_griewank;
-            			settings = pso_settings_new(100, -600, 600);
+            			settings = pso_settings_new(50, -600, 600);
             			printf("Optimizing function: griewank (dim=%d, swarm size=%d)\n",
                    			settings->dim, settings->size);
         		} else if (strcmp(argv[1], "sphere") == 0) {
             			obj_fun = pso_sphere;
-            			settings = pso_settings_new(100, -100, 100);
+            			settings = pso_settings_new(50, -100, 100);
             			printf("Optimizing function: sphere (dim=%d, swarm size=%d)\n",
                    			settings->dim, settings->size);
         		} else {
@@ -235,15 +228,14 @@ void pso_parallel(pso_settings_t *settings, int argc, char **argv) {
         		}
     		} else if (obj_fun == NULL || settings == NULL) {
         		obj_fun = pso_sphere;
-        		settings = pso_settings_new(30, -100, 100);
+        		settings = pso_settings_new(50, -100, 100);
         		printf("Optimizing function: sphere (dim=%d, swarm size=%d)\n",
                    		settings->dim, settings->size);
     		}
 
     		// set some general PSO settings
     		settings->goal = 1e-5;
-    		settings->size = 20;
-    		settings->nhood_strategy = PSO_NHOOD_RING;
+    		//settings->size = 40;
     		settings->nhood_size = 10;
     		settings->w_strategy = PSO_W_LIN_DEC;
 

@@ -14,21 +14,6 @@
 #define PSO_INERTIA 0.7298 // default value of w (see clerc02)
 
 
-// === NEIGHBORHOOD SCHEMES ===
-
-// global best topology
-#define PSO_NHOOD_GLOBAL 0
-
-// ring topology
-#define PSO_NHOOD_RING 1
-
-// Random neighborhood topology
-// **see http://clerc.maurice.free.fr/pso/random_topology.pdf**
-#define PSO_NHOOD_RANDOM 2
-
-//Parallel
-#define PSO_NHOOD_MPI 3
-
 // === INERTIA WEIGHT UPDATE FUNCTIONS ===
 #define PSO_W_CONST 0
 #define PSO_W_LIN_DEC 1
@@ -74,7 +59,6 @@ typedef struct{
 
 	int clamp_pos; // whether to keep particle position within defined bounds (TRUE)
 	// or apply periodic boundary conditions (FALSE)
-	int nhood_strategy; // neighborhood strategy (see PSO_NHOOD_*)
 	int nhood_size; // neighborhood size
 	int w_strategy; // inertia weight strategy (see PSO_W_*)
 
@@ -88,7 +72,7 @@ void pso_serial_settings(pso_settings_t *settings);
 void pso_settings_free(pso_settings_t *settings);
 
 
-double MPI_calc_inertia_lin_dec(int step, pso_settings_t *settings);
+//double MPI_calc_inertia_lin_dec(int step, pso_settings_t *settings);
 
 // set x value limits using two constants
 double **pso_autofill_limits (double x_lo, double x_hi, int dim);

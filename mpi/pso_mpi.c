@@ -6,6 +6,7 @@
 #include <string.h> // for mem*
 #include <stdint.h> //for uintptr_t
 #include <gsl/gsl_rng.h>
+#include <sys/time.h> //for parallel timer
 #include <mpi.h>
 #include <omp.h>
 
@@ -14,12 +15,13 @@
 
 
 #define N 9
-#define DIMS 100 
-#define MAXN 2000
-
-// function type for the different inform functions
-typedef void (*inform_fun_t)(int *comm, double **pos_nb, double **pos_b, double *fit_b, double *gbest, int improved, pso_settings_t *settings);
-
+//Timer settings for parallel code
+struct timeval TimeValue_Start;
+struct timezone TimeZone_Start;
+struct timeval TimeValue_Final;
+struct timezone TimeZone_Final;
+long time_start, time_end;
+double time_overhead;
 
 
 //function type for the different inertia calculation functions
@@ -125,49 +127,6 @@ double MPI_calc_inertia_lin_dec(int step, pso_settings_t *settings) {
 
 
 //==============================================================
-//                     NEIGHBOURHOOD
-//==============================================================
-
-void inform_global(int *comm, double **pos_nb, double **pos_b, double *fit_b,
-	    double *gbest, int improved, pso_settings_t *settings){
-	
-	int i, nparticles;
-  	for (i=0; i<nparticles; i++)
-    	memmove((void *)pos_nb[i], (void *)gbest,
-            	sizeof(double) * settings->dim);
-}
-
-
-// ===============================================================
-// general inform function :: according to the connectivity
-// matrix COMM, it copies the best position (from pos_b) of the
-// informers of each particle to the pos_nb matrix
-void inform(int *comm, double **pos_nb, double **pos_b, double *fit_b,
-	    int improved, pso_settings_t *settings)
-{
-  	int i, j, nparticles;
-  	int b_n; // best neighbor in terms of fitness
-
-  	// for each particle
-  	for (j=0; j<nparticles; j++) {
-    		b_n = j; // self is best
-    		// who is the best informer??
-    		for (i=0; i<nparticles; i++){
-      		// the i^th particle informs the j^th particle
-      		if (comm[i*nparticles + j] && fit_b[i] < fit_b[b_n])
-        		// found a better informer for j^th particle
-        		b_n = i;
-    		// copy pos_b of b_n^th particle to pos_nb[j]
-    		memmove((void *)pos_nb[j],
-            		(void *)pos_b[b_n],
-            		sizeof(double) * settings->dim);
-		}
-  	}
-}
-
-
-
-//==============================================================
 //                     PSO SETTINGS
 //==============================================================
 
@@ -221,7 +180,7 @@ pso_settings_t *pso_settings_new(int dim, double r_lo, double r_hi) {
 	
   	settings->size = pso_calc_swarm_size(settings->dim);
   	settings->print_every = 100;
-  	settings->steps = 100000;
+  	settings->steps = 10000;
   	settings->c1 = 1.496;
   	settings->c2 = 1.496;
   	settings->w_max = PSO_INERTIA;
@@ -229,8 +188,8 @@ pso_settings_t *pso_settings_new(int dim, double r_lo, double r_hi) {
 
 	settings->numset = DECIMAL;
 
-  	settings->clamp_pos = 1;
- 	settings->nhood_size = 5;
+  	settings->clamp_pos = 1;	
+	settings->nhood_size = 5;
   	settings->w_strategy = PSO_W_LIN_DEC;
 
 	settings->rng = NULL;
@@ -249,7 +208,7 @@ void pso_serial_settings(pso_settings_t *settings){
 	settings->limits = pso_autofill_limits(settings->x_lo, settings->x_hi, settings->dim);
 
   	settings->size = pso_calc_swarm_size(settings->dim);
-  	settings->print_every = 10;
+  	settings->print_every = 100;
   	settings->steps = 10001;
   	settings->c1 = 1.496;
   	settings->c2 = 1.496;
@@ -311,6 +270,9 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
 
 	//Get rank
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+
+	//Start timer
+	gettimeofday(&TimeValue_Start, &TimeZone_Start);
 	
 	// Split the number of particles across processes	
 	if(rank == 0){
@@ -331,17 +293,12 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
   	double **pos_b =  pso_matrix_new(nparticles, settings->dim); // best position matrix
   	double *fit = (double *)malloc(nparticles * sizeof(double)); // particle fitness vector
   	double *fit_b = (double *)malloc(nparticles * sizeof(double)) ; // best fitness vector
- 	// Swarm
-  	double **pos_nb = pso_matrix_new(nparticles, settings->dim); // what is the best informed
-  	int *comm = (int *)malloc(nparticles * nparticles * sizeof(int)); // communications:who informs who
-                                            // rows : those who inform
-                                            // cols : those who are informed
+  	
 	int improved = 0; // whether solution->error was improved during the last iteration
   	int i, d, step;
   	double a, b; // for matrix initialization
   	double rho1, rho2; // random numbers (coefficients)
   	double w = PSO_INERTIA; // current omega
-  	inform_fun_t inform_fun = NULL; // neighborhood update function
   	inertia_fun_t calc_inertia_fun = NULL; // inertia weight update function
 		
 
@@ -356,10 +313,6 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
     		// remember to free the RNG - see free at the end
     		free_rng = 1;
   	}
-
-	//Set inform function to global
-	inform_fun = inform_global;	 
-
 
   	// SELECT APPROPRIATE INERTIA WEIGHT UPDATE FUNCTION
   	switch (settings->w_strategy) {
@@ -476,9 +429,7 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
     		//update pos_nb matrix (find best of neighborhood for all particles)
     		//inform_fun would go here
   		// copy the contents of gbest to pos_nb
-  		//inform_fun(comm, (double **)pos_nb, (double **)pos_b, fit_b, solution->gbest,
-		//			improved, settings);
-
+		//memmove was here
 
     		//the value of improved was just used; reset it
     		improved = 0;
@@ -500,7 +451,7 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
 			// update velocity
 				vel[i][d] = w * vel[i][d] +    \
           				rho1 * (pos_b[i][d] - pos[i][d]) +	\
-          				rho2 * (pos_nb[i][d] - pos[i][d]);
+          				rho2 * (solution->gbest[i] - pos[i][d]);
         		// update position
         			pos[i][d] += vel[i][d];
 				
@@ -596,6 +547,7 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
 				}	
 			}		
 		}
+
 		//Update gbest with min position from personal best positions on each process - will then be gathered up on rank 0
 		memmove((void *)solution->gbest, (void *)pos_b[min], sizeof(double) * settings->dim);			
 		
@@ -633,16 +585,23 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
 	
 		//Broadcast best position
 		MPI_Bcast(solution->gbest, settings->dim, MPI_INT, 0, MPI_COMM_WORLD);
+		
 
 		//Print from rank 1
 		if(rank == 1){		
 			if (settings->print_every && (step % settings->print_every == 0)){
       				printf("Rank: %d, Step %d,    w=%.2f,    min_err=,    %.5e\n", rank, step, w, solution->error);	
 			}
-		}
+		}	
 	}
 
-	 
+	if(rank == 0){
+		gettimeofday(&TimeValue_Final, &TimeZone_Final);
+		time_start = TimeValue_Start.tv_sec * 1000000 + TimeValue_Start.tv_usec;
+		time_end = TimeValue_Final.tv_sec * 1000000 + TimeValue_Final.tv_usec;
+		time_overhead = (time_end - time_start)/1000000.0;
+		printf("\n Parallel: %lf\n", time_overhead); 
+	}		 
 
 	//free resources
 	//if (serial){ 
@@ -650,8 +609,6 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
 		pso_matrix_free(pos, nparticles);
 		pso_matrix_free(vel, nparticles);
 		pso_matrix_free(pos_b, nparticles);
-		pso_matrix_free(pos_nb, nparticles);
-		free(comm);
 		free(fit);
 		free(fit_b);
 	//}	

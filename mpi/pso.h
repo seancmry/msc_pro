@@ -14,6 +14,9 @@
 #define PSO_INERTIA 0.7298 // default value of w (see clerc02)
 
 
+#define PSO_NHOOD_GLOBAL 0
+
+
 // === INERTIA WEIGHT UPDATE FUNCTIONS ===
 #define PSO_W_CONST 0
 #define PSO_W_LIN_DEC 1

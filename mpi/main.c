@@ -170,24 +170,24 @@ int main(int argc, char **argv) {
 	*/
 	
 	//Initialise timer
-	struct timing_report* stats = malloc(sizeof(double));
+	//struct timing_report* stats = malloc(sizeof(double));
 			
 	//Begin timer
-	start_timer(&(stats->parallel_time));
+	//start_timer(&(stats->parallel_time));
 	
 	//Execute
 	pso_parallel(settings,argc,argv);
 
 	//Stop timer
-	end_timer(&(stats->parallel_time));
+	//end_timer(&(stats->parallel_time));
 
 	//MPI_Barrier(MPI_COMM_WORLD);
 
 	//Print timing
-	print_elapsed_time((char*) "PARALLEL ", stats->parallel_time.start, stats->parallel_time.finish);
+	//print_elapsed_time((char*) "PARALLEL ", stats->parallel_time.start, stats->parallel_time.finish);
 
 	//Free timer
-	free(stats);
+	//free(stats);
 	
 	//MPI_Comm_free(&cart_comm);
 	MPI_Finalize();

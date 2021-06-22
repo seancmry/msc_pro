@@ -33,7 +33,7 @@ extern int verbose;
 extern char *inFileHandlePtr;
 int parse_arguments(int argc, char **argv);
 
-//TIMER
+//Timer settings - SERIAL
 struct Timer{
 	clock_t start;
 	clock_t finish;
@@ -50,6 +50,7 @@ void start_timer(struct Timer* timing);
 void end_timer(struct Timer* timing);
 double elapsed_time(clock_t start, clock_t finish);
 void print_elapsed_time(char* fn_name, clock_t start, clock_t finish);
+
 
 //CARTESIAN
 void calculate_dims(int nproc, int *ndims, pso_settings_t *settings);

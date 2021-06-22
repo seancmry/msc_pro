@@ -116,7 +116,7 @@ int parse_arguments(int argc, char **argv) {
 	return 0;
 }
 
-
+//Timer for serial code
 void start_timer(struct Timer* timing) {
 	timing->start = clock();
 }

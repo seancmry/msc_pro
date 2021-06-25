@@ -13,8 +13,8 @@
 #include "utils.h"
 #include "pso.h"
 
-
 #define N 9
+
 //Timer settings for parallel code
 struct timeval TimeValue_Start;
 struct timezone TimeZone_Start;
@@ -52,8 +52,10 @@ double roundNum (double d) {
 
 //==============================================================
 // calulate swarm size based on dimensionality
+// this was offset by the multiplier N in terms of the increase in computational power
 int pso_calc_swarm_size(int dim) {
-  int size = 10. + 2. * sqrt(dim);
+  int nproc = N;
+  int size = (100. + 20. * sqrt(dim)) * nproc;
   return (size > PSO_MAX_SIZE ? PSO_MAX_SIZE : size);
 }
 
@@ -73,57 +75,6 @@ double calc_inertia_lin_dec(int step, pso_settings_t *settings) {
     return settings->w_min;
 }
 
-
-/*
-// calculate linearly decreasing inertia weight
-double MPI_calc_inertia_lin_dec(int step, pso_settings_t *settings) {
-
-	//Get rank and size of original comm
-	int rank, size;
-	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-	MPI_Comm_size(MPI_COMM_WORLD, &size);	
-	
-	
-	//We determine the decreased weight based on the row and split the communicator on that basis.
-	//We then use the original rank for ordering.
-	//What happens then is that the value gets stored in val[i] and distributed 
-	//among all procs (as defined above = 4) through MPI_Scatter. As it ran with MPI_Alltoall, the programme
-	//accounted for a total of w*4 weights for a program run across 4 procs in parallel. This 
-	//will need to be adjusted so that the program is only run once across 4 procs and MPI_Scatter should do this.
-	
-	
-	int dec_stage = 3 * settings->steps / 4;
-
-	//Construct new comm
-	MPI_Comm row_comm;
-	MPI_Comm_split(MPI_COMM_WORLD, dec_stage, rank, &row_comm);
-	int row_rank, row_size;
-	MPI_Comm_rank(row_comm, &row_rank);
-	MPI_Comm_size(row_comm, &row_size);
-
-	//printf("WORLD RANK/SIZE: %d%d --- PRIME RANK/SIZE: %d%d\n", world_rank, world_size, row_rank, row_size);
-	//MPI_Comm_free(&row_comm);
-	int i;
-	double val[N], recv_buf[N];
-	for(i = 0; i < N; i++){
-		if (step <= dec_stage) {
-			val[i] = settings->w_min + (settings->w_max - settings->w_min) *     \
-			(dec_stage - step) / dec_stage;
-		} else {
-			val[i] = settings->w_min;
-		}
-	}
-	//Was originally executed as an MPI_Alltoall routine. Problem: I don't want a process 0.	
-	MPI_Scatter(&val, 1, MPI_DOUBLE, recv_buf, 1, MPI_DOUBLE, row_comm);
-	
-	MPI_Barrier(MPI_COMM_WORLD);
-	
-	if(MPI_COMM_NULL != row_comm) {
-		MPI_Comm_free(&row_comm);
-	}
-	return recv_buf[i];
-}
-*/
 
 
 //==============================================================
@@ -179,8 +130,8 @@ pso_settings_t *pso_settings_new(int dim, double r_lo, double r_hi) {
 	}
 	
   	settings->size = pso_calc_swarm_size(settings->dim);
-  	settings->print_every = 100;
-  	settings->steps = 10000;
+	settings->print_every = 1000;
+  	settings->steps = 100001;
   	settings->c1 = 1.496;
   	settings->c2 = 1.496;
   	settings->w_max = PSO_INERTIA;
@@ -208,7 +159,7 @@ void pso_serial_settings(pso_settings_t *settings){
 	settings->limits = pso_autofill_limits(settings->x_lo, settings->x_hi, settings->dim);
 
   	settings->size = pso_calc_swarm_size(settings->dim);
-  	settings->print_every = 100;
+  	settings->print_every = 1000;
   	settings->steps = 10001;
   	settings->c1 = 1.496;
   	settings->c2 = 1.496;
@@ -294,7 +245,8 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
   	double *fit = (double *)malloc(nparticles * sizeof(double)); // particle fitness vector
   	double *fit_b = (double *)malloc(nparticles * sizeof(double)) ; // best fitness vector
   	
-	int improved = 0; // whether solution->error was improved during the last iteration
+	//int improved = 0; 
+	// whether solution->error was improved during the last iteration
   	int i, d, step;
   	double a, b; // for matrix initialization
   	double rho1, rho2; // random numbers (coefficients)
@@ -432,7 +384,7 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
 		//memmove was here
 
     		//the value of improved was just used; reset it
-    		improved = 0;
+    		//improved = 0;
 
 
 
@@ -549,7 +501,7 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
 		}
 
 		//Update gbest with min position from personal best positions on each process - will then be gathered up on rank 0
-		memmove((void *)solution->gbest, (void *)pos_b[min], sizeof(double) * settings->dim);			
+		memmove((void *)solution->gbest, (void *)pos[min], sizeof(double) * settings->dim);			
 		
 
 		
@@ -585,6 +537,7 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
 	
 		//Broadcast best position
 		MPI_Bcast(solution->gbest, settings->dim, MPI_INT, 0, MPI_COMM_WORLD);
+		//MPI_Bcast(&solution->error, 1, MPI_INT, 0, MPI_COMM_WORLD);
 		
 
 		//Print from rank 1

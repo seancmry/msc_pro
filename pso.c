@@ -490,8 +490,10 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
         		// calculate stochastic coefficients
         			rho1 = settings->c1 * gsl_rng_uniform(settings->rng);
         			rho2 = settings->c2 * gsl_rng_uniform(settings->rng);
+
+
 			// update velocity
-        			vel[i][d] = w * vel[i][d] +	\
+				vel[i][d] = w * vel[i][d] +    \
           				rho1 * (pos_b[i][d] - pos[i][d]) +	\
           				rho2 * (pos_nb[i][d] - pos[i][d]);
         		// update position

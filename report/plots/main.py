@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+import numpy as np
 
 plt.style.use('seaborn-whitegrid')
 
@@ -1024,11 +1025,271 @@ mean_griewank = [ 2.54E+03,
                   1.19E+00,
                   1.19E+00
                   ]
+mean_serial = [
+    3570.2788,
+    2179.282,
+    1789.5888,
+    1490.7724,
+    1300.7612,
+    1140.27336,
+    1027.9036,
+    949.21296,
+    886.72596,
+    843.26456,
+    814.64724,
+    793.14072,
+    772.61432,
+    758.42056,
+    745.54768,
+    734.12592,
+    721.6924,
+    712.63652,
+    704.90404,
+    696.47652,
+    689.71408,
+    683.82588,
+    680.42872,
+    676.95136,
+    672.85516,
+    669.86556,
+    667.78624,
+    665.22736,
+    662.32756,
+    661.1972,
+    660.4106,
+    659.99504,
+    659.21036,
+    658.32612,
+    657.56636,
+    655.79432,
+    654.11568,
+    653.78064,
+    650.6868,
+    648.72824,
+    647.78624,
+    646.0216,
+    643.43724,
+    640.27916,
+    635.34436,
+    633.9092,
+    633.25824,
+    633.08932,
+    632.96376,
+    632.87572,
+    632.80648,
+    632.72776,
+    632.56408,
+    632.51172,
+    632.42312,
+    632.29232,
+    631.91936,
+    631.90524,
+    631.90524,
+    631.90236,
+    631.90236,
+    631.90236,
+    631.89152,
+    631.89152,
+    631.88564,
+    631.7082,
+    631.66064,
+    631.19076,
+    630.9844,
+    630.93092,
+    630.92788,
+    630.92208,
+    630.85264,
+    630.79912,
+    630.75192,
+    630.62588,
+    630.62256,
+    630.51388,
+    630.4916,
+    630.23968,
+    630.17456,
+    630.16488,
+    628.34908,
+    628.17672,
+    628.17672,
+    628.02004,
+    628.02004,
+    628.02004,
+    628.02004,
+    628.02004,
+    628.02004,
+    628.02004,
+    628.02004,
+    628.02004,
+    627.86076,
+    626.64036,
+    624.11768,
+    623.89736,
+    623.53572,
+    623.43332,
+    623.43332,
+    623.43332,
+    623.43332,
+    623.43332,
+    623.43332,
+    623.43332,
+    623.43332,
+    623.43332,
+    621.32264,
+    620.31112,
+    619.91128,
+    619.91128,
+    619.071,
+    617.86132,
+    617.82952,
+    617.82952,
+    617.73392,
+    616.98756,
+    616.8458,
+    616.84576,
+    616.84576,
+    616.60708,
+    616.60504,
+    616.60504,
+    616.60504,
+    616.35544,
+    614.64576,
+    614.60496,
+    614.38388,
+    614.28236,
+    614.27212,
+    614.27212,
+    614.27212,
+    614.27212,
+    614.27212,
+    614.27212,
+    614.27212,
+    614.27212,
+    613.95728,
+    613.95728,
+    613.95728,
+    613.95728,
+    613.95728,
+    613.95728,
+    613.95728,
+    613.95728,
+    613.95728,
+    613.95512,
+    613.95512,
+    613.95512,
+    613.95512,
+    613.95512,
+    613.54864,
+    612.49256,
+    612.35184,
+    612.35184,
+    612.35184,
+    612.35184,
+    611.96544,
+    611.96232,
+    611.91636,
+    611.91636,
+    611.91636,
+    611.90192,
+    611.90192,
+    611.90192,
+    611.90192,
+    611.90192,
+    611.90192,
+    611.90192,
+    611.90192,
+    611.90192,
+    611.90192,
+    611.90192,
+    611.90192,
+    611.90192,
+    611.90192,
+    611.90192,
+    611.90192,
+    611.90192,
+    611.90192,
+    611.90192,
+    611.90192,
+    611.90192,
+    611.90192,
+    611.90192,
+    611.90192,
+    611.90192,
+    611.77628,
+    611.77628,
+    611.77628,
+    611.77628,
+    611.77628,
+    611.77628,
+    611.77628,
+    611.77628,
+    611.77628,
+    611.77628,
+    611.77628,
+    611.77628,
+    611.77628
+]
 
 time_ackley = [ 270.4, 2908.0, 147818.00, 560022.8 ]
 time_sphere = [ 160.0, 1819.6, 95558.4, 419196.8 ]
 time_rosenbrock = [ 240.8, 2831.2, 74689.6, 299853.2 ]
 time_griewank = [ 290.4, 3194.0, 134804.8, 590098.0 ]
+time_serial = [ 31956, 63414.8, 94690, 126811.2, 158425.2, 190279.6, 221928, 254361.2, 285816.4, 317517.2 ]
+
+soldist = [ 611.7762, 1854.101568, 3628.078619, 6699.948804, 9435.238536, 12243.68373, 15541.25614, 19564.86983,
+            21802.4033, 25707.27591 ]
+dim_serial = [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 ]
+
+#Parallel
+labels = ['Ackley', 'Sphere', 'Rosenbrock', 'Griewank' ]
+tmpi4 = [ 11.056, 8.181, 11.399, 15.016 ]
+tomp4 = [ 11.089, 8.186, 11.392, 15.026 ]
+tmpi9 = [ 12.344, 9.375, 12.676, 15.459 ]
+tomp9 = [ 12.332, 9.411, 12.684, 16.441 ]
+
+#Graph 1
+x = np.arange(len(labels))  # the label locations
+width = 0.35  # the width of the bars
+
+fig, ax = plt.subplots()
+rects1 = ax.bar(x - width/2, tmpi4, width, label='nproc= 4')
+rects2 = ax.bar(x + width/2, tmpi9, width, label='nproc= 9')
+
+# Add some text for labels, title and custom x-axis tick labels, etc.
+ax.set_ylabel('Time (seconds)')
+#ax.set_title('Timing of MPI setup for nproc of 4 and 9')
+ax.set_xticks(x)
+ax.set_xticklabels(labels)
+ax.legend()
+
+ax.bar_label(rects1, padding=3)
+ax.bar_label(rects2, padding=3)
+
+fig.tight_layout()
+
+plt.show()
+
+#Graph 2
+x = np.arange(len(labels))  # the label locations
+width = 0.35  # the width of the bars
+
+fig, ax = plt.subplots()
+rects1 = ax.bar(x - width/2, tomp4, width, label='nproc= 4')
+rects2 = ax.bar(x + width/2, tomp9, width, label='nproc= 9')
+
+# Add some text for labels, title and custom x-axis tick labels, etc.
+ax.set_ylabel('Time (seconds)')
+#ax.set_title('Timing of hybrid MPI-OpenMP setup for nprocs of 4 and 9')
+ax.set_xticks(x)
+ax.set_xticklabels(labels)
+ax.legend()
+
+ax.bar_label(rects1, padding=3)
+ax.bar_label(rects2, padding=3)
+
+fig.tight_layout()
+
+plt.show()
+
 
 plt.plot(dims, sd_ackley, "-s", label="Ackley")
 plt.plot(dims, sd_sphere, "-o", label="Sphere")
@@ -1036,7 +1297,7 @@ plt.plot(dims, sd_rosenbrock, "-v", label="Rosenbrock")
 plt.plot(dims, sd_griewank, "-h", label="Griewank")
 plt.xlabel("Dimensions (N)")
 plt.ylabel("Standard deviation of aggregate means from individual runs")
-plt.title("Standard deviation of mean best solution over 25 runs across N dimensions")
+# plt.title("Standard deviation of mean best solution over 25 runs across N dimensions")
 plt.legend(loc="upper left")
 plt.show()
 
@@ -1046,7 +1307,7 @@ plt.plot(dims2, sd_rosenbrock2, "-v", label="Rosenbrock")
 plt.plot(dims2, sd_griewank2, "-h", label="Griewank")
 plt.xlabel("Dimensions (N)")
 plt.ylabel("Standard deviation of aggregate means from individual runs")
-plt.title("Standard deviation of mean best solution over 25 runs across N dimensions")
+# plt.title("Standard deviation of mean best solution over 25 runs across N dimensions")
 plt.legend(loc="upper left")
 plt.show()
 
@@ -1056,35 +1317,53 @@ plt.plot(dims2, time_rosenbrock, "-v", label="Rosenbrock")
 plt.plot(dims2, time_griewank, "-h", label="Griewank")
 plt.xlabel("Dimensions (N)")
 plt.ylabel("Mean time in milliseconds (ms)")
-plt.title("Average time per run across N dimensions")
+# plt.title("Average time per run across N dimensions")
 plt.legend(loc="upper left")
 plt.show()
-
 
 plt.plot(step, mean_ackley)
 plt.ticklabel_format(axis="y", style="sci", scilimits=(0, 0))
 plt.xlabel("Iterations")
 plt.ylabel("Mean fitness")
-plt.title("Ackley")
+# plt.title("Ackley")
 plt.show()
 
 plt.plot(step, mean_sphere)
 plt.ticklabel_format(axis="y", style="sci", scilimits=(0, 0))
 plt.xlabel("Iterations")
 plt.ylabel("Mean fitness")
-plt.title("Sphere")
+# plt.title("Sphere")
 plt.show()
 
 plt.plot(step, mean_rosenbrock)
 plt.ticklabel_format(axis="y", style="sci", scilimits=(0, 0))
 plt.xlabel("Iterations")
 plt.ylabel("Mean fitness")
-plt.title("Rosenbrock")
+# plt.title("Rosenbrock")
 plt.show()
 
 plt.plot(step, mean_griewank)
 plt.ticklabel_format(axis="y", style="sci", scilimits=(0, 0))
 plt.xlabel("Iterations")
 plt.ylabel("Mean fitness")
-plt.title("Griewank")
+# plt.title("Griewank")
+plt.show()
+
+plt.plot(dim_serial, soldist)
+plt.xlabel("Dimensions ($N^{100}$)")
+plt.ylabel("Average solution distance achieved (Beginning on a 100 X 100 grid)")
+# plt.title("Average solution distance across N dimensions")
+plt.show()
+
+plt.plot(dim_serial, time_serial)
+plt.xlabel("Dimensions ($N^{100}$)")
+plt.ylabel("Average time (ms) ")
+# plt.title("Average time across all runs for different dimensions")
+plt.show()
+
+plt.plot(step, mean_serial)
+plt.ticklabel_format(axis="y", style="sci", scilimits=(0, 0))
+plt.xlabel("Iterations")
+plt.ylabel("Mean fitness")
+# plt.title("Path application")
 plt.show()

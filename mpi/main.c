@@ -229,7 +229,7 @@ void pso_parallel(pso_settings_t *settings, int argc, char **argv) {
         		}
     		} else if (obj_fun == NULL || settings == NULL) {
         		obj_fun = pso_sphere;
-        		settings = pso_settings_new(100, -100, 100);
+        		settings = pso_settings_new(1000, -100, 100);
         		printf("Optimizing function: sphere (dim=%d, swarm size=%d)\n",
                    		settings->dim, settings->size);
     		}

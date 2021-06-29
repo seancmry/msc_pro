@@ -16,6 +16,7 @@
 
 #define PSO_NHOOD_GLOBAL 0
 
+#define PSO_NHOOD_RING 1
 
 // === INERTIA WEIGHT UPDATE FUNCTIONS ===
 #define PSO_W_CONST 0
@@ -62,6 +63,7 @@ typedef struct{
 
 	int clamp_pos; // whether to keep particle position within defined bounds (TRUE)
 	// or apply periodic boundary conditions (FALSE)
+	int nhood_strategy;
 	int nhood_size; // neighborhood size
 	int w_strategy; // inertia weight strategy (see PSO_W_*)
 
@@ -73,9 +75,6 @@ typedef struct{
 pso_settings_t *pso_settings_new(int dim, double r_lo, double r_hi);
 void pso_serial_settings(pso_settings_t *settings);
 void pso_settings_free(pso_settings_t *settings);
-
-
-//double MPI_calc_inertia_lin_dec(int step, pso_settings_t *settings);
 
 // set x value limits using two constants
 double **pso_autofill_limits (double x_lo, double x_hi, int dim);

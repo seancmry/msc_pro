@@ -236,8 +236,9 @@ void pso_parallel(pso_settings_t *settings, int argc, char **argv) {
 
     		// set some general PSO settings
     		settings->goal = 1e-5;
-    		settings->size = 40;
+    		settings->size = 90;
     		settings->nhood_size = 10;
+		settings->nhood_strategy = PSO_NHOOD_RING;
     		settings->w_strategy = PSO_W_LIN_DEC;
 
     		// initialize GBEST solution

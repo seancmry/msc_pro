@@ -334,7 +334,7 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
 	// Split the number of particles across processes	
 	if(rank == 0){
 		nparticles = (int)settings->size / nproc;
-		printf("Number of particles is %d\n", nparticles);
+		//printf("Number of particles is %d\n", nparticles);
 	}		
 	MPI_Bcast(&nparticles, 1, MPI_INT, 0, MPI_COMM_WORLD);
 	if(rank == 0){
@@ -603,24 +603,24 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
       			// in each proc
       			
 			//#pragma omp for reduction(min:solution->error)
-      			//for(i=0; i<(int)nparticles; i++){		
+      			for(i=0; i<(int)nparticles; i++){		
 				if (fit[i] < solution->error) {
         				improved = 1;
         				// update best fitness
         				solution->error = fit[i];
         				// copy particle pos to gbest vector - removed because we have yet to find gbest
-        				memmove((void *)solution->gbest, (void *)pos[i],
-                			sizeof(double) * settings->dim);
+        				//memmove((void *)solution->gbest, (void *)pos[i],
+                			//sizeof(double) * settings->dim);
       				}
-			//}
+			}
 			
 			//This is further split for the additon of omp code to both parts
 			//#pragma omp for
-			//for (i=0; i<(int)nparticles; i++){
+			for (i=0; i<(int)nparticles; i++){
 				if (solution->error == fit[i]){
 					min = i;
 				}	
-			//}		
+			}		
 		}
 		
 		//Update gbest with min position from personal best positions on each process - will then be gathered up on rank 0
@@ -661,13 +661,14 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
 		MPI_Bcast(solution->gbest, ((int)settings->dim), MPI_INT, 0, MPI_COMM_WORLD);
 		MPI_Bcast(&solution->error, 1, MPI_INT, 0, MPI_COMM_WORLD);
 			
-
+		
 		//Print from rank 1
 		if(rank == 1){		
 			if (settings->print_every && (step % settings->print_every == 0)){
       				printf("Rank: %d, Step %d,    w=%.2f,    min_err=,    %.5e\n", rank, step, w, solution->error);	
 			}
-		}	
+		}
+			
 	}
 
 	if(rank == 0){

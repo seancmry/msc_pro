@@ -13,7 +13,7 @@
 #include "utils.h"
 #include "pso.h"
 
-#define N 9
+#define N 4
 
 //Timer settings for parallel code
 struct timeval TimeValue_Start;
@@ -89,10 +89,10 @@ void inform_global(int *comm, double **pos_nb,
 		   double *gbest, int improved,
 	   	   pso_settings_t *settings){
 
-	int i, nparticles;
+	int i;
 	// all particles have the same attractor (gbest)
         // copy the contents of gbest to pos_nb
-        for (i=0; i<((int)nparticles); i++)
+        for (i=0; i<(settings->size/N); i++)
 		memmove((void *)pos_nb[i], (void *)gbest,
 		   	sizeof(double) * settings->dim);
 }
@@ -104,16 +104,16 @@ void inform_global(int *comm, double **pos_nb,
 void inform(int *comm, double **pos_nb, double **pos_b, double *fit_b,
  	    int improved, pso_settings_t * settings){
  	      
-	int i, j, nparticles;
+	int i, j;
  	int b_n; // best neighbor in terms of fitness
 
  	// for each particle
- 	for (j=0; j<((int)nparticles); j++) {
+ 	for (j=0; j<(settings->size/N); j++) {
  		b_n = j; // self is best
  	        // who is the best informer??
- 	        for (i=0; i<((int)nparticles); i++){
+ 	        for (i=0; i<(settings->size/N); i++){
  	        	// the i^th particle informs the j^th particle
- 	                if (comm[i*((int)nparticles) + j] && fit_b[i] < fit_b[b_n]){
+ 	                if (comm[i*(settings->size/N) + j] && fit_b[i] < fit_b[b_n]){
  	                	// found a better informer for j^th particle
  	                        b_n = i;
  	                        // copy pos_b of b_n^th particle to pos_nb[j]
@@ -132,33 +132,33 @@ void inform(int *comm, double **pos_nb, double **pos_b, double *fit_b,
 // =============
 
 // topology initialization :: this is a static (i.e. fixed) topology
-void init_comm_ring(int *comm, pso_settings_t * settings) {
-  int i, nparticles;
-  // reset array
-  memset((void *)comm, 0, sizeof(int)*nparticles*nparticles);
+void init_comm_ring(int *comm, pso_settings_t *settings) {
+	int i;
+  	// reset array
+  	memset((void *)comm, 0, sizeof(int)*(settings->size/N)*(settings->size/N));
 
-  // choose informers
-  for (i=0; i<nparticles; i++) {
-    // set diagonal to 1
-    comm[i*nparticles+i] = 1;
-    if (i==0) {
-      // look right
-      comm[i*nparticles+i+1] = 1;
-      // look left
-      comm[(i+1)*nparticles-1] = 1;
-    } else if (i==nparticles-1) {
-      // look right
-      comm[i*nparticles] = 1;
-      // look left
-      comm[i*nparticles+i-1] = 1;
-    } else {
-      // look right
-      comm[i*nparticles+i+1] = 1;
-      // look left
-      comm[i*nparticles+i-1] = 1;
-    }
+  	// choose informers
+  	for (i=0; i<(settings->size/N); i++) {
+    	// set diagonal to 1
+    		comm[i*(settings->size/N)+i] = 1;
+    		if (i==0) {
+      			// look right
+      			comm[i*(settings->size/N)+i+1] = 1;
+      			// look left
+      			comm[(i+1)*(settings->size/N)-1] = 1;
+    		} else if (i==(settings->size/N)-1) {
+      			// look right
+      			comm[i*(settings->size/N)] = 1;
+      			// look left
+      			comm[i*(settings->size/N)+i-1] = 1;
+    		} else {
+      			// look right
+      			comm[i*(settings->size/N)+i+1] = 1;
+      			// look left
+      			comm[i*(settings->size/N)+i-1] = 1;
+    		}
 
-  }
+  	}	
 
 }
 
@@ -381,6 +381,7 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
    	    		inform_fun = inform_global;
    			break;
 		case PSO_NHOOD_RING:
+			init_comm_ring(comm, settings);
 			inform_fun = inform_ring;
 			break;
 		default:
@@ -402,7 +403,7 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
     	}
 
   	// INITIALIZE SOLUTION
-  	solution->error = DBL_MAX;
+	solution->error = DBL_MAX;
 	
 
 	/* START */
@@ -477,7 +478,7 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
 	
 	// RUN ALGORITHM
   	for (step=0; step<settings->steps; step++) {
-		#pragma omp parallel num_threads(4) shared(min)
+		//#pragma omp parallel num_threads(4) shared(min)
 		// update current step
     		settings->step = step;
     		// update inertia weight
@@ -502,12 +503,14 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
 
 
     		//update pos_nb matrix (find best of neighborhood for all particles)
-	   	inform_fun(comm, (double **)pos_nb, (double **)pos_b, fit_b, solution->gbest,
-	    		     improved, settings);
-	    	
+		for(i=0; i<nparticles; i++){
+	   		inform_fun(comm, (double **)pos_nb, (double **)pos_b, fit_b, solution->gbest,
+	    		     	improved, settings);
+	    	}	
+		
 		// the value of improved was just used; reset it
 	    	improved = 0;	
-
+		
 
 
     		// update all particles
@@ -596,38 +599,40 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
                 		sizeof(double) * settings->dim);
       			}
 
-		
+		}
 
-      			// update gbest?? - algorithm would end here in serial version,
-      			// but additional code is required to perform the same update
-      			// in each proc
+      		// update gbest?? - algorithm would end here in serial version,
+      		// but additional code is required to perform the same update
+      		// in each proc
       			
-			//#pragma omp for reduction(min:solution->error)
-      			for(i=0; i<(int)nparticles; i++){		
-				if (fit[i] < solution->error) {
-        				improved = 1;
-        				// update best fitness
-        				solution->error = fit[i];
-        				// copy particle pos to gbest vector - removed because we have yet to find gbest
-        				//memmove((void *)solution->gbest, (void *)pos[i],
-                			//sizeof(double) * settings->dim);
-      				}
+		//#pragma omp for reduction(min:solution->error)
+      		for(i=0; i<nparticles; i++){		
+			if (fit[i] < solution->error) {
+        			improved = 1;
+        			// update best fitness
+        			solution->error = fit[i];
 			}
+			if (solution->error == fit[i]){
+				min = i;
+        			// copy particle pos to gbest vector - removed because we have yet to find gbest
+       				//memmove((void *)solution->gbest, (void *)pos_b[min], sizeof(double) * settings->dim);			
 			
-			//This is further split for the additon of omp code to both parts
-			//#pragma omp for
-			for (i=0; i<(int)nparticles; i++){
-				if (solution->error == fit[i]){
-					min = i;
-				}	
-			}		
+      			}
 		}
 		
+/*	
+		//This is further split for the additon of omp code to both parts
+		//#pragma omp for
+		for (i=0; i<nparticles; i++){				
+			if (solution->error == fit[i]){
+				min = i;
+			}			
+		}
+		
+*/
 		//Update gbest with min position from personal best positions on each process - will then be gathered up on rank 0
 		memmove((void *)solution->gbest, (void *)pos_b[min], sizeof(double) * settings->dim);			
 		
-
-				
 		//Store global best position in the send buffer
 		for (d=0; d<(int)settings->dim; d++){
 			sendbuf[d] = solution->gbest[d];
@@ -659,7 +664,7 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
 		
 		//Broadcast best position and error
 		MPI_Bcast(solution->gbest, ((int)settings->dim), MPI_INT, 0, MPI_COMM_WORLD);
-		MPI_Bcast(&solution->error, 1, MPI_INT, 0, MPI_COMM_WORLD);
+		//MPI_Bcast(&solution->error, 1, MPI_INT, 0, MPI_COMM_WORLD);
 			
 		
 		//Print from rank 1
@@ -667,11 +672,10 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
 			if (settings->print_every && (step % settings->print_every == 0)){
       				printf("Rank: %d, Step %d,    w=%.2f,    min_err=,    %.5e\n", rank, step, w, solution->error);	
 			}
-		}
-			
+		}		
 	}
 
-	if(rank == 0){
+	if(rank == 1){
 		gettimeofday(&TimeValue_Final, &TimeZone_Final);
 		time_start = TimeValue_Start.tv_sec * 1000000 + TimeValue_Start.tv_usec;
 		time_end = TimeValue_Final.tv_sec * 1000000 + TimeValue_Final.tv_usec;

@@ -100,9 +100,8 @@ int main(int argc, char **argv) {
 	MPI_Datatype coltype, rowtype;
 		
 	//Set up MPI environment
-	int nproc, rank;
+	int nproc;
 	MPI_Init(&argc, &argv);
-	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 	MPI_Comm_size(MPI_COMM_WORLD, &nproc);
 	
 	//Create dims
@@ -205,22 +204,22 @@ void pso_parallel(pso_settings_t *settings, int argc, char **argv) {
     		if (argc == 2) {
         		if (strcmp(argv[1], "ackley") == 0) {
 				obj_fun = pso_ackley;
-				settings = pso_settings_new(1000, -32.8, 32.8);
+				settings = pso_settings_new(400, -32.8, 32.8);
 				printf("Optimising function: ackley (dim=%d, swarm size=%d)\n",
 					settings->dim, settings->size);
 			} else if (strcmp(argv[1], "rosenbrock") == 0) {
             			obj_fun = pso_rosenbrock;
-            			settings = pso_settings_new(1000, -2.048, 2.048);
+            			settings = pso_settings_new(400, -2.048, 2.048);
             			printf("Optimizing function: rosenbrock (dim=%d, swarm size=%d)\n",
                    			settings->dim, settings->size);
         		} else if (strcmp(argv[1], "griewank") == 0) {
             			obj_fun = pso_griewank;
-            			settings = pso_settings_new(1000, -600, 600);
+            			settings = pso_settings_new(400, -600, 600);
             			printf("Optimizing function: griewank (dim=%d, swarm size=%d)\n",
                    			settings->dim, settings->size);
         		} else if (strcmp(argv[1], "sphere") == 0) {
             			obj_fun = pso_sphere;
-            			settings = pso_settings_new(1000, -100, 100);
+            			settings = pso_settings_new(400, -100, 100);
             			printf("Optimizing function: sphere (dim=%d, swarm size=%d)\n",
                    			settings->dim, settings->size);
         		} else {
@@ -229,14 +228,14 @@ void pso_parallel(pso_settings_t *settings, int argc, char **argv) {
         		}
     		} else if (obj_fun == NULL || settings == NULL) {
         		obj_fun = pso_sphere;
-        		settings = pso_settings_new(1000, -100, 100);
+        		settings = pso_settings_new(400, -100, 100);
         		printf("Optimizing function: sphere (dim=%d, swarm size=%d)\n",
                    		settings->dim, settings->size);
     		}
 
     		// set some general PSO settings
     		settings->goal = 1e-5;
-    		settings->size = 90;
+    		settings->size = 40;
     		settings->nhood_size = 10;
 		settings->nhood_strategy = PSO_NHOOD_RING;
     		settings->w_strategy = PSO_W_LIN_DEC;

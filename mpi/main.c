@@ -103,7 +103,7 @@ int main(int argc, char **argv) {
 	int nproc;
 	MPI_Init(&argc, &argv);
 	MPI_Comm_size(MPI_COMM_WORLD, &nproc);
-	
+
 	//Create dims
 	//MPI_Dims_create(nproc, 2, ndims);
 
@@ -235,7 +235,7 @@ void pso_parallel(pso_settings_t *settings, int argc, char **argv) {
 
     		// set some general PSO settings
     		settings->goal = 1e-5;
-    		settings->size = 40;
+    		settings->size = 20;
     		settings->nhood_size = 10;
 		settings->nhood_strategy = PSO_NHOOD_RING;
     		settings->w_strategy = PSO_W_LIN_DEC;

@@ -360,7 +360,7 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
 
 
 	//MPI Settings
-	int nparticles;
+	int nparticles = 40;
 	int rank;
 	int nproc = N;	
 	int *recvbuf = (int *)malloc((settings->dim+1) * nproc * sizeof(int));
@@ -376,12 +376,12 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
 	
 	// Split the number of particles across processes	
 	if(rank == 0){
-		nparticles = (int)settings->size / nproc;
-		//printf("Number of particles is %d\n", nparticles);
+		settings->size = nparticles / nproc;
+		//printf("Number of particles is %d\n", settings->size);
 	}		
-	MPI_Bcast(&nparticles, 1, MPI_INT, 0, MPI_COMM_WORLD);
+	MPI_Bcast(&settings->size, 1, MPI_INT, 0, MPI_COMM_WORLD);
 	if(rank == 0){
-		nparticles += (int)settings->size % nproc;
+		settings->size += nparticles % nproc;
 		//printf("Number of particles is %d\n", nparticles);
 	}
 
@@ -657,30 +657,30 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
         			improved = 1;
         			// update best fitness
         			solution->error = fit[i];
-			//}
+			}
 
 		//for(i=0; i<settings->size; i++)
-			//if (solution->error == fit[i]){
-			//	min = i;
+			if (solution->error == fit[i]){
+				min = i;
         			// copy particle pos to gbest vector - removed because we have yet to find gbest
-       				memmove((void *)solution->gbest, (void *)pos[i], sizeof(double) * settings->dim);			
+       				memmove((void *)solution->gbest, (void *)pos[min], sizeof(double) * settings->dim);			
 			
       			}
 		}
 		
-	
+	/*
 		//This is further split for the additon of omp code to both parts
 		//#pragma omp for
-		//for (i=0; i<nparticles; i++){				
-		//	if (solution->error == fit[i]){
-		//		min = i;
-		//	}			
-		//}
+		for (i=0; i<nparticles; i++){				
+			if (solution->error == fit[i]){
+				min = i;
+			}			
+		}
 		
-/*
+
 		//Update gbest with min position from personal best positions on each process - will then be gathered up on rank 0
 		memmove((void *)solution->gbest, (void *)pos_b[min], sizeof(double) * settings->dim);			
-		
+	*/	
 		//Store global best position in the send buffer
 		for (d=0; d<(int)settings->dim; d++){
 			sendbuf[d] = solution->gbest[d];
@@ -689,10 +689,10 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
 		sendbuf[((int)settings->dim)] = solution->error;
 		
 		
-		//Gather data	
+		//Gather local best	
 		MPI_Gather(&sendbuf, ((int)settings->dim+1), MPI_INT, recvbuf, ((int)settings->dim+1), MPI_INT, 0, MPI_COMM_WORLD);
-		
-		//Pass best position to recvbuf
+		/*
+		//Pass local best position to recvbuf
 		if (rank == 0){
 			min = solution->error;
 			int p = -1; //denote position
@@ -709,18 +709,18 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
 				solution->gbest[k-p] = recvbuf[k];
 			}
 		}
-		
-		//Broadcast best position and error
+		*/
+		//Broadcast global best position and error
 		MPI_Bcast(solution->gbest, ((int)settings->dim), MPI_INT, 0, MPI_COMM_WORLD);
 		//MPI_Bcast(&solution->error, 1, MPI_INT, 0, MPI_COMM_WORLD);
-*/			
+
 		
-		//Print from rank 1
-		//if(rank == 1){		
+		//Print from rank 0
+		if(rank == 0){		
 			if (settings->print_every && (step % settings->print_every == 0))
       				printf("Rank: %d, Step %d,    w=%.2f,    min_err=,    %.5e\n", rank, step, w, solution->error);	
 			
-		//}		
+		}		
 	}
 
 	//if(rank == 1){

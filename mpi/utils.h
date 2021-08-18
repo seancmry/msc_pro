@@ -51,15 +51,5 @@ void end_timer(struct Timer* timing);
 double elapsed_time(clock_t start, clock_t finish);
 void print_elapsed_time(char* fn_name, clock_t start, clock_t finish);
 
-
-//CARTESIAN
-void calculate_dims(int nproc, int *ndims, pso_settings_t *settings);
-int decomp1d( int n, int size, int rank, int *s, int *e );
-int decomp2d(int nx, int ny, int xprocs, int yprocs, int* coord, int *xs, int *xe, int *ys, int *ye);
-void init_arr(int n, int m, double *x, double **x_ptr);
-void clear_arr(int n, int m, double **x);
-
-void exchange(double **x, int xs, int xe, int ys, int ye, MPI_Comm cart_comm, int *coords, int left, int right, int up, int down, int chunk_rows, int chunk_cols, MPI_Datatype rowtype, MPI_Datatype coltype, MPI_Status stat);
-void init_range(double **grid, int rank, int nrows, int ncols, int *xe, int *xs, int *ye, int *ys);
-		
+	
 #endif

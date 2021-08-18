@@ -7,13 +7,11 @@
 #include <stdint.h> //for uintptr_t
 #include <gsl/gsl_rng.h>
 #include <sys/time.h> //for parallel timer
-#include <mpi.h>
 #include <omp.h>
 
 #include "utils.h"
 #include "pso.h"
 
-#define N 9
 
 //Timer settings for parallel code
 struct timeval TimeValue_Start;
@@ -276,7 +274,7 @@ pso_settings_t *pso_settings_new(int dim, double r_lo, double r_hi) {
   	//settings->size = pso_calc_swarm_size(settings->dim);
 	settings->size = 36;
 	settings->print_every = 1000;
-  	settings->steps = 100001;
+  	settings->steps = 10001;
   	settings->c1 = 1.496;
   	settings->c2 = 1.496;
   	settings->w_max = PSO_INERTIA;
@@ -307,7 +305,7 @@ void pso_serial_settings(pso_settings_t *settings){
   	//settings->size = pso_calc_swarm_size(settings->dim) * N;
   	settings->size = 36;
 	settings->print_every = 1000;
-  	settings->steps = 100001;
+  	settings->steps = 10001;
   	settings->c1 = 1.496;
   	settings->c2 = 1.496;
   	settings->w_max = PSO_INERTIA;
@@ -357,34 +355,6 @@ void pso_matrix_free(double **m, int size){
 //==============================================================
 void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *solution, pso_settings_t *settings)
 {
-
-
-	//MPI Settings
-	int nparticles = 36;
-	int rank;
-	int nproc = N;	
-	int *recvbuf = (int *)malloc((settings->dim+1) * nproc * sizeof(int));
-	int *sendbuf = (int *)malloc((settings->dim+1) * sizeof(int));
-	int min;
-
-	//Get rank
-	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-
-	//Start timer
-	gettimeofday(&TimeValue_Start, &TimeZone_Start);
-
-	
-	// Split the number of particles across processes	
-	if(rank == 0){
-		settings->size = nparticles / nproc;
-		//printf("Number of particles is %d\n", settings->size);
-	}		
-	MPI_Bcast(&settings->size, 1, MPI_INT, 0, MPI_COMM_WORLD);
-	if(rank == 0){
-		settings->size += nparticles % nproc;
-		//printf("Number of particles is %d\n", nparticles);
-	}
-
 	//RNG	
 	int free_rng = 0;
   	// Particles
@@ -450,14 +420,15 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
     	}
 
   	// INITIALIZE SOLUTION
-	solution->error = DBL_MAX;
+  	int min;
+	solution->error = DBL_MAX;	
 	/* START */
 
 
 
   	// SWARM INITIALIZATION
   	// for each particle
-  	#pragma omp parallel for private(a,b)   reduction(min:solution->error)
+  	#pragma omp parallel for private(a,b)
   	for (i=0; i<settings->size; i++) {
     		// for each dimension
     		for (d=0; d<settings->dim; d++) {
@@ -534,19 +505,6 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
 
 
 
-		/*
-    		// check optimization goal
-    		if (solution->error <= settings->goal) {
-     	 		// SOLVED!!
-      			if (settings->print_every){
-        			printf("Goal achieved @ step %d (error=%.3e) :-)\n", step, solution->error);
-			}
-     			break;
-    		}	
-		*/
-
-
-
     		//update pos_nb matrix (find best of neighborhood for all particles)
 	   	inform_fun(comm, (double **)pos_nb, (double **)pos_b, fit_b, solution->gbest,
 	    		     improved, settings);
@@ -556,11 +514,9 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
 	    	improved = 0;	
 		
 
-
     		// update all particles
     		for (i=0; i<settings->size; i++) {
-      			
-			#pragma omp for private(a,b)
+			//#pragma omp for private(a,b)
 			// for each dimension
       			for (d=0; d<settings->dim; d++) {
         		// calculate stochastic coefficients
@@ -643,75 +599,49 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
                 		sizeof(double) * settings->dim);
       			}
 
-		//}
+		
 
       		// update gbest?? - algorithm would end here in serial version,
       		// but additional code is required to perform the same update
       		// in each proc
-      					
+      			
+			//#pragma omp for reduction(min:solution->error)
+      			//for(i=0; i<settings->size; i++)		
 			if (fit[i] < solution->error) {
         			improved = 1;
+				
+				min = i;
         			// update best fitness
         			solution->error = fit[i];
-			}
 
-			if (solution->error == fit[i]){
-				min = i;
-        			// copy particle pos to gbest vector - removed because we have yet to find gbest
+  			      	// copy particle pos to gbest vector - removed because we have yet to find gbest
        				memmove((void *)solution->gbest, (void *)pos[min], sizeof(double) * settings->dim);			
-			
-      			}
+			}
 		}
-		
-		//Store global best position in the send buffer
-		for (d=0; d<(int)settings->dim; d++){
-			sendbuf[d] = solution->gbest[d];
-		}
-			
-		sendbuf[((int)settings->dim)] = solution->error;
-		
-		
-		//Gather local best	
-		MPI_Gather(&sendbuf, ((int)settings->dim+1), MPI_INT, recvbuf, ((int)settings->dim+1), MPI_INT, 0, MPI_COMM_WORLD);
-		
-		//Broadcast global best position and error
-		MPI_Bcast(solution->gbest, ((int)settings->dim), MPI_INT, 0, MPI_COMM_WORLD);
-		//MPI_Bcast(&solution->error, 1, MPI_INT, 0, MPI_COMM_WORLD);
 
-		
-		//Print from rank 0
-		if(rank == 0){		
-			if (settings->print_every && (step % settings->print_every == 0))
-      				printf("Rank: %d, Step %d,    w=%.2f,    min_err=,    %.5e\n", rank, step, w, solution->error);	
+		if (settings->print_every && (step % settings->print_every == 0))
+      			printf("Step %d,    w=%.2f,    min_err=,    %.5e\n", step, w, solution->error);	
 			
-		}		
+			
 	}
-	
-	if(rank == 0){
-		gettimeofday(&TimeValue_Final, &TimeZone_Final);
-		time_start = TimeValue_Start.tv_sec * 1000000 + TimeValue_Start.tv_usec;
-		time_end = TimeValue_Final.tv_sec * 1000000 + TimeValue_Final.tv_usec;
-		time_overhead = (time_end - time_start)/1000000.0;
-		printf("\n Parallel: %lf\n", time_overhead); 
-	}		 
-	
-	//free resources
+
+        gettimeofday(&TimeValue_Final, &TimeZone_Final);
+        time_start = TimeValue_Start.tv_sec * 1000000 + TimeValue_Start.tv_usec;
+        time_end = TimeValue_Final.tv_sec * 1000000 + TimeValue_Final.tv_usec;
+        time_overhead = (time_end - time_start)/1000000.0;
+        printf("\n Time in Seconds (T) : %lf\n",time_overhead);
+
+	//Free resources
 	pso_matrix_free(pos, settings->size);
 	pso_matrix_free(vel, settings->size);
 	pso_matrix_free(pos_b, settings->size);
 	pso_matrix_free(pos_nb, settings->size);
 	free(comm);
 	free(fit);
-	free(fit_b);
-	
+	free(fit_b);	
 	
 	if (free_rng)
 		gsl_rng_free(settings->rng);
 		
-	if (rank == 0){
-		free(sendbuf);
-		free(recvbuf);
-	}
-	
 
 }

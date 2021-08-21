@@ -8,7 +8,7 @@
 #include <gsl/gsl_rng.h>
 #include <sys/time.h> //for parallel timer
 #include <mpi.h>
-#include <omp.h>
+//#include <omp.h>
 
 #include "utils.h"
 #include "pso.h"
@@ -274,7 +274,7 @@ pso_settings_t *pso_settings_new(int dim, double r_lo, double r_hi) {
 	}
 	
   	//settings->size = pso_calc_swarm_size(settings->dim);
-	settings->size = 36;
+	settings->size = 72;
 	settings->print_every = 1000;
   	settings->steps = 100001;
   	settings->c1 = 1.496;
@@ -298,14 +298,14 @@ pso_settings_t *pso_settings_new(int dim, double r_lo, double r_hi) {
 
 void pso_serial_settings(pso_settings_t *settings){
 	
-	settings->dim = 100;
+	settings->dim = 1000;
 	settings->x_hi = 20;
 	settings->x_lo = -20;
 	settings->goal = 1e-5;
 	settings->limits = pso_autofill_limits(settings->x_lo, settings->x_hi, settings->dim);
 
   	//settings->size = pso_calc_swarm_size(settings->dim) * N;
-  	settings->size = 36;
+  	settings->size = 72;
 	settings->print_every = 1000;
   	settings->steps = 100001;
   	settings->c1 = 1.496;
@@ -360,7 +360,7 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
 
 
 	//MPI Settings
-	int nparticles = 36;
+	int nparticles = 72;
 	int rank;
 	int nproc = N;	
 	int *recvbuf = (int *)malloc((settings->dim+1) * nproc * sizeof(int));
@@ -457,7 +457,7 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
 
   	// SWARM INITIALIZATION
   	// for each particle
-  	#pragma omp parallel for private(a,b)   reduction(min:solution->error)
+  	//#pragma omp parallel for private(a,b)
   	for (i=0; i<settings->size; i++) {
     		// for each dimension
     		for (d=0; d<settings->dim; d++) {
@@ -523,7 +523,7 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
 	
 	// RUN ALGORITHM
   	for (step=0; step<settings->steps; step++) {
-		#pragma omp parallel num_threads(4) shared(min)
+		//#pragma omp parallel num_threads(4) shared(min)
 		// update current step
     		settings->step = step;
     		// update inertia weight
@@ -560,7 +560,7 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
     		// update all particles
     		for (i=0; i<settings->size; i++) {
       			
-			#pragma omp for private(a,b)
+			//#pragma omp for private(a,b)
 			// for each dimension
       			for (d=0; d<settings->dim; d++) {
         		// calculate stochastic coefficients

@@ -421,14 +421,15 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
 
   	// INITIALIZE SOLUTION
   	int min;
-	solution->error = DBL_MAX;	
+	double err = DBL_MAX;
+	solution->error = err;	
 	/* START */
 
 
 
   	// SWARM INITIALIZATION
   	// for each particle
-  	#pragma omp parallel for private(a,b)
+  	#pragma omp parallel for private(a,b)  reduction(min:err)
   	for (i=0; i<settings->size; i++) {
     		// for each dimension
     		for (d=0; d<settings->dim; d++) {
@@ -495,28 +496,29 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
 	// RUN ALGORITHM
   	for (step=0; step<settings->steps; step++) {
 		#pragma omp parallel num_threads(4) shared(min)
-		// update current step
-    		settings->step = step;
-    		// update inertia weight
-    		// do not bother with calling a calc_w_const function
-    		if (calc_inertia_fun != NULL) {
-      			w = calc_inertia_fun(step, settings);
-		}
+		{
+			// update current step
+    			settings->step = step;
+    			// update inertia weight
+    			// do not bother with calling a calc_w_const function
+    			if (calc_inertia_fun != NULL) {
+      				w = calc_inertia_fun(step, settings);
+			}
 
 
 
-    		//update pos_nb matrix (find best of neighborhood for all particles)
-	   	inform_fun(comm, (double **)pos_nb, (double **)pos_b, fit_b, solution->gbest,
-	    		     improved, settings);
+    			//update pos_nb matrix (find best of neighborhood for all particles)
+	   		inform_fun(comm, (double **)pos_nb, (double **)pos_b, fit_b, solution->gbest,
+	    			     improved, settings);
 	    		
 		
-		// the value of improved was just used; reset it
-	    	improved = 0;	
+			// the value of improved was just used; reset it
+	    		improved = 0;	
 		
 
-    		// update all particles
-    		for (i=0; i<settings->size; i++) {
-			//#pragma omp for private(a,b)
+    			// update all particles
+			#pragma omp for private(a,b)
+    			for (i=0; i<settings->size; i++) {
 			// for each dimension
       			for (d=0; d<settings->dim; d++) {
         		// calculate stochastic coefficients
@@ -600,25 +602,29 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
       			}
 
 		
-
+		}
       		// update gbest?? - algorithm would end here in serial version,
       		// but additional code is required to perform the same update
       		// in each proc
       			
-			//#pragma omp for reduction(min:solution->error)
-      			//for(i=0; i<settings->size; i++)		
-			if (fit[i] < solution->error) {
-        			improved = 1;
+			#pragma omp for reduction(min:err)
+      			for(i=0; i<settings->size; i++) 		
+				if (fit[i] < solution->error) {
+        				improved = 1;
 				
-				min = i;
-        			// update best fitness
-        			solution->error = fit[i];
-
-  			      	// copy particle pos to gbest vector - removed because we have yet to find gbest
-       				memmove((void *)solution->gbest, (void *)pos[min], sizeof(double) * settings->dim);			
-			}
+        				// update best fitness
+        				solution->error = fit[i];
+				}
+			#pragma omp for
+			for(i=0; i<settings->size; i++){
+				if(fit[i] == solution->error)
+					min = i;
+				}
 		}
-
+  			   
+		// copy particle pos to gbest vector - removed because we have yet to find gbest
+       		memmove((void *)solution->gbest, (void *)pos[min], sizeof(double) * settings->dim);			
+				
 		if (settings->print_every && (step % settings->print_every == 0))
       			printf("Step %d,    w=%.2f,    min_err=,    %.5e\n", step, w, solution->error);	
 			

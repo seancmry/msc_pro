@@ -29,4 +29,9 @@ griewank
 rosenbrock
 sphere
 ```
+For the purposes of running instrumented code, it is necessary to load the SCOREP module:
+```
+module load scorep/6.0
+```
+
 

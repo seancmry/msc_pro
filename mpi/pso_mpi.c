@@ -13,7 +13,7 @@
 #include "utils.h"
 #include "pso.h"
 
-#define N 9
+#define N 4
 
 //Timer settings for parallel code
 struct timeval TimeValue_Start;
@@ -305,7 +305,7 @@ void pso_serial_settings(pso_settings_t *settings){
 	settings->limits = pso_autofill_limits(settings->x_lo, settings->x_hi, settings->dim);
 
   	//settings->size = pso_calc_swarm_size(settings->dim) * N;
-  	settings->size = 72;
+  	settings->size = 36;
 	settings->print_every = 1000;
   	settings->steps = 100001;
   	settings->c1 = 1.496;
@@ -360,7 +360,7 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
 
 
 	//MPI Settings
-	int nparticles = 72;
+	int nparticles = 36;
 	int rank;
 	int nproc = N;	
 	int *recvbuf = (int *)malloc((settings->dim+1) * nproc * sizeof(int));
@@ -578,7 +578,7 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
 				if (settings->numset == INTEGER){
 					pos[i][d] = roundNum(pos[i][d]);
 				}
-				
+				/*
 				//if(demo){
         				// clamp position within bounds?
         				if (settings->clamp_pos) {
@@ -602,7 +602,7 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
           					}
         				}
 				//}
-				/*
+				*/
 				//if(serial) {
 					if (settings->clamp_pos) {
           					if (pos[i][d] < settings->limits[0][i]) {
@@ -625,7 +625,7 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
           					}
         				}
 				//}
-				*/
+			
 					
 			}
                 	// update particle fitness

@@ -2,8 +2,8 @@
 MPICC = mpicc
 #CC = gcc -fopenmp
 
-#MPICCFLAGS = -Wall -fopenmp 
-MPICCFLAGS = -Wall   
+MPICCFLAGS = -Wall -fopenmp 
+#MPICCFLAGS = -Wall   
 #PREP = scorep
 #PREP_CFLAGS = -L/home/support/apps/cports/rhel-6.x86_64/gnu/papi/5.6.0/lib
 LDFLAGS = -lm -lgsl -lgslcblas

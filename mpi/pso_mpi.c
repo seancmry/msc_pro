@@ -8,7 +8,7 @@
 #include <gsl/gsl_rng.h>
 #include <sys/time.h> //for parallel timer
 #include <mpi.h>
-//#include <omp.h>
+#include <omp.h>
 
 #include "utils.h"
 #include "pso.h"
@@ -304,7 +304,7 @@ void pso_serial_settings(pso_settings_t *settings){
 	settings->goal = 1e-5;
 	settings->limits = pso_autofill_limits(settings->x_lo, settings->x_hi, settings->dim);
 
-  	//settings->size = pso_calc_swarm_size(settings->dim) * N;
+  	//settings->size = pso_calc_swarm_size(settings->dim)/N;
   	settings->size = 36;
 	settings->print_every = 1000;
   	settings->steps = 100001;
@@ -373,7 +373,7 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
 	//Start timer
 	gettimeofday(&TimeValue_Start, &TimeZone_Start);
 
-	
+		
 	// Split the number of particles across processes	
 	if(rank == 0){
 		settings->size = nparticles / nproc;
@@ -384,7 +384,7 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
 		settings->size += nparticles % nproc;
 		//printf("Number of particles is %d\n", nparticles);
 	}
-
+	
 	//RNG	
 	int free_rng = 0;
   	// Particles
@@ -457,20 +457,20 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
 
   	// SWARM INITIALIZATION
   	// for each particle
-  	//#pragma omp parallel for private(a,b)
+  	#pragma omp parallel for private(a,b)
   	for (i=0; i<settings->size; i++) {
     		// for each dimension
     		for (d=0; d<settings->dim; d++) {
 			// generate two numbers within the specified range
 			//if (demo){
-				a = settings->r_lo[d] + (settings->r_hi[d] - settings->r_lo[d])  *   \
+				//a = settings->r_lo[d] + (settings->r_hi[d] - settings->r_lo[d])  *   \
 				gsl_rng_uniform(settings->rng);
-       				b = settings->r_lo[d] + (settings->r_hi[d] - settings->r_lo[d])  *      \
+       				//b = settings->r_lo[d] + (settings->r_hi[d] - settings->r_lo[d])  *      \
 				gsl_rng_uniform(settings->rng);
        			//}
 			//if (serial){
-				//a = gsl_rng_uniform_int(settings->rng, settings->limits[1][i]);
-		        	//b = gsl_rng_uniform_int(settings->rng, settings->limits[1][i]);
+				a = gsl_rng_uniform_int(settings->rng, settings->limits[1][i]);
+		        	b = gsl_rng_uniform_int(settings->rng, settings->limits[1][i]);
 			//}
 			/*
 			a = settings->limits[0][i] + (settings->limits[1][i] - settings->limits[0][i]) 
@@ -523,7 +523,7 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
 	
 	// RUN ALGORITHM
   	for (step=0; step<settings->steps; step++) {
-		//#pragma omp parallel num_threads(4) shared(min)
+		#pragma omp parallel num_threads(4) shared(min)
 		// update current step
     		settings->step = step;
     		// update inertia weight
@@ -560,7 +560,7 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
     		// update all particles
     		for (i=0; i<settings->size; i++) {
       			
-			//#pragma omp for private(a,b)
+			#pragma omp for private(a,b)
 			// for each dimension
       			for (d=0; d<settings->dim; d++) {
         		// calculate stochastic coefficients
@@ -658,7 +658,7 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
 			if (solution->error == fit[i]){
 				min = i;
         			// copy particle pos to gbest vector - removed because we have yet to find gbest
-       				memmove((void *)solution->gbest, (void *)pos[min], sizeof(double) * settings->dim);			
+       				memmove((void *)solution->gbest, (void *)pos[i], sizeof(double) * settings->dim);			
 			
       			}
 		}
@@ -677,7 +677,7 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
 		//Broadcast global best position and error
 		MPI_Bcast(solution->gbest, ((int)settings->dim), MPI_INT, 0, MPI_COMM_WORLD);
 		//MPI_Bcast(&solution->error, 1, MPI_INT, 0, MPI_COMM_WORLD);
-
+	
 		
 		//Print from rank 0
 		if(rank == 0){		

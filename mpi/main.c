@@ -11,7 +11,7 @@
 #include <ctype.h>
 
 #include "mpi.h"
-//#include <omp.h>
+#include <omp.h>
 
 #include "utils.h"
 #include "pso.h"
@@ -97,7 +97,7 @@ int main(int argc, char **argv) {
 	parse_arguments(argc,argv);	
 			
 	//Initialise PSO settings - comment out when executing path application
-	pso_settings_t *settings = NULL; 
+	//pso_settings_t *settings = NULL; 
 		
 
 	//Initialise timer
@@ -113,7 +113,7 @@ int main(int argc, char **argv) {
 	//Stop timer
 	//end_timer(&(stats->parallel_time));
 
-	//MPI_Barrier(MPI_COMM_WORLD);
+	MPI_Barrier(MPI_COMM_WORLD);
 
 	//Print timing
 	//print_elapsed_time((char*) "PARALLEL ", stats->parallel_time.start, stats->parallel_time.finish);
@@ -275,6 +275,7 @@ void pso_parallel_path(int argc, char **argv) {
 
 		// Free global best buffer
     		free(solution.gbest);
+
  		
 }
 

@@ -9,11 +9,54 @@ sd_rosenbrock = [ 155.74, 322.99, 1942.9, 1951.6, 3699.4 ]
 sd_griewank = [ 1.022, 0.76188, 1.1489, 1.2648, 1.3156 ]
 dims = [ 20, 30, 50, 70, 100 ]
 
+#Standard deviation data
 sd_ackley2 = [ 0.17158, 0.41190, 0.61797, 0.32277 ]
+sd_ackley3 = [ 0.41190, 0.61797, 0.32277 ]
+sd_ackley_n4 = [ 1.403, 0.2462, 0.1592 ]
+sd_ackley_n9 = [ 0.2701, 0.1319, 0.2065 ]
+sd_ackley_n9omp = [ 0.2454, 0.1505, 0.1247 ]
+
 sd_sphere2 = [ 146.13, 435.64, 27717.0, 112470.0 ]
+sd_sphere3 = [ 435.64, 27717.0, 112470.0 ]
+sd_sphere_n4 = [ 5663.0, 6592.0, 14760.0 ]
+sd_sphere_n9 = [ 14280.0, 32540.0, 74810.0 ]
+sd_sphere_n9omp = [ 16500.0, 41710.0, 60580.0 ]
+
 sd_rosenbrock2 = [ 322.99, 3699.4, 6974.8, 10289.0 ]
+sd_rosenbrock3 = [ 3699.4, 6974.8, 10289.0 ]
+sd_rosenbrock_n4 = [ 493.9, 1018.0, 3028.0 ]
+sd_rosenbrock_n9 = [ 1768.0, 5300.0, 9504.0 ]
+sd_rosenbrock_n9omp = [ 1718.0, 6002.0, 8656.0 ]
+
 sd_griewank2 = [ 0.76188, 1.3156, 71.154, 328.38 ]
+sd_griewank3 = [ 1.3156, 71.154, 328.38 ]
+sd_griewank_n4 = [ 32.70, 57.13, 205.0 ]
+sd_griewank_n9 = [ 134.9, 426.5, 668.3 ]
+sd_griewank_n9omp = [ 126.5, 359.8, 500.3 ]
 dims2 = [ 30, 100, 500, 1000 ]
+dims3 = [ 100, 500, 1000 ]
+
+#Time data
+time_ackley2 = [ 2908.0, 147818.00, 560022.80 ]
+time_ackley_n9omp = [ 7937.64, 49021.54, 119049.22 ]
+time_sphere2 = [ 1819.60, 95558.40, 419196.80 ]
+time_sphere_n9omp = [ 7351.56, 32470.61, 76010.51 ]
+time_rosenbrock2 = [ 2831.20, 74689.60, 299853.20 ]
+time_rosenbrock_n9omp = [ 7361.14, 43278.35, 104320.48 ]
+time_griewank2 = [ 3194.0, 134804.80, 590080.0 ]
+time_griewank_n9omp = [ 8607.37, 52867.81, 131163.41 ]
+
+#Speedups
+speedup_ackley = [np.divide(560022.80, 234544.60), np.divide(560022.80, 118191.71) ]
+speedup_sphere = [np.divide(419196.80, 104869.08), np.divide(419196.80, 76700.00) ]
+speedup_rosenbrock = [np.divide(299853.20, 162449.60), np.divide(299853.20, 104025.10) ]
+speedup_griewank = [np.divide(590080.00, 196292.12), np.divide(590080.00, 131163.41) ]
+speedup_path = [ 0.8071, 1.5466, 2.3244, 2.9964, 3.7083, 4.4666, 5.2462, 5.9033 ]
+nproc = [ 4, 9]
+nproc_path = [ 1, 2, 3, 4, 5, 6, 7, 8]
+
+
+
 
 step = [ 0,
          50,
@@ -1239,58 +1282,18 @@ soldist = [ 611.7762, 1854.101568, 3628.078619, 6699.948804, 9435.238536, 12243.
             21802.4033, 25707.27591 ]
 dim_serial = [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 ]
 
-#Parallel
+#Parallel data - not used
 labels = ['Ackley', 'Sphere', 'Rosenbrock', 'Griewank' ]
 tmpi4 = [ 11.056, 8.181, 11.399, 15.016 ]
 tomp4 = [ 11.089, 8.186, 11.392, 15.026 ]
 tmpi9 = [ 12.344, 9.375, 12.676, 15.459 ]
 tomp9 = [ 12.332, 9.411, 12.684, 16.441 ]
 
-#Graph 1
-x = np.arange(len(labels))  # the label locations
-width = 0.35  # the width of the bars
-
-fig, ax = plt.subplots()
-rects1 = ax.bar(x - width/2, tmpi4, width, label='nproc= 4')
-rects2 = ax.bar(x + width/2, tmpi9, width, label='nproc= 9')
-
-# Add some text for labels, title and custom x-axis tick labels, etc.
-ax.set_ylabel('Time (seconds)')
-#ax.set_title('Timing of MPI setup for nproc of 4 and 9')
-ax.set_xticks(x)
-ax.set_xticklabels(labels)
-ax.legend()
-
-ax.bar_label(rects1, padding=3)
-ax.bar_label(rects2, padding=3)
-
-fig.tight_layout()
-
-plt.show()
-
-#Graph 2
-x = np.arange(len(labels))  # the label locations
-width = 0.35  # the width of the bars
-
-fig, ax = plt.subplots()
-rects1 = ax.bar(x - width/2, tomp4, width, label='nproc= 4')
-rects2 = ax.bar(x + width/2, tomp9, width, label='nproc= 9')
-
-# Add some text for labels, title and custom x-axis tick labels, etc.
-ax.set_ylabel('Time (seconds)')
-#ax.set_title('Timing of hybrid MPI-OpenMP setup for nprocs of 4 and 9')
-ax.set_xticks(x)
-ax.set_xticklabels(labels)
-ax.legend()
-
-ax.bar_label(rects1, padding=3)
-ax.bar_label(rects2, padding=3)
-
-fig.tight_layout()
-
-plt.show()
-
-
+#
+#
+#PLOTS
+#
+#
 plt.plot(dims, sd_ackley, "-s", label="Ackley")
 plt.plot(dims, sd_sphere, "-o", label="Sphere")
 plt.plot(dims, sd_rosenbrock, "-v", label="Rosenbrock")
@@ -1366,4 +1369,102 @@ plt.ticklabel_format(axis="y", style="sci", scilimits=(0, 0))
 plt.xlabel("Iterations")
 plt.ylabel("Mean fitness")
 # plt.title("Path application")
+plt.show()
+#
+#
+#PARALLEL ANALYSIS
+#
+#
+plt.plot(dims3, sd_ackley3, "-s", label="Ackley")
+plt.plot(dims3, sd_ackley_n9, "-o", label="MPI")
+plt.plot(dims3, sd_ackley_n9omp, "-v", label="MPI-OpenMP")
+plt.xlabel("Dimensions (N)")
+plt.ylabel("Standard deviation of aggregate means from individual runs")
+# plt.title("Standard deviation of mean best solution over 25 runs across N dimensions")
+plt.legend(loc="upper left")
+plt.show()
+
+plt.plot(dims3, sd_sphere3, "-s", label="Sphere")
+plt.plot(dims3, sd_sphere_n9, "-o", label="MPI")
+plt.plot(dims3, sd_sphere_n9omp, "-v", label="MPI-OpenMP")
+plt.xlabel("Dimensions (N)")
+plt.ylabel("Standard deviation of aggregate means from individual runs")
+# plt.title("Standard deviation of mean best solution over 25 runs across N dimensions")
+plt.legend(loc="upper left")
+plt.show()
+
+
+plt.plot(dims3, sd_rosenbrock3, "-s", label="Rosenbrock")
+plt.plot(dims3, sd_rosenbrock_n9, "-o", label="MPI")
+plt.plot(dims3, sd_rosenbrock_n9omp, "-v", label="MPI-OpenMP")
+plt.xlabel("Dimensions (N)")
+plt.ylabel("Standard deviation of aggregate means from individual runs")
+# plt.title("Standard deviation of mean best solution over 25 runs across N dimensions")
+plt.legend(loc="upper left")
+plt.show()
+
+
+plt.plot(dims3, sd_griewank3, "-s", label="Griewank")
+plt.plot(dims3, sd_griewank_n9, "-o", label="MPI")
+plt.plot(dims3, sd_griewank_n9omp, "-v", label="MPI-OpenMP")
+plt.xlabel("Dimensions (N)")
+plt.ylabel("Standard deviation of aggregate means from individual runs")
+# plt.title("Standard deviation of mean best solution over 25 runs across N dimensions")
+plt.legend(loc="upper left")
+plt.show()
+#
+#
+#TIMIMG
+#
+#
+plt.plot(dims3, time_ackley2, "-s", label="Ackley")
+plt.plot(dims3, time_ackley_n9omp, "-v", label="MPI-OpenMP")
+plt.xlabel("Dimensions (N)")
+plt.ylabel("Standard deviation of aggregate means from individual runs")
+# plt.title("Standard deviation of mean best solution over 25 runs across N dimensions")
+plt.legend(loc="upper left")
+plt.show()
+
+plt.plot(dims3, time_sphere2, "-s", label="Sphere")
+plt.plot(dims3, time_sphere_n9omp, "-v", label="MPI-OpenMP")
+plt.xlabel("Dimensions (N)")
+plt.ylabel("Standard deviation of aggregate means from individual runs")
+# plt.title("Standard deviation of mean best solution over 25 runs across N dimensions")
+plt.legend(loc="upper left")
+plt.show()
+
+
+plt.plot(dims3, time_rosenbrock2, "-s", label="Rosenbrock")
+plt.plot(dims3, time_rosenbrock_n9omp, "-v", label="MPI-OpenMP")
+plt.xlabel("Dimensions (N)")
+plt.ylabel("Standard deviation of aggregate means from individual runs")
+# plt.title("Standard deviation of mean best solution over 25 runs across N dimensions")
+plt.legend(loc="upper left")
+plt.show()
+
+
+plt.plot(dims3, time_griewank2, "-s", label="Griewank")
+plt.plot(dims3, time_griewank_n9omp, "-v", label="MPI-OpenMP")
+plt.xlabel("Dimensions (N)")
+plt.ylabel("Mean time in milliseconds (ms)")
+# plt.title("Standard deviation of mean best solution over 25 runs across N dimensions")
+plt.legend(loc="upper left")
+plt.show()
+
+plt.plot(nproc, speedup_ackley, "-s", label="Ackley")
+plt.plot(nproc, speedup_sphere, "-o", label="Sphere")
+plt.plot(nproc, speedup_rosenbrock, "-v", label="Rosebrock")
+plt.plot(nproc, speedup_griewank, "-h", label="Griewank")
+plt.xlabel("Processors (n)")
+plt.ylabel("Speedup")
+# plt.title("Speedup graph")
+plt.legend(loc="upper left")
+plt.show()
+
+
+plt.plot(nproc_path, speedup_path, "-h", label="MPI-OpenMP")
+plt.xlabel("Processors (n)")
+plt.ylabel("Speedup")
+# plt.title("Speedup graph")
+plt.legend(loc="upper left")
 plt.show()

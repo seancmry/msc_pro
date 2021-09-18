@@ -1,18 +1,11 @@
 #include <stdio.h>
 #include <getopt.h>
-#include <stdbool.h>
 #include <time.h>
 #include "utils.h"
 
 /*Initial PSO settings */
 int popSize = 100;
 //int maxIterations = 500; 
-
-/* Serial and parallel option */
-bool serial = true;
-//bool parallel = 0;
-//bool demo = true; //for benchmark functions
-//int timing = 0;
 
 /* Path options */
 int inUavID = 0;
@@ -127,16 +120,4 @@ void print_elapsed_time(char* fn_name, clock_t start, clock_t finish) {
 	printf("%s: %fms \n", fn_name, elapsed_time(start,finish));
 }
 
-/*
-void options() {
-   
-
-}
-
-
-void print_usage() {
-return;
-
-}
-*/
 

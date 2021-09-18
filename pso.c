@@ -414,22 +414,16 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
     		// for each dimension
     		for (d=0; d<settings->dim; d++) {
 			// generate two numbers within the specified range
-			/*if (demo){
-				a = settings->r_lo[d] + (settings->r_hi[d] - settings->r_lo[d])  *   \
-				gsl_rng_uniform(settings->rng);
-       				b = settings->r_lo[d] + (settings->r_hi[d] - settings->r_lo[d])  *      \
-				gsl_rng_uniform(settings->rng);
-       			} */
-			//if (serial){
-				a = gsl_rng_uniform_int(settings->rng, settings->limits[1][i]);
-		        	b = gsl_rng_uniform_int(settings->rng, settings->limits[1][i]);
-			//}
 			/*
-			a = settings->limits[0][i] + (settings->limits[1][i] - settings->limits[0][i]) 
-   			 gsl_rng_uniform(settings->rng);
-      			b = settings->limits[0][i] + (settings->limits[1][i] - settings->limits[0][i])
-       			 gsl_rng_uniform(settings->rng);
-			*/
+ 			//UNCOMMENT FOR DEMO
+			a = settings->r_lo[d] + (settings->r_hi[d] - settings->r_lo[d])  *   \
+			gsl_rng_uniform(settings->rng);
+       			b = settings->r_lo[d] + (settings->r_hi[d] - settings->r_lo[d])  *      \
+			gsl_rng_uniform(settings->rng);
+       			*/
+			a = gsl_rng_uniform_int(settings->rng, settings->limits[1][i]);
+		        b = gsl_rng_uniform_int(settings->rng, settings->limits[1][i]);
+			
       			// initialize position
       			pos[i][d] = a;
       			// best position is the same
@@ -503,52 +497,50 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
 					pos[i][d] = roundNum(pos[i][d]);
 				}
 				/*
-				if(demo){
-        				// clamp position within bounds?
-        				if (settings->clamp_pos) {
-          					if (pos[i][d] < settings->r_lo[d]) {
-            						pos[i][d] = settings->r_lo[d];
-            						vel[i][d] = 0;
-          					} else if (pos[i][d] > settings->r_hi[d]) {
-           		 				pos[i][d] = settings->r_hi[d];
-            						vel[i][d] = 0;
-						}
-        				} else {
-          				// enforce periodic boundary conditions
-          					if (pos[i][d] < settings->r_lo[d]) {
-            						pos[i][d] = settings->r_hi[d] - fmod(settings->r_lo[d] - pos[i][d],
-                                              			settings->r_hi[d] - settings->r_lo[d]);
-            						vel[i][d] = 0;
-          					} else if (pos[i][d] > settings->r_hi[d]) {
-            						pos[i][d] = settings->r_lo[d] + fmod(pos[i][d] - settings->r_hi[d],
-                                              			settings->r_hi[d] - settings->r_lo[d]);
-            						vel[i][d] = 0;
-          					}
-        				}
-				}
+				// UNCOMMENT FOR DEMO VERSION
+        			// clamp position within bounds?
+        			if (settings->clamp_pos) {
+          				if (pos[i][d] < settings->r_lo[d]) {
+            					pos[i][d] = settings->r_lo[d];
+            					vel[i][d] = 0;
+          				} else if (pos[i][d] > settings->r_hi[d]) {
+           		 			pos[i][d] = settings->r_hi[d];
+            					vel[i][d] = 0;
+					}
+        			} else {
+          			// enforce periodic boundary conditions
+          				if (pos[i][d] < settings->r_lo[d]) {
+            					pos[i][d] = settings->r_hi[d] - fmod(settings->r_lo[d] - pos[i][d],
+                                            			settings->r_hi[d] - settings->r_lo[d]);
+            					vel[i][d] = 0;
+          				} else if (pos[i][d] > settings->r_hi[d]) {
+            					pos[i][d] = settings->r_lo[d] + fmod(pos[i][d] - settings->r_hi[d],
+                                             			settings->r_hi[d] - settings->r_lo[d]);
+            					vel[i][d] = 0;
+          				}
+        			}
+				
 				*/
-				//if(serial) {
-					if (settings->clamp_pos) {
-          					if (pos[i][d] < settings->limits[0][i]) {
-            						pos[i][d] = settings->limits[0][i];
-            						vel[i][d] = 0;
-          					} else if (pos[i][d] > settings->limits[1][i]) {
-           		 				pos[i][d] = settings->limits[1][i];
-            						vel[i][d] = 0;
-						}
-        				} else {
-          				// enforce periodic boundary conditions
-          					if (pos[i][d] < settings->limits[0][i]) {
-            						pos[i][d] = settings->limits[1][i] - fmod(settings->limits[0][i] - pos[i][d],
-                                              			settings->limits[1][i] - settings->limits[0][i]);
-            						vel[i][d] = 0;
-          					} else if (pos[i][d] > settings->limits[1][i]) {
-            						pos[i][d] = settings->limits[0][i] + fmod(pos[i][d] - settings->limits[1][i],
-                                              			settings->limits[1][i] - settings->limits[0][i]);
-            						vel[i][d] = 0;
-          					}
-        				}
-				//}
+				if (settings->clamp_pos) {
+          				if (pos[i][d] < settings->limits[0][i]) {
+            					pos[i][d] = settings->limits[0][i];
+            					vel[i][d] = 0;
+          				} else if (pos[i][d] > settings->limits[1][i]) {
+           		 			pos[i][d] = settings->limits[1][i];
+            					vel[i][d] = 0;
+					}
+        			} else {
+          			// enforce periodic boundary conditions
+          				if (pos[i][d] < settings->limits[0][i]) {
+            					pos[i][d] = settings->limits[1][i] - fmod(settings->limits[0][i] - pos[i][d],
+                                             			settings->limits[1][i] - settings->limits[0][i]);
+            					vel[i][d] = 0;
+          				} else if (pos[i][d] > settings->limits[1][i]) {
+            					pos[i][d] = settings->limits[0][i] + fmod(pos[i][d] - settings->limits[1][i],
+                                             			settings->limits[1][i] - settings->limits[0][i]);
+            					vel[i][d] = 0;
+          				}
+        			}
 					
 			}
                 	// update particle fitness
@@ -576,16 +568,15 @@ void pso_solve(pso_obj_fun_t obj_fun, void *obj_fun_params, pso_result_t *soluti
 		
 	}
  
-	//free resources
-	//if (serial){ 
-		pso_matrix_free(pos, settings->size);
-		pso_matrix_free(vel, settings->size);
-		pso_matrix_free(pos_b, settings->size);
-		pso_matrix_free(pos_nb, settings->size);
-		free(comm);
-		free(fit);
-		free(fit_b);
-	//}
+	//free resources 
+	pso_matrix_free(pos, settings->size);
+	pso_matrix_free(vel, settings->size);
+	pso_matrix_free(pos_b, settings->size);
+	pso_matrix_free(pos_nb, settings->size);
+	free(comm);
+	free(fit);
+	free(fit_b);
+	
 	
 	if (free_rng)
 		gsl_rng_free(settings->rng);

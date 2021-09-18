@@ -1,5 +1,4 @@
 
-#include <stdbool.h>
 #ifndef _UTILS_H
 #define _UTILS_H
 
@@ -7,10 +6,6 @@
 extern int popSize; 
 extern int maxIterations; 
 
-/* Serial and parallel option */
-extern bool demo; //for benchmark functions
-extern bool serial; //for serial path example
-//extern int timing;
 /* Path options */
 extern int inUavID;
 extern double inStartX, inStartY, inEndX, inEndY;
@@ -38,9 +33,8 @@ struct Timer{
 };
 
 struct timing_report{
-	//struct Timer demo_time;
-	//struct Timer serial_time;
-	struct Timer parallel_time;
+	struct Timer demo_time;
+	struct Timer serial_time;
 };
 
 void start_timer(struct Timer* timing);

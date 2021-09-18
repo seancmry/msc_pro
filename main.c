@@ -10,7 +10,6 @@
 #include <unistd.h>
 #include <ctype.h>
 
-#include "mpi.h"
 
 #include "utils.h"
 #include "pso.h"
@@ -85,227 +84,59 @@ double pso_griewank(double *vec, int dim, void *params) {
 
 int main(int argc, char **argv) {
 	
-  	double **g1, **g2;
-	int dims[2] = {N,N};
-	int period[] = {1, 0}; //Left to right and back around again (periodic boundary conditions)
-	int reorder = 0;
-	int pbc[2] = {0,0};		
-	int coords[2];
-	int source, dest, dimension, versus, particles;
-	int chunk_rows, chunk_cols;
-	int rank, size;
-	int cols, rows;
-	int up, down, left, right;
-	int xs, xe, ys, ye;
-	int i;
-	MPI_Comm cart_comm;
-	MPI_Datatype coltype, rowtype;
-
-	int rank, size;
-	MPI_Init(&argc, &argv);
-	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-	MPI_Comm_size(MPI_COMM_WORLD, &size);
-	/*
+ 
     	//Parse arguments and print options
 	parse_arguments(argc,argv);	
 	
-	if (rank == 0){
-		particles = settings->size / size;
-	}
-	MPI_Bcast(&particles, 1, MPI_INT, 0, MPI_COMM_WORLD);
-	
-	if (rank == 0){
-		particles += settings->size%size;
-	}	
-
-	//Create cartesian topology and sendrecv data in grid (with ring fashion)
-	MPI_Cart_create(MPI_COMM_WORLD, 2, dim, period, reorder, &cart_comm);
-	for (dimension = 0; dimension < 2; dimension++){
-		for (versus = -1; versus < 2; versus +=2) {
-			MPI_Cart_shift(ring_comm, dimension, versus, &source, &dest);
-			MPI_Sendrecv(buffer, N, MPI_DOUBLE, source, source_tag, buffer, N, MPI_DOUBLE, dest, dtag, grid_comm, &stat);
-		}
-	} 
-	*/
-
-
-	/* Path options */
-	//int inRoboID = 0;
-	//double inStartX = 70.0;
-	//double inStartY = 70.0;
-	//double inEndX = 136.0;
-	//double inEndY = 127.0;
-	//double inStepSize = 1;
-	//double inVelocity = 2;
-	//double inOriginX = 0;
-	//double inOriginY = 0;
-	//double inHorizonX = 200;
-	//double inHorizonY = 200;  // 70
-	//char inFileHandle[20] = "maps/sampleMap4.dat\0";
-	//char inFileHandle[] = "sample_map_OpenRooms.txt";
-	//int waypoints = 5;
-
-	/* PSO parameters */
-	//double pso_c1 = -1.0;
-	//double pso_c2 = -1.0;
-	//double pso_w_max = -1.0;
-	//double pso_w_min = -1.0;
-	//int pso_w_strategy_select = -1;
-	//int pso_nhood_size = -1;
-	//int pso_nhood_topology_select = -1;
-
-	//int pso_w_strategy = -1;
-	//int pso_nhood_topology = -1;
-
-
 	
 	/* DEMO */
 /*
-	if(demo) {
 		
-		//Initialise PSO settings
-		pso_settings_t *settings = NULL; 
+	//Initialise PSO settings
+	pso_settings_t *settings = NULL; 
 		
-		//Initialise timer
-		struct timing_report* stats = malloc(sizeof(double));
+	//Initialise timer
+	struct timing_report* stats = malloc(sizeof(double));
 			
-		//Begin timer
-		start_timer(&(stats->demo_time));
+	//Begin timer
+	start_timer(&(stats->demo_time));
 		
-		//Execute
-		pso_demo(settings,argc,argv);
+	//Execute
+	pso_demo(settings,argc,argv);
 
-		//Stop timer
-		end_timer(&(stats->demo_time));
+	//Stop timer
+	end_timer(&(stats->demo_time));
 
-		//Print timing
-		print_elapsed_time((char*) "DEMO ", stats->demo_time.start, stats->demo_time.finish);
+	//Print timing
+	print_elapsed_time((char*) "DEMO ", stats->demo_time.start, stats->demo_time.finish);
 
-		//Free timer
-		free(stats);
+	//Free timer
+	free(stats);
 		
-	}
+*/	
 
+	/* PATH APPLICATION */	 
+			
+	//Initialise timer
+	struct timing_report* stats = malloc(sizeof(double));
+			
+	//Begin timer
+	start_timer(&(stats->serial_time));
+		
+	//Execute
+	pso_serial(argc,argv);
+
+	//Stop timer
+	end_timer(&(stats->serial_time));
+
+	//Print timing
+	print_elapsed_time((char*) "SERIAL ", stats->serial_time.start, stats->serial_time.finish);
+
+	//Free timer
+	free(stats);	
 	
-	//if(serial) { 
-			
-		//Initialise timer
-		struct timing_report* stats = malloc(sizeof(double));
-			
-		//Begin timer
-		start_timer(&(stats->serial_time));
 		
-		//Execute
-		pso_serial(argc,argv);
-
-		//Stop timer
-		end_timer(&(stats->serial_time));
-
-		//Print timing
-		print_elapsed_time((char*) "SERIAL ", stats->serial_time.start, stats->serial_time.finish);
-
-		//Free timer
-		free(stats);	
-	//}
-
-*/
-		if(rows%N != 0 || cols%N != 0){
-			printf("ERROR:: Rows or cols are not divisible by the given number of processes\n");
-			MPI_Finalize();
-			return 1;
-		}else{
-			chunk_rows = rows/N;
-			chunk_cols = cols/N;
-		}
-
-		MPI_Bcast(&chunk_rows,1,MPI_INT,0,MPI_COMM_WORLD);
-		MPI_Bcast(&chunk_cols,1,MPI_INT,0,MPI_COMM_WORLD);
-
-		g1 = malloc((chunk_rows+2) * sizeof(double *));
-		g1[0] = malloc((chunk_rows+2) * (chunk_cols+2) * sizeof(double));
-		for(i=0;i<(chunk_rows+2);i++){
-			g1[i] = g1[0] + i * (chunk_cols+2);
-		}
-		g2 = malloc((chunk_rows+2) * sizeof(double *));
-		g2[0] = malloc((chunk_rows+2) * (chunk_cols+2) * sizeof(double));
-		for(i=0;i<(chunk_rows+2);i++){
-			g2[i] = g2[0] + i * (chunk_cols+2);
-		}
-		//intialise dirichlet
-		initialize(g1,rank,chunk_rows+2,chunk_cols+2,&xs,&xe,&ys,&ye);
-		/*if(rank==0){
-			print_grid(g1,rank,chunk_rows,chunk_cols);
-			printf("%i, %i, %i, %i\n",xs,xe,ys,ye);
-		}*/
-		initialize(g2,rank,chunk_rows+2,chunk_cols+2,&xs,&xe,&ys,&ye);	
-
-//FIXME - taken from pso_mpi.c. Should set up a switch operation for selecting the type of topology here in main only.
-void MPI_init_comm_ring(MPI_Comm ring_comm, pso_settings_t){
-
-	int rank, val, size, false=0;
-    	int nbrright, nbrleft;
-    	MPI_Status stat;
-
-    	MPI_Cart_create(MPI_COMM_WORLD, 1, &size, &false, 1, &ring_comm);
-    	MPI_Cart_shift(ring_comm, 0, 1, &nbrleft, &nbrright);
-    	MPI_Comm_rank(ring_comm, &rank);
-    	MPI_Comm_size(ring_comm, &size);
-    	
-	//Find neighbours
-	do {
-		if (rank == 0){
-	    	scanf( "%d", &val);
-	    	MPI_Send(&val, 1, MPI_INT, nbrright, 0, ring_comm);
-	} else {
-	    	MPI_Recv(&val, 1, MPI_INT, nbrleft, 0, ring_comm, &stat);
-	    	MPI_Send(&val, 1, MPI_INT, nbrright, 0, ring_comm);
-	}
-	printf( "Process %d got %d\n", rank, val);
-}
-
-
-		//cartesian communicator
-		MPI_Cart_create(MPI_COMM_WORLD,2,dims,pbc,0,&cart_comm);
-		MPI_Cart_coords(cart_comm,rank,2,coords);
-		//get neighbours
-		MPI_Cart_shift(cart_comm,0,1,&up,&down);
-		MPI_Cart_shift(cart_comm,1,1,&left,&right);
-		//vector datatype
-		MPI_Type_vector(1,chunk_cols,chunk_cols+2,MPI_DOUBLE,&rowtype);
-        	MPI_Type_vector(chunk_rows,1,chunk_cols+2,MPI_DOUBLE,&coltype);
-        	MPI_Type_commit(&rowtype);
-        	MPI_Type_commit(&coltype);
-
-		//Initialise timer
-		struct timing_report* stats = malloc(sizeof(double));
-			
-		//Begin timer
-		start_timer(&(stats->parallel_time));
-		
-		//Execute
-		pso_solve(...);
-
-		//Stop timer
-		end_timer(&(stats->parallel_time));
-
-		//Print timing
-		print_elapsed_time((char*) "PARALLEL ", stats->parallel_time.start, stats->parallel_time.finish);
-
-		//Free timer
-		free(stats);
-
-		//Free data
-		MPI_Type_free(&coltype);
-		MPI_Type_free(&rowtype);
-		MPI_Comm_free(&cart_comm);
-		MPI_Finalize();	
-
-		free(g1[0]);
-		free(g1);
-		free(g2[0]);
-		free(g2);
-
-		return 0;
+	return 0;
 }
 
 

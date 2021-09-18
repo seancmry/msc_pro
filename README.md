@@ -32,6 +32,8 @@ For the purposes of running instrumented code, it is necessary to load the SCORE
 ```
 module load scorep/6.0
 ```
+Sample screen output for the parallel version:
+
 ![alt text][img]
 
 [img]: https://github.com/seancmry/msc_pro/blob/master/report/plots/screenoutput.PNG

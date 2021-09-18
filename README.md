@@ -34,5 +34,5 @@ module load scorep/6.0
 ```
 ![alt text][img]
 
-[img]: https://github.com/seancmry/msc_pro/report/plots/screenoutput.PNG "Screen Output"
+[img]: https://github.com/seancmry/msc_pro/blob/master/report/plots/screenoutput.PNG
 

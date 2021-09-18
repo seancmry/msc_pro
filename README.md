@@ -1,5 +1,4 @@
-# msc_pro
-M.Sc. Project - will add gif demonstration once complete
+# M.Sc. Project
 
 Modules loaded for the running of the demo and serial path components prior to the cluster system updates in March 2021:
 ```
@@ -33,5 +32,7 @@ For the purposes of running instrumented code, it is necessary to load the SCORE
 ```
 module load scorep/6.0
 ```
+![alt text][img]
 
+[img]: https://github.com/seancmry/msc_pro/report/plots/screenoutput.PNG "Screen Output"
 
